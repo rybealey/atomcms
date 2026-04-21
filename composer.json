@@ -33,8 +33,6 @@
     "require-dev": {
         "barryvdh/laravel-ide-helper": "^3.7",
         "fakerphp/faker": "^1.9.1",
-        "filament/blueprint": "^2.1",
-        "filament/upgrade": "^5.0",
         "fruitcake/laravel-debugbar": "*",
         "larastan/larastan": "^3.9",
         "laravel/pint": "^v1.14",
