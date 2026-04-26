@@ -30,7 +30,6 @@ use App\Http\Controllers\Miscellaneous\MaintenanceController;
 use App\Http\Controllers\Shop\PaypalController;
 use App\Http\Controllers\Shop\ShopController;
 use App\Http\Controllers\Shop\ShopVoucherController;
-use App\Http\Controllers\Shop\StripeController;
 use App\Http\Controllers\User\AccountSettingsController;
 use App\Http\Controllers\User\BannedController;
 use App\Http\Controllers\User\ForgotPasswordController;
@@ -47,9 +46,6 @@ use Laravel\Fortify\Http\Controllers\RegisteredUserController;
 
 // Language route
 Route::get('/language/{locale}', LocaleController::class)->name('language.select');
-
-// Stripe webhook — public, must bypass maintenance/auth so Stripe can always reach it.
-Route::post('/shop/stripe/webhook', [StripeController::class, 'webhook'])->name('stripe.webhook');
 
 // Installation routes
 Route::prefix('installation')->controller(InstallationController::class)->group(function () {
@@ -214,13 +210,6 @@ Route::middleware(['maintenance', 'check.ban', 'force.staff.2fa'])->group(functi
             Route::get('/process-transaction', 'process')->name('paypal.process-transaction');
             Route::get('/successful-transaction', 'successful')->name('paypal.successful-transaction');
             Route::get('/cancelled-transaction', 'cancelled')->name('paypal.cancelled-transaction');
-        });
-
-        // Stripe routes (diamond purchases)
-        Route::controller(StripeController::class)->prefix('shop/stripe')->group(function () {
-            Route::post('/checkout', 'checkout')->name('stripe.checkout');
-            Route::get('/success', 'success')->name('stripe.success');
-            Route::get('/cancelled', 'cancelled')->name('stripe.cancelled');
         });
 
         // Rare values routes
