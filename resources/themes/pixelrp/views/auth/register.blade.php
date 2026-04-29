@@ -1,22 +1,36 @@
-{{-- Pixel Tower registration: two visual steps as one form, advanced via Alpine. --}}
+{{-- PixelRP registration: two visual steps as one form, advanced via Alpine. --}}
 @php
     $startStep = $errors->hasAny(['terms', 'beta_code']) ? 2 : 1;
     $requiresBeta = (bool) setting('requires_beta_code');
+    $heading = $startStep === 2 ? __('Almost there') : __('Create your account');
+    $sub = $startStep === 2
+        ? __('Enter your beta key and confirm the agreements to finish registration.')
+        : __('Tell us about yourself. We\'ll ask for your beta key on the next step.');
 @endphp
 
 <x-guest-layout>
     @push('title', __('Create account'))
 
     <x-slot:hero>
-        <x-feature-checklist
-            heading="{{ __('Create your account') }}"
-            sub="{{ __('Tell us about yourself. We\'ll ask for your beta key on the next step.') }}"
-        />
+        <div x-data="{ step: {{ $startStep }} }" x-init="$watch('$root.dataset.step', v => step = parseInt(v))">
+            <div x-show="step === 1">
+                <x-feature-checklist
+                    heading="{{ __('Create your account') }}"
+                    sub="{{ __('Tell us about yourself. We\'ll ask for your beta key on the next step.') }}"
+                />
+            </div>
+            <div x-show="step === 2" x-cloak>
+                <x-feature-checklist
+                    heading="{{ __('Almost there') }}"
+                    sub="{{ __('Enter your beta key and confirm the agreements to finish registration.') }}"
+                />
+            </div>
+        </div>
     </x-slot:hero>
 
-    <div x-data="pixelrpRegister({{ $startStep }})" class="pt-card w-full max-w-md">
-        <div class="pt-card-header">
-            <h2>{{ __('Register') }}</h2>
+    <div x-data="pixelrpRegister({{ $startStep }})" class="pt-card w-[420px] max-w-full">
+        <div class="pt-card-header pt-card-header--auth">
+            <h2>{{ __('REGISTER') }}</h2>
             <p>
                 <span x-show="step === 1">{{ __('Step 1 of 2 — Account details') }}</span>
                 <span x-show="step === 2" x-cloak>{{ __('Step 2 of 2 — Verify access') }}</span>
@@ -75,8 +89,9 @@
                         <p x-show="step1Error" x-text="step1Error" x-cloak class="pt-input-error"></p>
                     </div>
 
-                    <button type="button" @click="goToStep2()" class="pt-btn pt-btn--primary pt-btn--block mt-2">
-                        {{ __('Next') }} →
+                    <button type="button" @click="goToStep2()" class="pt-btn pt-btn--primary pt-btn--primary-lg pt-btn--block mt-2">
+                        {{ __('NEXT') }}
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                     </button>
                 </div>
 
@@ -86,7 +101,7 @@
                         <div class="flex flex-col gap-2">
                             <label for="beta_code" class="pt-section-label text-(--color-ink)">{{ __('Beta key') }}</label>
                             <input id="beta_code" name="beta_code" type="text" value="{{ old('beta_code') }}"
-                                placeholder="PXLTWR-BETA-XXXXX"
+                                placeholder="PXLRP-BETA-XXXXX"
                                 class="pt-input pt-input--coin @error('beta_code') border-(--color-danger) @enderror">
                             @error('beta_code')<p class="pt-input-error">{{ $message }}</p>@enderror
                         </div>
@@ -95,14 +110,14 @@
                     <label class="flex items-start gap-3 text-[13px] font-semibold text-(--color-ink) cursor-pointer">
                         <input type="checkbox" name="terms" x-model="terms" class="pt-checkbox mt-0.5">
                         <span>
-                            {{ __('I agree to') }} <a href="{{ route('help-center.rules.index') }}" target="_blank" class="pt-link">{{ __('Pixel Tower Digital\'s Terms of Service and Privacy Policy') }}</a>.
+                            {{ __('I agree to') }} <a href="{{ route('help-center.rules.index') }}" target="_blank" class="pt-link" style="color: var(--color-ink); text-decoration: underline;">{{ __('PixelRP\'s Terms of Service and Privacy Policy') }}</a>.
                         </span>
                     </label>
                     @error('terms')<p class="pt-input-error">{{ $message }}</p>@enderror
 
                     <label class="flex items-start gap-3 text-[13px] font-semibold text-(--color-ink) cursor-pointer">
                         <input type="checkbox" x-model="affiliation" class="pt-checkbox mt-0.5">
-                        <span>{{ __('I understand that Pixel Tower Digital is in no way affiliated with Sulake Corporation Oy or its subsidiaries.') }}</span>
+                        <span>{{ __('I understand that PixelRP is in no way affiliated with Sulake Corporation Oy or its subsidiaries.') }}</span>
                     </label>
                     <p x-show="step2Error" x-text="step2Error" x-cloak class="pt-input-error"></p>
 
@@ -114,8 +129,9 @@
                         <x-turnstile />
                     @endif
 
-                    <button type="submit" class="pt-btn pt-btn--primary pt-btn--block mt-2">
-                        {{ __('Create account') }} →
+                    <button type="submit" class="pt-btn pt-btn--primary pt-btn--primary-lg pt-btn--block mt-2">
+                        {{ __('CREATE ACCOUNT') }}
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                     </button>
                 </div>
             </form>
@@ -124,11 +140,11 @@
         <div class="pt-card-footer">
             <span x-show="step === 1">
                 {{ __('Already have an account?') }}
-                <a href="{{ route('welcome') }}" class="pt-link ml-1">{{ __('Sign in') }}</a>
+                <a href="{{ route('welcome') }}" class="pt-link ml-1 uppercase tracking-[1px]">{{ __('Sign in') }}</a>
             </span>
             <span x-show="step === 2" x-cloak>
                 {{ __('Need to start over?') }}
-                <button type="button" @click="step = 1" class="pt-link ml-1">{{ __('Back to step 1') }}</button>
+                <button type="button" @click="step = 1" class="pt-link ml-1 uppercase tracking-[1px]">{{ __('Back to step 1') }}</button>
             </span>
         </div>
     </div>

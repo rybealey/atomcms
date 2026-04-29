@@ -15,23 +15,20 @@
 
     <x-site-header cta="enter" />
 
-    <nav class="w-full bg-(--color-ink) border-b-2 border-(--color-coin)">
-        <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
-            <div class="flex items-center gap-2">
+    <nav class="w-full bg-(--color-ink-soft) border-b border-[#2A2A2A]">
+        <div class="mx-auto flex max-w-7xl items-center justify-between px-8">
+            <div class="flex items-center gap-2 py-2.5">
                 <a href="{{ route('me.show') }}" class="pt-subnav-link" aria-current="page">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9"/><path d="M5 10v10h14V10"/></svg>
                     {{ __('Home') }}
                 </a>
-                <a href="#" class="pt-subnav-link">
-                    {{ __('Community') }}
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-                </a>
-                <a href="{{ route('help-center.rules.index') }}" class="pt-subnav-link">
-                    {{ __('Guidelines') }}
-                </a>
+                <a href="#" class="pt-subnav-link">{{ __('Corporations') }}</a>
+                <a href="#" class="pt-subnav-link">{{ __('Gangs') }}</a>
+                <a href="{{ route('leaderboard.index') }}" class="pt-subnav-link">{{ __('Leaderboard') }}</a>
             </div>
 
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2.5 py-2.5">
+                <a href="{{ route('help-center.rules.index') }}" class="pt-subnav-link">{{ __('Guidelines') }}</a>
                 <a href="{{ route('profile.show', ['user' => Auth::user()->username]) }}" class="pt-icon-btn" title="{{ __('Profile') }}">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4z"/></svg>
                 </a>

@@ -1,4 +1,4 @@
-{{-- Logged-in home for Pixel Tower. Profile/Corporation/Bank/Stats values are real;
+{{-- Logged-in home for PixelRP. Profile/Corporation/Bank/Stats values are real;
      Gang stats stay placeholder until those tables exist. --}}
 <x-app-layout>
     @push('title', __('Home'))
@@ -7,8 +7,6 @@
         $health = ['current' => $stats['hp'] ?? 0, 'max' => max($stats['max_hp'] ?? 1, 1)];
         $energy = ['current' => $stats['energy'] ?? 0, 'max' => max($stats['max_energy'] ?? 1, 1)];
         $gang = ['name' => null, 'rank' => null, 'heists' => 0, 'turfs' => 0];
-        $discordLinked = false;
-        $discordId = null;
         $avatarUrl = $user?->look ? setting('avatar_imager') . $user->look . '&direction=2&head_direction=3&gesture=sml&action=wav&size=l' : null;
     @endphp
 
@@ -26,7 +24,7 @@
                 </div>
                 <div class="pt-stat-card-body">
                     <div class="flex flex-col gap-5 md:flex-row md:gap-5">
-                        {{-- Avatar tile (140x280): navy fill with subtle diagonal stripes, yellow stroke --}}
+                        {{-- Avatar tile (140x280): dark fill with subtle diagonal stripes, yellow stroke --}}
                         <div class="pt-avatar-tile relative shrink-0 self-center md:self-start overflow-hidden rounded-md border-2 border-(--color-coin)">
                             @if ($avatarUrl)
                                 <img src="{{ $avatarUrl }}" alt="{{ $user->username }}"
@@ -42,7 +40,7 @@
 
                         <div class="flex flex-1 flex-col gap-3.5 min-w-0">
                             {{-- Name box --}}
-                            <div class="rounded-md border-2 border-(--color-eyebrow) bg-(--color-ink-panel) px-5 py-3.5 text-center">
+                            <div class="rounded-md border-2 border-(--color-panel-stroke) bg-(--color-ink-panel) px-5 py-3.5 text-center">
                                 <span class="text-[22px] font-black text-white leading-none">{{ $user->username }}</span>
                             </div>
 
@@ -99,27 +97,6 @@
                                 </div>
                             </div>
 
-                            {{-- Discord row --}}
-                            <div class="flex items-center gap-3 rounded-md border-2 border-(--color-eyebrow) bg-(--color-ink-panel) p-3">
-                                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-(--color-discord)">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
-                                </div>
-                                <div class="flex flex-1 flex-col gap-0.5 min-w-0">
-                                    @if ($discordLinked)
-                                        <span class="flex items-center gap-1.5 text-[13px] font-black text-(--color-xp-green) leading-none">
-                                            {{ __('Discord linked') }}
-                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></svg>
-                                        </span>
-                                        <span class="truncate text-[11px] font-medium text-(--color-hero-sub)">{{ $discordId }}</span>
-                                    @else
-                                        <span class="text-[13px] font-black text-white leading-none">{{ __('Discord not linked') }}</span>
-                                        <span class="text-[11px] font-medium text-(--color-hero-sub)">{{ __('Link your account in settings') }}</span>
-                                    @endif
-                                </div>
-                                <button type="button" class="pt-btn pt-btn--secondary pt-btn--sm shrink-0">
-                                    {{ $discordLinked ? __('Reverify') : __('Link') }}
-                                </button>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -165,7 +142,7 @@
                             </div>
                         @else
                             <div class="flex flex-col items-center gap-3 py-2 text-center">
-                                <div class="flex h-12 w-12 items-center justify-center rounded-md border-2 border-(--color-eyebrow) bg-(--color-ink-panel) text-(--color-hero-sub)">
+                                <div class="flex h-12 w-12 items-center justify-center rounded-md border-2 border-(--color-panel-stroke) bg-(--color-ink-panel) text-(--color-hero-sub)">
                                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-4V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><line x1="2" y1="13" x2="22" y2="13"/></svg>
                                 </div>
                                 <div class="flex flex-col gap-0.5">
@@ -185,7 +162,7 @@
                     <div class="pt-stat-card-body">
                         @if ($gang['name'])
                             <div class="flex items-center gap-3.5">
-                                <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-md border-2 border-(--color-eyebrow) bg-(--color-ink-panel)">
+                                <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-md border-2 border-(--color-panel-stroke) bg-(--color-ink-panel)">
                                     <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#D8E6FA" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                                 </div>
                                 <div class="flex flex-col gap-0.5 min-w-0">
@@ -205,7 +182,7 @@
                             </div>
                         @else
                             <div class="flex flex-col items-center gap-3 py-2 text-center">
-                                <div class="flex h-12 w-12 items-center justify-center rounded-md border-2 border-(--color-eyebrow) bg-(--color-ink-panel) text-(--color-hero-sub)">
+                                <div class="flex h-12 w-12 items-center justify-center rounded-md border-2 border-(--color-panel-stroke) bg-(--color-ink-panel) text-(--color-hero-sub)">
                                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                                 </div>
                                 <div class="flex flex-col gap-0.5">

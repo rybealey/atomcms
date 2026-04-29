@@ -1,4 +1,4 @@
-{{-- Pixel Tower welcome (login) screen — the guest landing IS the login page. --}}
+{{-- PixelRP welcome (login) screen — the guest landing IS the login page. --}}
 <x-guest-layout>
     @push('title', __('Sign in'))
 
@@ -9,7 +9,7 @@
         />
     </x-slot:hero>
 
-    <x-auth-card title="{{ __('Log in') }}" sub="{{ __('Welcome back, citizen.') }}">
+    <x-auth-card title="{{ __('LOG IN') }}" sub="{{ __('Welcome back, citizen.') }}">
         @if ($errors->any())
             <div class="mb-4 rounded border-2 border-(--color-danger) bg-(--color-danger)/10 p-3 text-[12px] font-bold text-(--color-danger)">
                 @foreach ($errors->all() as $error)
@@ -59,14 +59,15 @@
                 <x-turnstile />
             @endif
 
-            <button type="submit" class="pt-btn pt-btn--primary pt-btn--block mt-2">
-                {{ __('Enter Town') }} →
+            <button type="submit" class="pt-btn pt-btn--primary pt-btn--primary-lg pt-btn--block mt-2">
+                {{ __('LOG IN') }}
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
             </button>
         </form>
 
         <x-slot:footer>
-            {{ __('New to Pixel Tower?') }}
-            <a href="mailto:beta@pixeltower.digital" class="pt-link ml-1">{{ __('Request beta access') }}</a>
+            {{ __('New to PixelRP?') }}
+            <a href="{{ route('register') }}" class="pt-link ml-1 uppercase tracking-[1px]">{{ __('Get started') }}</a>
         </x-slot:footer>
     </x-auth-card>
 </x-guest-layout>
