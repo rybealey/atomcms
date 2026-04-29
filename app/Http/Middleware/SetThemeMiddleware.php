@@ -12,12 +12,13 @@ class SetThemeMiddleware
     public function handle(Request $request, Closure $next): Response
     {
         $theme = setting('theme');
+        $parent = config('theme.parent');
 
         if (empty($theme) || $theme === '1') {
-            Theme::set('atom');
-        } else {
-            Theme::set($theme);
+            $theme = config('theme.active', 'atom');
         }
+
+        Theme::set($theme, $theme !== $parent ? $parent : null);
 
         return $next($request);
     }

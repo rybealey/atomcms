@@ -6,6 +6,8 @@
         "build:atom": "vite build --config resources/themes/atom/vite.config.js",
         "dev:dusk": "vite --config resources/themes/dusk/vite.config.js",
         "build:dusk": "vite build --config resources/themes/dusk/vite.config.js",
+        "dev:pixelrp": "vite --config resources/themes/pixelrp/vite.config.js",
+        "build:pixelrp": "vite build --config resources/themes/pixelrp/vite.config.js",
         "format": "prettier \"resources/**/*.{js,ts,vue,blade}\" --write"
     },
     "devDependencies": {
