@@ -114,7 +114,7 @@
                             <div class="flex items-center gap-3.5">
                                 <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-md border-2 border-(--color-coin) bg-(--color-ink-panel)">
                                     @if (!empty($employment['badge_code']))
-                                        <img src="{{ setting('badges_url') ?: '/c_images/album1584/' }}{{ $employment['badge_code'] }}.gif" alt="" style="image-rendering: pixelated;" class="max-h-10 max-w-10">
+                                        <img src="{{ setting('badges_path') }}/{{ $employment['badge_code'] }}.gif" alt="" style="image-rendering: pixelated;" class="max-h-10 max-w-10">
                                     @else
                                         <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#FFC700" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
                                     @endif

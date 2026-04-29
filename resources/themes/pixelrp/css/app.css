@@ -515,3 +515,9 @@ body {
     border: 3px solid var(--color-ink);
     border-radius: var(--radius-pt-sm);
 }
+
+/* atom's client/nitro.blade.php renders #disconnected unconditionally and
+   relies on CSS to hide it until JS flips the inline style on disconnect. */
+#disconnected {
+    display: none;
+}
