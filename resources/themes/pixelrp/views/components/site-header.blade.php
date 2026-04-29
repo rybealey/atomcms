@@ -9,11 +9,15 @@
 
         @auth
             @if ($cta === 'enter')
-                <a href="{{ route('nitro-client') }}" data-turbolinks="false" class="pt-btn pt-btn--secondary pt-btn--sm">
+                <a href="{{ route('nitro-client') }}" data-turbolinks="false" target="pixelrp-game"
+                   onclick="const w=window.open(this.href,this.target,'popup=yes,width=1280,height=800,resizable=yes'); if(w){event.preventDefault();w.focus();}"
+                   class="pt-btn pt-btn--secondary pt-btn--sm">
                     {{ __('Play now') }}
                 </a>
             @else
-                <a href="{{ route('nitro-client') }}" data-turbolinks="false" class="pt-btn pt-btn--secondary pt-btn--sm">
+                <a href="{{ route('nitro-client') }}" data-turbolinks="false" target="pixelrp-game"
+                   onclick="const w=window.open(this.href,this.target,'popup=yes,width=1280,height=800,resizable=yes'); if(w){event.preventDefault();w.focus();}"
+                   class="pt-btn pt-btn--secondary pt-btn--sm">
                     {{ __('Play now') }}
                 </a>
             @endif
