@@ -30,6 +30,8 @@ use App\Http\Controllers\Miscellaneous\MaintenanceController;
 use App\Http\Controllers\Shop\PaypalController;
 use App\Http\Controllers\Shop\ShopController;
 use App\Http\Controllers\Shop\ShopVoucherController;
+use App\Http\Controllers\Shop\Stripe\DiamondCheckoutController as StripeDiamondCheckoutController;
+use App\Http\Controllers\Shop\Stripe\StripeWebhookController;
 use App\Http\Controllers\User\AccountSettingsController;
 use App\Http\Controllers\User\BannedController;
 use App\Http\Controllers\User\ForgotPasswordController;
@@ -212,6 +214,14 @@ Route::middleware(['maintenance', 'check.ban', 'force.staff.2fa'])->group(functi
             Route::get('/cancelled-transaction', 'cancelled')->name('paypal.cancelled-transaction');
         });
 
+        // Stripe diamond purchase (in-client). Webhook is registered outside
+        // the auth/CSRF group below — Stripe authenticates via signature.
+        Route::controller(StripeDiamondCheckoutController::class)->prefix('stripe/diamonds')->group(function () {
+            Route::post('/create-session', 'createSession')->name('stripe.diamonds.create-session');
+            Route::get('/success', 'success')->name('stripe.diamonds.success');
+            Route::get('/cancel', 'cancel')->name('stripe.diamonds.cancel');
+        });
+
         // Rare values routes
         Route::get('/values', [WebsiteRareValuesController::class, 'index'])->name('values.index');
         Route::post('/values/search', [WebsiteRareValuesController::class, 'search'])->name('values.search');
@@ -229,6 +239,11 @@ Route::middleware(['maintenance', 'check.ban', 'force.staff.2fa'])->group(functi
         Route::post('/logo-generator', [LogoGeneratorController::class, 'store'])->name('store.generated-logo');
     });
 });
+
+// Stripe webhook — no auth, no CSRF (excluded in VerifyCsrfToken). Stripe
+// authenticates each request via Stripe-Signature; the controller verifies
+// it before any DB write.
+Route::post('/stripe/webhook', [StripeWebhookController::class, 'handle'])->name('stripe.webhook');
 
 if (Features::enabled(Features::twoFactorAuthentication())) {
     $twoFactorLimiter = config('fortify.limiters.two-factor');
