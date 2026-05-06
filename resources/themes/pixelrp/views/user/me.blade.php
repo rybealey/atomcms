@@ -11,6 +11,61 @@
     @endphp
 
     <div class="flex flex-col gap-6">
+        <div
+            x-data="{
+                blocked: false,
+                showHelp: false,
+                init() {
+                    try {
+                        if (sessionStorage.getItem('popupsAllowed') === '1') return;
+                    } catch (e) {}
+                    this.detect();
+                },
+                detect() {
+                    let win = null;
+                    try {
+                        win = window.open('about:blank', '_blank',
+                            'width=1,height=1,left=-10000,top=-10000');
+                    } catch (e) {}
+                    if (!win || win.closed || typeof win.closed === 'undefined') {
+                        this.blocked = true;
+                        return;
+                    }
+                    try { win.close(); } catch (e) {}
+                    try { sessionStorage.setItem('popupsAllowed', '1'); } catch (e) {}
+                    this.blocked = false;
+                },
+                tryEnable() {
+                    this.detect();
+                    if (this.blocked) this.showHelp = true;
+                },
+                dismiss() {
+                    this.blocked = false;
+                    try { sessionStorage.setItem('popupsAllowed', '1'); } catch (e) {}
+                }
+            }"
+            x-show="blocked"
+            style="display: none"
+            class="flex flex-col gap-2 rounded-md border-2 border-(--color-coin) bg-(--color-coin)/10 px-4 py-3"
+        >
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <span class="text-[13px] font-bold text-white">
+                    {{ __('Your browser is blocking popups. Some features like linking your Discord account and purchasing Diamonds need popups to work.') }}
+                </span>
+                <div class="flex shrink-0 gap-2">
+                    <button type="button" @click="tryEnable()" class="pt-btn pt-btn--primary pt-btn--sm">
+                        {{ __('Enable popups') }}
+                    </button>
+                    <button type="button" @click="dismiss()" class="pt-btn pt-btn--secondary pt-btn--sm">
+                        {{ __('Dismiss') }}
+                    </button>
+                </div>
+            </div>
+            <p x-show="showHelp" x-cloak class="text-[12px] font-medium text-(--color-hero-sub)">
+                {{ __('Still blocked. Click the popup-blocked icon in your address bar, choose "Always allow popups from this site," then reload.') }}
+            </p>
+        </div>
+
         <header class="flex flex-col gap-1">
             <span class="text-[12px] font-bold tracking-[3px] uppercase text-(--color-coin)">{{ __('Welcome back') }}</span>
             <h1 class="text-[36px] font-black leading-none text-white">{{ $user->username }}</h1>

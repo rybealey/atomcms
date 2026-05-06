@@ -2,65 +2,6 @@
     @push('title', __('Welcome to the best hotel on the web!'))
 
     <div class="col-span-12 space-y-14">
-        @auth
-            <div
-                x-data="{
-                    blocked: false,
-                    showHelp: false,
-                    init() {
-                        try {
-                            if (sessionStorage.getItem('popupsAllowed') === '1') return;
-                        } catch (e) {}
-                        this.detect();
-                    },
-                    detect() {
-                        let win = null;
-                        try {
-                            win = window.open('about:blank', '_blank',
-                                'width=1,height=1,left=-10000,top=-10000');
-                        } catch (e) {}
-                        if (!win || win.closed || typeof win.closed === 'undefined') {
-                            this.blocked = true;
-                            return;
-                        }
-                        try { win.close(); } catch (e) {}
-                        try { sessionStorage.setItem('popupsAllowed', '1'); } catch (e) {}
-                        this.blocked = false;
-                    },
-                    tryEnable() {
-                        this.detect();
-                        if (this.blocked) this.showHelp = true;
-                    },
-                    dismiss() {
-                        this.blocked = false;
-                        try { sessionStorage.setItem('popupsAllowed', '1'); } catch (e) {}
-                    }
-                }"
-                x-show="blocked"
-                style="display: none"
-                class="col-span-12 w-full flex flex-col gap-2 bg-amber-50 dark:bg-amber-900/30 border border-amber-300 dark:border-amber-700 rounded-lg px-4 py-3"
-            >
-                <div class="flex items-center justify-between gap-4 flex-wrap">
-                    <span class="text-sm text-amber-800 dark:text-amber-100">
-                        {{ __('Your browser is blocking popups. Some features like linking your Discord account and purchasing Diamonds need popups to work.') }}
-                    </span>
-                    <div class="flex gap-2 shrink-0">
-                        <button type="button" @click="tryEnable()"
-                            class="border-2 border-yellow-400 bg-[#eeb425] hover:bg-[#d49f1c] text-white font-semibold text-sm px-4 py-1 rounded transition">
-                            {{ __('Enable popups') }}
-                        </button>
-                        <button type="button" @click="dismiss()"
-                            class="border border-gray-300 dark:border-gray-500 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm font-semibold px-4 py-1 rounded transition">
-                            {{ __('Dismiss') }}
-                        </button>
-                    </div>
-                </div>
-                <p x-show="showHelp" x-cloak class="text-xs text-amber-700 dark:text-amber-200">
-                    {{ __('Still blocked. Click the popup-blocked icon in your address bar, choose "Always allow popups from this site," then reload.') }}
-                </p>
-            </div>
-        @endauth
-
         <div class="col-span-12">
             <x-content.guest-content-card icon="hotel-icon">
                 <x-slot:title>
