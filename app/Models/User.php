@@ -184,7 +184,7 @@ class User extends Authenticatable implements FilamentUser, HasName
 
     protected $guarded = ['id'];
 
-    protected $hidden = ['id', 'password', 'remember_token', 'discord_access_token', 'discord_refresh_token'];
+    protected $hidden = ['id', 'password', 'remember_token'];
 
     protected function casts(): array
     {
@@ -193,12 +193,6 @@ class User extends Authenticatable implements FilamentUser, HasName
             'password' => 'hashed',
             'hidden_staff' => 'boolean',
             'online' => 'boolean',
-            'discord_verified_at' => 'datetime',
-            'discord_token_expires_at' => 'datetime',
-            'discord_revoked_at' => 'datetime',
-            'discord_metadata_synced_at' => 'datetime',
-            'discord_access_token' => 'encrypted',
-            'discord_refresh_token' => 'encrypted',
         ];
     }
 
