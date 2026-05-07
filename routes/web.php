@@ -2,6 +2,7 @@
 
 use App\Actions\Fortify\Controllers\TwoFactorAuthenticatedSessionController;
 use App\Http\Controllers\Articles\ArticleController;
+use App\Http\Controllers\Auth\DiscordOAuthController;
 use App\Http\Controllers\Articles\WebsiteArticleCommentsController;
 use App\Http\Controllers\Badge\BadgeController;
 use App\Http\Controllers\Client\FlashController;
@@ -90,6 +91,13 @@ Route::middleware(['maintenance', 'check.ban', 'force.staff.2fa'])->group(functi
 
     // Can only be accessed if logged in
     Route::middleware('auth')->group(function () {
+        // Discord OAuth (link an account to show Pixeltower on Discord profile)
+        Route::prefix('auth/discord')->controller(DiscordOAuthController::class)->group(function () {
+            Route::get('/start', 'start')->name('discord.oauth.start');
+            Route::get('/callback', 'callback')->name('discord.oauth.callback');
+            Route::post('/disconnect', 'disconnect')->name('discord.oauth.disconnect');
+        });
+
         Route::prefix('user')->group(function () {
             Route::get('/me', MeController::class)->name('me.show');
             Route::get('/claim/referral-reward', ReferralController::class)->name('claim.referral-reward');

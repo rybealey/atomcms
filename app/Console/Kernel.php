@@ -12,7 +12,13 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        // $schedule->command('inspire')->hourly();
+        // Re-push Discord role-connection metadata for users currently
+        // in-game so motto edits propagate without a dedicated event.
+        // Idempotent — pushing identical data is a no-op on Discord.
+        $schedule->command('discord:sync-metadata --only-online')
+            ->everyTenMinutes()
+            ->withoutOverlapping()
+            ->runInBackground();
     }
 
     /**

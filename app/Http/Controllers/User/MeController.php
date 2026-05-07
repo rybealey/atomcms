@@ -4,6 +4,7 @@ namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use App\Models\Articles\WebsiteArticle;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
@@ -23,6 +24,7 @@ class MeController extends Controller
             'diamonds' => (int) ($user?->currency('diamonds') ?? 0),
             'stats' => $this->playerStats($user?->id),
             'employment' => $this->employment($user?->id),
+            'discord' => $this->discord($user),
         ]);
     }
 
@@ -51,6 +53,24 @@ class MeController extends Controller
             'max_energy' => (int) $row->max_energy,
             'level' => (int) $row->level,
             'is_on_duty' => (bool) $row->is_on_duty,
+        ];
+    }
+
+    private function discord(?User $user): array
+    {
+        // Three states for the Discord card on /me:
+        //   none      — no link; offer Connect button (OAuth flow)
+        //   linked    — verified via in-game :verify only; offer "Show on profile" upgrade
+        //   connected — OAuth granted; profile card is live, offer Disconnect
+        $state = 'none';
+        if ($user && $user->discord_id) {
+            $state = ($user->discord_access_token && !$user->discord_revoked_at) ? 'connected' : 'linked';
+        }
+
+        return [
+            'state' => $state,
+            'username' => $user?->discord_username,
+            'configured' => (bool) config('services.discord.client_id'),
         ];
     }
 
