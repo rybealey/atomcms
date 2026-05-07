@@ -69,15 +69,30 @@ class MeController extends Controller
 
         if (! $row) return null;
 
+        // Shift counts are scoped to the *current* employment relationship.
+        // rp_corporation_members.hired_at is the cutoff: leaving (fire/quit)
+        // deletes the row, a rehire writes a new hired_at, and the COUNT(*)
+        // below excludes paychecks credited before the new hire date even
+        // though those rp_money_ledger rows are preserved for audit.
+        // ref_id = corp_id keeps a multi-corp player's gang paychecks from
+        // leaking into job shifts (matches the in-game profile rail).
         $totalShifts = (int) DB::table('rp_money_ledger')
             ->where('habbo_id', $userId)
-            ->whereIn('reason', ['paycheck', 'paycheck_bank'])
+            ->whereIn('reason', ['paycheck_bank', 'paycheck_cash'])
+            ->where('ref_id', $row->corp_id)
+            ->where('created_at', '>=', $row->hired_at)
             ->count();
 
+        // Carbon comparison so "max(hired_at, 7d ago)" works regardless of
+        // whether $row->hired_at came back as a Carbon or a raw string.
+        $hiredAt = \Carbon\Carbon::parse($row->hired_at);
+        $weekAgo = now()->subDays(7);
+        $weeklyCutoff = $hiredAt->greaterThan($weekAgo) ? $hiredAt : $weekAgo;
         $weeklyShifts = (int) DB::table('rp_money_ledger')
             ->where('habbo_id', $userId)
-            ->whereIn('reason', ['paycheck', 'paycheck_bank'])
-            ->where('created_at', '>=', now()->subDays(7))
+            ->whereIn('reason', ['paycheck_bank', 'paycheck_cash'])
+            ->where('ref_id', $row->corp_id)
+            ->where('created_at', '>=', $weeklyCutoff)
             ->count();
 
         return [
