@@ -8,19 +8,11 @@
         </a>
 
         @auth
-            @if ($cta === 'enter')
-                <a href="{{ route('nitro-client') }}" data-turbolinks="false" target="pixelrp-game"
-                   onclick="const w=window.open(this.href,this.target,'popup=yes,width=1280,height=800,resizable=yes'); if(w){event.preventDefault();w.focus();}"
-                   class="pt-btn pt-btn--secondary pt-btn--sm">
-                    {{ __('Play now') }}
-                </a>
-            @else
-                <a href="{{ route('nitro-client') }}" data-turbolinks="false" target="pixelrp-game"
-                   onclick="const w=window.open(this.href,this.target,'popup=yes,width=1280,height=800,resizable=yes'); if(w){event.preventDefault();w.focus();}"
-                   class="pt-btn pt-btn--secondary pt-btn--sm">
-                    {{ __('Play now') }}
-                </a>
-            @endif
+            <a href="{{ route('nitro-client') }}" data-turbolinks="false"
+               onclick="event.preventDefault(); const w = window.open(this.href, 'pixelrp-game', 'width=1280,height=800,resizable=yes,scrollbars=yes'); if (w) { w.focus(); } else { window.dispatchEvent(new CustomEvent('popup-blocked')); }"
+               class="pt-btn pt-btn--secondary pt-btn--sm">
+                {{ __('Play now') }}
+            </a>
         @else
             <a href="{{ route('welcome') }}" class="pt-btn pt-btn--secondary pt-btn--sm">
                 {{ __('Log in') }}

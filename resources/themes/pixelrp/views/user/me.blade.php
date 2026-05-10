@@ -16,32 +16,22 @@
                 blocked: false,
                 showHelp: false,
                 init() {
-                    try {
-                        if (sessionStorage.getItem('popupsAllowed') === '1') return;
-                    } catch (e) {}
-                    this.detect();
-                },
-                detect() {
-                    let win = null;
-                    try {
-                        win = window.open('about:blank', '_blank',
-                            'width=1,height=1,left=-10000,top=-10000');
-                    } catch (e) {}
-                    if (!win || win.closed || typeof win.closed === 'undefined') {
-                        this.blocked = true;
-                        return;
-                    }
-                    try { win.close(); } catch (e) {}
-                    try { sessionStorage.setItem('popupsAllowed', '1'); } catch (e) {}
-                    this.blocked = false;
+                    window.addEventListener('popup-blocked', () => { this.blocked = true; });
                 },
                 tryEnable() {
-                    this.detect();
-                    if (this.blocked) this.showHelp = true;
+                    let win = null;
+                    try {
+                        win = window.open('about:blank', '_blank', 'width=400,height=300');
+                    } catch (e) {}
+                    if (win && !win.closed) {
+                        try { win.close(); } catch (e) {}
+                        this.blocked = false;
+                    } else {
+                        this.showHelp = true;
+                    }
                 },
                 dismiss() {
                     this.blocked = false;
-                    try { sessionStorage.setItem('popupsAllowed', '1'); } catch (e) {}
                 }
             }"
             x-show="blocked"
