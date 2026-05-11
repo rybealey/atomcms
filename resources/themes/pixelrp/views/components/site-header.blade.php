@@ -9,7 +9,7 @@
 
         @auth
             <a href="{{ route('nitro-client') }}" data-turbolinks="false"
-               onclick="event.preventDefault(); const w = window.open(this.href, 'pixelrp-game', 'width=1280,height=800,resizable=yes,scrollbars=yes'); if (w) { w.focus(); } else { window.dispatchEvent(new CustomEvent('popup-blocked')); }"
+               onclick="event.preventDefault(); const w = window.open(this.href, 'pixelrp-game'); if (w) { w.focus(); } else { window.dispatchEvent(new CustomEvent('popup-blocked')); }"
                class="pt-btn pt-btn--secondary pt-btn--sm">
                 {{ __('Play now') }}
             </a>
