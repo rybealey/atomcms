@@ -230,6 +230,7 @@ Route::middleware(['maintenance', 'check.ban', 'force.staff.2fa'])->group(functi
             Route::get('/connect', 'connect')->name('spotify.connect');
             Route::get('/callback', 'callback')->name('spotify.callback');
             Route::get('/token', 'token')->name('spotify.token');
+            Route::get('/disconnect', 'disconnect')->name('spotify.disconnect');
         });
 
         // Rare values routes

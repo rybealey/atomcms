@@ -46,7 +46,30 @@ class SpotifyAuthController extends Controller
             'scope'         => self::SCOPES,
             'redirect_uri'  => $cfg['redirect_uri'],
             'state'         => $state,
+            // Always show the Spotify account/consent screen so a player
+            // can pick (or switch to) the correct Premium account even if
+            // the browser is logged into a different Spotify account.
+            'show_dialog'   => 'true',
         ]));
+    }
+
+    /**
+     * Unlink Spotify: clear the stored tokens for the authed user so the
+     * Music Drawer falls back to "Connect" and the wrong account is gone.
+     * GET (like /connect) so the drawer can link straight to it; it only
+     * mutates the caller's own row.
+     */
+    public function disconnect(Request $request)
+    {
+        DB::table('users')->where('id', Auth::id())->update([
+            'spotify_access_token'     => null,
+            'spotify_refresh_token'    => null,
+            'spotify_token_expires_at' => null,
+            'spotify_premium'          => 0,
+        ]);
+
+        return $this->closePage('Spotify disconnected. Reconnect with your '
+            . 'Premium account from the Music Drawer at The Muse.');
     }
 
     public function callback(Request $request)
@@ -101,8 +124,10 @@ class SpotifyAuthController extends Controller
 
         return $this->closePage($premium
             ? 'Spotify connected. Head back to The Muse and enjoy the music.'
-            : 'Spotify connected, but this account is not Premium — the Web '
-                . 'Playback SDK needs Premium to hear the room music.');
+            : 'Spotify connected, but this account is not Premium. The Web '
+                . 'Playback SDK needs Premium to hear the room music. Use '
+                . 'Disconnect in the Music Drawer, then reconnect with a '
+                . 'Premium account.');
     }
 
     public function token(Request $request)
