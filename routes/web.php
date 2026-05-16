@@ -6,6 +6,7 @@ use App\Http\Controllers\Articles\WebsiteArticleCommentsController;
 use App\Http\Controllers\Badge\BadgeController;
 use App\Http\Controllers\Client\FlashController;
 use App\Http\Controllers\Client\NitroController;
+use App\Http\Controllers\Client\SpotifyAuthController;
 use App\Http\Controllers\Community\LeaderboardController;
 use App\Http\Controllers\Community\PhotosController;
 use App\Http\Controllers\Community\Staff\StaffApplicationsController;
@@ -220,6 +221,15 @@ Route::middleware(['maintenance', 'check.ban', 'force.staff.2fa'])->group(functi
             Route::post('/create-session', 'createSession')->name('stripe.diamonds.create-session');
             Route::get('/success', 'success')->name('stripe.diamonds.success');
             Route::get('/cancel', 'cancel')->name('stripe.diamonds.cancel');
+        });
+
+        // Spotify OAuth for the room-102 ("The Muse") music player.
+        // connect/callback ride the logged-in browser session; token() is
+        // called same-origin (session cookie) by the in-client MusicEngine.
+        Route::controller(SpotifyAuthController::class)->prefix('spotify')->group(function () {
+            Route::get('/connect', 'connect')->name('spotify.connect');
+            Route::get('/callback', 'callback')->name('spotify.callback');
+            Route::get('/token', 'token')->name('spotify.token');
         });
 
         // Rare values routes

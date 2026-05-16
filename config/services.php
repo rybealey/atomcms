@@ -35,4 +35,13 @@ return [
         'key' => env('TURNSTILE_SITE_KEY'),
         'secret' => env('TURNSTILE_SECRET_KEY'),
     ],
+
+    // Room-102 ("The Muse") music player. Propagated from the root .env
+    // by scripts/bootstrap-atom-env.sh. Read via config() so it survives
+    // `php artisan config:cache`.
+    'spotify' => [
+        'client_id' => env('SPOTIFY_CLIENT_ID'),
+        'client_secret' => env('SPOTIFY_CLIENT_SECRET'),
+        'redirect_uri' => env('SPOTIFY_REDIRECT_URI'),
+    ],
 ];
