@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Http\Middleware\RedirectHousekeepingGuestsToLogin;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -23,11 +24,31 @@ class AdminFilamentPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
     {
-        return $panel
+        $housekeepingDomain = config('habbo.housekeeping.domain');
+        $servedAtRoot = filled($housekeepingDomain);
+
+        $middleware = [
+            EncryptCookies::class,
+            AddQueuedCookiesToResponse::class,
+            StartSession::class,
+            AuthenticateSession::class,
+            ShareErrorsFromSession::class,
+            PreventRequestForgery::class,
+            SubstituteBindings::class,
+            DisableBladeIconComponents::class,
+            DispatchServingFilamentEvent::class,
+        ];
+
+        if ($servedAtRoot) {
+            // SSO-only: bounce unauthenticated visitors to the public site to
+            // log in. Sits after StartSession (guard resolved) and before the
+            // Filament auth middleware.
+            $middleware[] = RedirectHousekeepingGuestsToLogin::class;
+        }
+
+        $panel = $panel
             ->default()
             ->id('housekeeping')
-            ->path('housekeeping')
-            ->login()
             ->colors([
                 'primary' => Color::Amber,
             ])
@@ -41,20 +62,26 @@ class AdminFilamentPanelProvider extends PanelProvider
                 AccountWidget::class,
                 FilamentInfoWidget::class,
             ])
-            ->middleware([
-                EncryptCookies::class,
-                AddQueuedCookiesToResponse::class,
-                StartSession::class,
-                AuthenticateSession::class,
-                ShareErrorsFromSession::class,
-                PreventRequestForgery::class,
-                SubstituteBindings::class,
-                DisableBladeIconComponents::class,
-                DispatchServingFilamentEvent::class,
-            ])
+            ->middleware($middleware)
             ->authMiddleware([
                 Authenticate::class,
             ])
             ->plugins([]);
+
+        if ($servedAtRoot) {
+            // Production: the panel IS https://ase.pixelrp.co/. Domain-locking
+            // keeps every panel route bound to this host, so pixelrp.co
+            // routing is completely untouched. No Filament login page; auth
+            // is the shared SSO session from the public site.
+            return $panel
+                ->domain($housekeepingDomain)
+                ->path('');
+        }
+
+        // Local/dev (and any misconfig): keep the path-based panel with its
+        // own login page so http://localhost/housekeeping still works.
+        return $panel
+            ->path('housekeeping')
+            ->login();
     }
 }

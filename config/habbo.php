@@ -14,6 +14,14 @@ return [
         'site_environment' => env('APP_ENV'),
     ],
 
+    'housekeeping' => [
+        // When set (production), the Filament housekeeping panel is served at
+        // the ROOT of this host (e.g. ase.pixelrp.co) instead of at the
+        // /housekeeping path, and is SSO-only. Empty in dev so localhost
+        // keeps the path-based panel with its own login page.
+        'domain' => env('HOUSEKEEPING_DOMAIN'),
+    ],
+
     'reactions' => [
         'bad', 'crying', 'good', 'happy', 'taut', 'impatient', 'inlove', 'laugh', 'proud', 'wow',
         'shameful', 'shameless', 'sleeping', 'smile', 'tongue', 'wink', 'disgusted', 'angry', 'lgbt', 'heart2', 'bobba', 'poop',
