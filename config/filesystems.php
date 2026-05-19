@@ -28,6 +28,15 @@ return [
             'root' => storage_path('app/ads'),
         ],
 
+        // Furniture Importer spool. /var/www/gamedata is the php container's
+        // mount of ./gamedata — the ONLY path the php and importer-worker
+        // containers share. The worker watches <root>/<jobid>/ for job.json.
+        'import_spool' => [
+            'driver' => 'local',
+            'root' => env('IMPORT_SPOOL_ROOT', '/var/www/gamedata/_import_spool'),
+            'throw' => false,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),
