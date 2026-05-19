@@ -20,8 +20,10 @@ use Illuminate\Support\Str;
 /**
  * Furniture Importer (Utilities).
  *
- * Lets staff upload .swf/.nitro furniture, set per-furni behaviour, name a
- * new shop category, and import the batch. The page itself does NO heavy
+ * Lets staff upload .swf/.nitro furniture and set per-furni behaviour.
+ * Everything a staffer imports lands in their own PixelRP > <username>
+ * category (created on first use, appended to thereafter). The page
+ * itself does NO heavy
  * work (the panel queue is sync, with no workers): submit() only writes a
  * spool job under the shared gamedata mount and returns. The long-running
  * importer-worker container converts, parses, writes the tracked
@@ -65,20 +67,12 @@ class FurnitureImporter extends Page
 
     public function form(Schema $schema): Schema
     {
+        $username = auth()->user()?->username ?? 'your account';
+
         return $schema
             ->components([
-                Section::make('Shop category')
-                    ->description('All furni in this batch go into one new sub-page under the PixelRP shop category. Imported furni are free and staff-only.')
-                    ->schema([
-                        TextInput::make('category_name')
-                            ->label('New category name')
-                            ->placeholder('e.g. Lobby and Lounge')
-                            ->required()
-                            ->maxLength(60),
-                    ]),
-
                 Section::make('Furniture')
-                    ->description('Add one row per furni. .swf is converted via the Nitro converter; .nitro is used as-is. Width and length are auto-detected from the bundle.')
+                    ->description("Everything you import goes into your personal category PixelRP > {$username} (created on first use, appended to after that). Imported furni are free and staff-only. Add one row per furni: .swf is converted via the Nitro converter, .nitro is used as-is, and width/length are auto-detected from the bundle.")
                     ->schema([
                         Repeater::make('items')
                             ->label('')
@@ -145,7 +139,7 @@ class FurnitureImporter extends Page
                 ->icon('heroicon-o-rocket-launch')
                 ->requiresConfirmation()
                 ->modalHeading('Import furniture and deploy?')
-                ->modalDescription('This commits the converted furniture to the main branch and triggers a production deploy. The emulator restarts briefly, disconnecting online players for a moment. Continue?')
+                ->modalDescription('This converts the furniture into your personal PixelRP category, commits it to the main branch, and triggers a production deploy. The emulator restarts briefly, disconnecting online players for a moment. Continue?')
                 ->modalSubmitActionLabel('Import and deploy')
                 ->action(fn () => $this->submit()),
         ];
@@ -154,11 +148,16 @@ class FurnitureImporter extends Page
     public function submit(): void
     {
         $state = $this->form->getState();
-        $category = trim($state['category_name'] ?? '');
+        $username = trim((string) (auth()->user()?->username ?? ''));
         $items = $state['items'] ?? [];
 
-        if ($category === '' || empty($items)) {
-            $this->fail('A category name and at least one furni are required.');
+        if ($username === '') {
+            $this->fail('Could not determine your username from the session.');
+
+            return;
+        }
+        if (empty($items)) {
+            $this->fail('Add at least one furni to import.');
 
             return;
         }
@@ -218,7 +217,7 @@ class FurnitureImporter extends Page
         ], JSON_PRETTY_PRINT));
         $disk->put("{$jobId}/job.json", json_encode([
             'jobid' => $jobId,
-            'category' => $category,
+            'username' => $username,
             'items' => $manifest,
         ], JSON_PRETTY_PRINT));
 
@@ -230,7 +229,7 @@ class FurnitureImporter extends Page
             ->iconColor('success')
             ->color('success')
             ->title('Import queued')
-            ->body(count($manifest) . " furni queued for '{$category}'. Watch the status panel below.")
+            ->body(count($manifest) . " furni queued into PixelRP > {$username}. Watch the status panel below.")
             ->send();
     }
 

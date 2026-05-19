@@ -64,7 +64,7 @@
 
                 @if ($state === 'done')
                     <p class="mt-4 text-sm text-success-600 dark:text-success-400">
-                        Pushed to main — the production deploy is running. Furni will be live (catalog · PixelRP · your new category) once the deploy finishes and players reload the client.
+                        Pushed to main — the production deploy is running. Furni will be live (catalog · PixelRP · your username) once the deploy finishes and players reload the client.
                     </p>
                 @endif
             </x-filament::section>
