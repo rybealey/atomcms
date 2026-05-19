@@ -16,6 +16,8 @@ use Filament\Schemas\Schema;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
+use Throwable;
 
 /**
  * Furniture Importer (Utilities).
@@ -150,7 +152,19 @@ class FurnitureImporter extends Page
 
     public function submit(): void
     {
-        $state = $this->form->getState();
+        // getState() validates + dehydrates the form. In Chrome the FilePond
+        // upload often hasn't finalised when the confirm-modal button is
+        // clicked, so the required FileUpload fails validation and getState()
+        // throws — inside a confirmation modal that error is invisible, which
+        // is the "click does nothing" report. Catch it and say so plainly.
+        try {
+            $state = $this->form->getState();
+        } catch (ValidationException $e) {
+            $this->fail('Could not start the import. Make sure every row has a file attached and that each upload has finished (the progress bar completes) before clicking Import, then try again.');
+
+            return;
+        }
+
         $username = trim((string) (auth()->user()?->username ?? ''));
         $items = $state['items'] ?? [];
 
@@ -165,6 +179,20 @@ class FurnitureImporter extends Page
             return;
         }
 
+        // Any failure past here must surface — never silently no-op.
+        try {
+            $this->queueImport($username, $items);
+        } catch (Throwable $e) {
+            report($e);
+            $this->fail('Import failed to queue: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $items
+     */
+    private function queueImport(string $username, array $items): void
+    {
         $disk = Storage::disk('import_spool');
         $jobId = (string) Str::uuid();
         $uploadsDir = "{$jobId}/uploads";
