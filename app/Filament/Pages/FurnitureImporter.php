@@ -25,7 +25,9 @@ use Illuminate\Support\Str;
  * category (created on first use, appended to thereafter). The page
  * itself does NO heavy
  * work (the panel queue is sync, with no workers): submit() only writes a
- * spool job under the shared gamedata mount and returns. The long-running
+ * spool job under storage/app/import_spool (php's open_basedir forbids
+ * gamedata; the ./atomcms dir is the shared rendezvous) and returns. The
+ * long-running
  * importer-worker container converts, parses, writes the tracked
  * custom-furni/ + catalog SQL, and pushes to origin/main — which triggers
  * a production deploy that makes the furni live.

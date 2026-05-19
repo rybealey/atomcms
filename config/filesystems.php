@@ -28,12 +28,17 @@ return [
             'root' => storage_path('app/ads'),
         ],
 
-        // Furniture Importer spool. /var/www/gamedata is the php container's
-        // mount of ./gamedata — the ONLY path the php and importer-worker
-        // containers share. The worker watches <root>/<jobid>/ for job.json.
+        // Furniture Importer spool. MUST sit under /var/www/atomcms/ — php
+        // runs with open_basedir = /var/www/atomcms/:/tmp/, so it cannot
+        // touch /var/www/gamedata even though that's bind-mounted. The same
+        // ./atomcms dir is also visible to the importer-worker (at
+        // /workspace/atomcms), so storage/app/import_spool is the shared
+        // rendezvous. Laravel's storage/app/.gitignore keeps it out of git;
+        // the optimize cycle only clears storage/framework, never this.
+        // The worker watches <root>/<jobid>/ for job.json.
         'import_spool' => [
             'driver' => 'local',
-            'root' => env('IMPORT_SPOOL_ROOT', '/var/www/gamedata/_import_spool'),
+            'root' => env('IMPORT_SPOOL_ROOT', storage_path('app/import_spool')),
             'throw' => false,
         ],
 
