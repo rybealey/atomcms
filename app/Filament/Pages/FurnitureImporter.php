@@ -85,13 +85,14 @@ class FurnitureImporter extends Page
                             ->schema([
                                 FileUpload::make('file')
                                     ->label('File (.swf or .nitro)')
+                                    ->helperText('.nitro has no MIME type, so the picker is unfiltered; only .swf/.nitro are accepted (anything else is rejected on submit).')
                                     ->disk('import_spool')
                                     ->directory('_staging')
                                     ->preserveFilenames()
-                                    ->acceptedFileTypes([
-                                        'application/x-shockwave-flash',
-                                        'application/octet-stream',
-                                    ])
+                                    // No acceptedFileTypes: .nitro reports no
+                                    // MIME, so a MIME allowlist makes the OS
+                                    // picker + FilePond grey it out. submit()
+                                    // enforces the .swf/.nitro extension.
                                     ->required()
                                     ->columnSpanFull(),
 
