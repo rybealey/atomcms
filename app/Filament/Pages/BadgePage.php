@@ -39,7 +39,10 @@ class BadgePage extends Page
 
     public static function canAccess(): bool
     {
-        return auth()->user()->can('view::admin::' . static::$roleName);
+        // This fork defines no view::admin::* Gate, so the original ability
+        // check was always false. Gate on the same rank-based housekeeping
+        // permission the panel itself uses.
+        return hasHousekeepingPermission('can_access_housekeeping');
     }
 
     public function getTitle(): string|Htmlable

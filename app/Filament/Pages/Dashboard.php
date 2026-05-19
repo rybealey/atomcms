@@ -21,6 +21,10 @@ class Dashboard extends FilamentDashboard
 
     public static function canAccess(): bool
     {
-        return auth()->user()->can('view::admin::' . static::$roleName);
+        // This fork defines no view::admin::* Gate, so the original ability
+        // check was always false (panel landing 403'd for everyone). Gate
+        // the page on the same rank-based housekeeping permission the panel
+        // itself uses.
+        return hasHousekeepingPermission('can_access_housekeeping');
     }
 }

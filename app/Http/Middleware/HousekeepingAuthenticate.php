@@ -2,12 +2,8 @@
 
 namespace App\Http\Middleware;
 
-use App\Services\HousekeepingPermissionsService;
-use Filament\Facades\Filament;
 use Filament\Http\Middleware\Authenticate;
-use Filament\Models\Contracts\FilamentUser;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 
 /**
  * Auth gate for the domain-locked housekeeping panel (e.g. ase.pixelrp.co).
@@ -20,42 +16,6 @@ use Illuminate\Support\Facades\Log;
  */
 class HousekeepingAuthenticate extends Authenticate
 {
-    /**
-     * TEMPORARY diagnostic: log exactly which factor decides the gate, so we
-     * can see why a high-rank user is 403'd in domain mode. Remove once the
-     * root cause is fixed.
-     */
-    protected function authenticate($request, array $guards): void
-    {
-        try {
-            $guard = Filament::auth();
-            $user = $guard->user();
-
-            Log::warning('HK-AUTH-DIAG', [
-                'host' => $request->getHost(),
-                'path' => $request->path(),
-                'filament_auth_guard' => Filament::getAuthGuard(),
-                'guard_check' => $guard->check(),
-                'guard_user_id' => $user?->getAuthIdentifier(),
-                'guard_user_class' => $user ? get_class($user) : null,
-                'is_filament_user' => $user instanceof FilamentUser,
-                'guard_user_rank' => $user->rank ?? null,
-                'default_auth_check' => auth()->check(),
-                'default_auth_user_id' => auth()->id(),
-                'current_panel' => Filament::getCurrentOrDefaultPanel()?->getId(),
-                'perms' => app(HousekeepingPermissionsService::class)->permissions->toArray(),
-                'can_access' => ($user instanceof FilamentUser)
-                    ? $user->canAccessPanel(Filament::getCurrentOrDefaultPanel())
-                    : null,
-                'app_env' => config('app.env'),
-            ]);
-        } catch (\Throwable $e) {
-            Log::warning('HK-AUTH-DIAG-ERR', ['msg' => $e->getMessage()]);
-        }
-
-        parent::authenticate($request, $guards);
-    }
-
     protected function redirectTo($request): ?string
     {
         return $this->publicLoginUrl($request);
