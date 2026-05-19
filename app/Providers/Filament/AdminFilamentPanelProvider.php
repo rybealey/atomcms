@@ -2,7 +2,7 @@
 
 namespace App\Providers\Filament;
 
-use App\Http\Middleware\RedirectHousekeepingGuestsToLogin;
+use App\Http\Middleware\HousekeepingAuthenticate;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -39,12 +39,12 @@ class AdminFilamentPanelProvider extends PanelProvider
             DispatchServingFilamentEvent::class,
         ];
 
-        if ($servedAtRoot) {
-            // SSO-only: bounce unauthenticated visitors to the public site to
-            // log in. Sits after StartSession (guard resolved) and before the
-            // Filament auth middleware.
-            $middleware[] = RedirectHousekeepingGuestsToLogin::class;
-        }
+        // SSO-only at the domain root: Filament has no login page, so its
+        // default Authenticate returns a bare 401 for guests. Swap in a gate
+        // that redirects them to the public site to log in instead.
+        $authMiddleware = $servedAtRoot
+            ? [HousekeepingAuthenticate::class]
+            : [Authenticate::class];
 
         $panel = $panel
             ->default()
@@ -63,9 +63,7 @@ class AdminFilamentPanelProvider extends PanelProvider
                 FilamentInfoWidget::class,
             ])
             ->middleware($middleware)
-            ->authMiddleware([
-                Authenticate::class,
-            ])
+            ->authMiddleware($authMiddleware)
             ->plugins([]);
 
         if ($servedAtRoot) {
