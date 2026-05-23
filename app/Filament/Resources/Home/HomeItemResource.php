@@ -129,6 +129,7 @@ class HomeItemResource extends Resource
                     ->label(__('filament::resources.columns.category'))
                     ->relationship('homeCategory', 'name'),
             ])
+            ->recordUrl(fn ($record) => static::getUrl('edit', ['record' => $record]))
             ->recordActions([
                 ViewAction::make(),
                 EditAction::make(),

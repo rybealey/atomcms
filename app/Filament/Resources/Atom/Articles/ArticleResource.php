@@ -142,6 +142,7 @@ class ArticleResource extends Resource
             ->filters([
                 TrashedFilter::make(),
             ])
+            ->recordUrl(fn ($record) => static::getUrl('edit', ['record' => $record]))
             ->recordActions([
                 ViewAction::make(),
                 EditAction::make(),

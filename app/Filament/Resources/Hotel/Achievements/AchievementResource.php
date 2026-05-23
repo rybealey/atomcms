@@ -147,6 +147,7 @@ class AchievementResource extends Resource
                     ->label(__('filament::resources.columns.category'))
                     ->placeholder(__('filament::resources.common.All')),
             ])
+            ->recordUrl(fn ($record) => static::getUrl('edit', ['record' => $record]))
             ->recordActions([
                 ViewAction::make(),
                 EditAction::make(),

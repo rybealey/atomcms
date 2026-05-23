@@ -73,6 +73,7 @@ class HomeCategoryResource extends Resource
                     ->label(__('filament::resources.columns.name'))
                     ->searchable(),
             ])
+            ->recordUrl(fn ($record) => static::getUrl('edit', ['record' => $record]))
             ->recordActions([
                 ViewAction::make(),
                 EditAction::make(),

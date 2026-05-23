@@ -252,6 +252,7 @@ class UserResource extends Resource
             ->filters([
                 //
             ])
+            ->recordUrl(fn ($record) => static::getUrl('edit', ['record' => $record]))
             ->recordActions([
                 ViewAction::make(),
                 EditAction::make(),
