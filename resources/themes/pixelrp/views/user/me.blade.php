@@ -4,9 +4,9 @@
     @php
         $health = ['current' => $stats['hp'] ?? 0, 'max' => max($stats['max_hp'] ?? 1, 1)];
         $energy = ['current' => $stats['energy'] ?? 0, 'max' => max($stats['max_energy'] ?? 1, 1)];
-        {{-- Render via the local Nitro-imager (headless nitro-renderer at /imaging/),
-             not the seeded avatar_imager which points at habbo.com and can't see our
-             custom peacehotel/zara clothing libs. --}}
+        // Render via the local Nitro-imager (headless nitro-renderer at /imaging/),
+        // not the seeded avatar_imager which points at habbo.com and can't see our
+        // custom peacehotel/zara clothing libs.
         $avatarUrl = $user?->look ? '/imaging/?figure=' . $user->look . '&direction=2&head_direction=3&gesture=sml&action=wav&size=l' : null;
     @endphp
 
