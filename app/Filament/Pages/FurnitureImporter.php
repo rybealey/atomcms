@@ -136,6 +136,27 @@ class FurnitureImporter extends Page
                                     // picker + FilePond grey it out. submit()
                                     // enforces the .swf/.nitro extension.
                                     ->required()
+                                    ->live()
+                                    ->columnSpanFull(),
+
+                                FileUpload::make('icon')
+                                    ->label('Icon (optional)')
+                                    ->helperText('Only used for .swf imports where the source has no icon frame. Pass a 64x64 PNG; the worker prefers this over auto-extraction when set.')
+                                    ->disk('import_spool')
+                                    ->directory('_staging')
+                                    ->preserveFilenames()
+                                    ->acceptedFileTypes(['image/png'])
+                                    ->visible(function (callable $get) {
+                                        $stored = $get('file');
+                                        if (is_array($stored)) {
+                                            $stored = reset($stored);
+                                        }
+                                        if (! $stored) {
+                                            return false;
+                                        }
+
+                                        return str_ends_with(strtolower((string) $stored), '.swf');
+                                    })
                                     ->columnSpanFull(),
 
                                 TextInput::make('display_name')
@@ -295,9 +316,27 @@ class FurnitureImporter extends Page
             }
 
             $disk->move($stored, "{$uploadsDir}/{$filename}");
+
+            // Optional manual icon for .swf imports whose bundle ships no icon
+            // frame. Only honoured when the main file is .swf; otherwise
+            // silently ignored (a .nitro bundle's icon comes from the bundle).
+            $iconFilename = null;
+            if ($ext === 'swf') {
+                $iconStored = $row['icon'] ?? null;
+                if (is_array($iconStored)) {
+                    $iconStored = reset($iconStored);
+                }
+                if ($iconStored && $disk->exists($iconStored)) {
+                    $iconBase = basename($iconStored);
+                    $iconFilename = "icon-{$iconBase}";
+                    $disk->move($iconStored, "{$uploadsDir}/{$iconFilename}");
+                }
+            }
+
             $manifest[] = [
                 'filename' => $filename,
                 'kind' => $ext,
+                'icon_filename' => $iconFilename,
                 'display_name' => trim($row['display_name'] ?? '') ?: pathinfo($filename, PATHINFO_FILENAME),
                 'walkable' => (bool) ($row['walkable'] ?? false),
                 'seating' => in_array(($row['seating'] ?? 'none'), ['none', 'sit', 'lay'], true)
