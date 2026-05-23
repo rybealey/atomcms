@@ -2,9 +2,11 @@
 
 namespace App\Filament\Pages;
 
+use App\Models\Game\Furniture\CatalogPage;
 use Filament\Actions\Action as PageAction;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\ToggleButtons;
@@ -22,17 +24,14 @@ use Throwable;
 /**
  * Furniture Importer (Utilities).
  *
- * Lets staff upload .swf/.nitro furniture and set per-furni behaviour.
- * Everything a staffer imports lands in their own PixelRP > <username>
- * category (created on first use, appended to thereafter). The page
- * itself does NO heavy
- * work (the panel queue is sync, with no workers): submit() only writes a
- * spool job under storage/app/import_spool (php's open_basedir forbids
- * gamedata; the ./atomcms dir is the shared rendezvous) and returns. The
- * long-running
- * importer-worker container converts, parses, writes the tracked
- * custom-furni/ + catalog SQL, and pushes to origin/main — which triggers
- * a production deploy that makes the furni live.
+ * Lets staff upload .swf/.nitro furniture, target an existing PixelRP
+ * sub-page or mint a new one, and set per-furni behaviour. The page itself
+ * does NO heavy work (the panel queue is sync, with no workers): submit()
+ * only writes a spool job under storage/app/import_spool (php's open_basedir
+ * forbids gamedata; the ./atomcms dir is the shared rendezvous) and returns.
+ * The long-running importer-worker container converts, parses, writes the
+ * tracked custom-furni/ + catalog SQL, and pushes to origin/main — which
+ * triggers a production deploy that makes the furni live.
  */
 class FurnitureImporter extends Page
 {
@@ -71,12 +70,53 @@ class FurnitureImporter extends Page
 
     public function form(Schema $schema): Schema
     {
-        $username = auth()->user()?->username ?? 'your account';
+        // Live list of PixelRP sub-pages (parent_id 9001), keyed by id.
+        // Falls back to a single personal-category sentinel if the table is
+        // unreachable (the form still renders; the user picks "new").
+        $pageOptions = [];
+        try {
+            $pageOptions = CatalogPage::query()
+                ->where('parent_id', 9001)
+                ->where('enabled', '1')
+                ->orderBy('caption')
+                ->pluck('caption', 'id')
+                ->toArray();
+        } catch (Throwable) {
+            // Stay silent; the "New category" mode still works.
+        }
 
         return $schema
             ->components([
+                Section::make('Category')
+                    ->description('Pick the PixelRP sub-page these furni land in, or create a new one. Hand-curated pages (Hospital, Modern Hospital, etc.) and other imported pages both show up here.')
+                    ->schema([
+                        ToggleButtons::make('category_mode')
+                            ->label('Destination')
+                            ->options([
+                                'existing' => 'Existing sub-page',
+                                'new' => 'New sub-page',
+                            ])
+                            ->default('existing')
+                            ->inline()
+                            ->required(),
+
+                        Select::make('category_page_id')
+                            ->label('Sub-page')
+                            ->options($pageOptions)
+                            ->searchable()
+                            ->required()
+                            ->visible(fn (callable $get) => ($get('category_mode') ?? 'existing') === 'existing'),
+
+                        TextInput::make('category_new_caption')
+                            ->label('New sub-page name')
+                            ->helperText("Creates PixelRP > <name>. Re-using an existing name appends to it instead. No ampersands or em-dashes.")
+                            ->maxLength(40)
+                            ->required()
+                            ->visible(fn (callable $get) => ($get('category_mode') ?? 'existing') === 'new'),
+                    ]),
+
                 Section::make('Furniture')
-                    ->description("Everything you import goes into your personal category PixelRP > {$username} (created on first use, appended to after that). Imported furni are free and staff-only. Add one row per furni: .swf is converted via the Nitro converter, .nitro is used as-is, and width/length are auto-detected from the bundle.")
+                    ->description('Imported furni are free and staff-only. Add one row per furni: .swf is converted via the Nitro converter, .nitro is used as-is, and width/length are auto-detected from the bundle.')
                     ->schema([
                         Repeater::make('items')
                             ->label('')
@@ -144,7 +184,7 @@ class FurnitureImporter extends Page
                 ->icon('heroicon-o-rocket-launch')
                 ->requiresConfirmation()
                 ->modalHeading('Import furniture and deploy?')
-                ->modalDescription('This converts the furniture into your personal PixelRP category, commits it to the main branch, and triggers a production deploy. The emulator restarts briefly, disconnecting online players for a moment. Continue?')
+                ->modalDescription('This converts the furniture into the selected PixelRP sub-page, commits it to the main branch, and triggers a production deploy. The emulator restarts briefly, disconnecting online players for a moment. Continue?')
                 ->modalSubmitActionLabel('Import and deploy')
                 ->action(fn () => $this->submit()),
         ];
@@ -179,9 +219,42 @@ class FurnitureImporter extends Page
             return;
         }
 
+        $mode = $state['category_mode'] ?? 'existing';
+        if (! in_array($mode, ['existing', 'new'], true)) {
+            $this->fail('Pick whether to use an existing sub-page or create a new one.');
+
+            return;
+        }
+
+        $category = ['mode' => $mode];
+        if ($mode === 'existing') {
+            $pageId = (int) ($state['category_page_id'] ?? 0);
+            if ($pageId <= 0) {
+                $this->fail('Select an existing sub-page to import into.');
+
+                return;
+            }
+            $page = CatalogPage::query()->whereKey($pageId)->first();
+            if (! $page) {
+                $this->fail("Sub-page #{$pageId} no longer exists. Refresh and try again.");
+
+                return;
+            }
+            $category['page_id'] = (int) $page->id;
+            $category['caption'] = (string) $page->caption;
+        } else {
+            $caption = trim((string) ($state['category_new_caption'] ?? ''));
+            if ($caption === '') {
+                $this->fail('Name the new sub-page or switch back to "Existing".');
+
+                return;
+            }
+            $category['caption'] = $caption;
+        }
+
         // Any failure past here must surface — never silently no-op.
         try {
-            $this->queueImport($username, $items);
+            $this->queueImport($username, $category, $items);
         } catch (Throwable $e) {
             report($e);
             $this->fail('Import failed to queue: ' . $e->getMessage());
@@ -189,9 +262,10 @@ class FurnitureImporter extends Page
     }
 
     /**
+     * @param  array{mode: string, page_id?: int, caption?: string}  $category
      * @param  array<int, array<string, mixed>>  $items
      */
-    private function queueImport(string $username, array $items): void
+    private function queueImport(string $username, array $category, array $items): void
     {
         $disk = Storage::disk('import_spool');
         $jobId = (string) Str::uuid();
@@ -249,18 +323,21 @@ class FurnitureImporter extends Page
         $disk->put("{$jobId}/job.json", json_encode([
             'jobid' => $jobId,
             'username' => $username,
+            'category' => $category,
             'items' => $manifest,
         ], JSON_PRETTY_PRINT));
 
         $this->jobId = $jobId;
         $this->data['items'] = [];
 
+        $destination = $category['caption'] ?? $username;
+
         Notification::make()
             ->icon('heroicon-o-check-circle')
             ->iconColor('success')
             ->color('success')
             ->title('Import queued')
-            ->body(count($manifest) . " furni queued into PixelRP > {$username}. Watch the status panel below.")
+            ->body(count($manifest) . " furni queued into PixelRP > {$destination}. Watch the status panel below.")
             ->send();
     }
 
