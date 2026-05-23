@@ -136,27 +136,21 @@ class FurnitureImporter extends Page
                                     // picker + FilePond grey it out. submit()
                                     // enforces the .swf/.nitro extension.
                                     ->required()
-                                    ->live()
                                     ->columnSpanFull(),
 
+                                // Icon override: kept always-visible because
+                                // a sibling visible() callback inside a
+                                // Repeater doesn't reliably re-evaluate after
+                                // a FileUpload state change. queueImport()
+                                // ignores it for .nitro imports, so leaving
+                                // it blank on .nitro rows is harmless.
                                 FileUpload::make('icon')
-                                    ->label('Icon (optional)')
-                                    ->helperText('Only used for .swf imports where the source has no icon frame. Pass a 64x64 PNG; the worker prefers this over auto-extraction when set.')
+                                    ->label('Icon override (optional, .swf only)')
+                                    ->helperText('Optional 64x64 PNG. Only used for .swf imports whose bundle ships no icon frame — when set, the worker prefers this over auto-extraction. Ignored for .nitro rows.')
                                     ->disk('import_spool')
                                     ->directory('_staging')
                                     ->preserveFilenames()
                                     ->acceptedFileTypes(['image/png'])
-                                    ->visible(function (callable $get) {
-                                        $stored = $get('file');
-                                        if (is_array($stored)) {
-                                            $stored = reset($stored);
-                                        }
-                                        if (! $stored) {
-                                            return false;
-                                        }
-
-                                        return str_ends_with(strtolower((string) $stored), '.swf');
-                                    })
                                     ->columnSpanFull(),
 
                                 TextInput::make('display_name')
