@@ -1,13 +1,13 @@
-{{-- Logged-in home for PixelRP. Profile/Corporation/Bank/Stats values are real;
-     Gang stats stay placeholder until those tables exist. --}}
 <x-app-layout>
     @push('title', __('Home'))
 
     @php
         $health = ['current' => $stats['hp'] ?? 0, 'max' => max($stats['max_hp'] ?? 1, 1)];
         $energy = ['current' => $stats['energy'] ?? 0, 'max' => max($stats['max_energy'] ?? 1, 1)];
-        $gang = ['name' => null, 'rank' => null, 'heists' => 0, 'turfs' => 0];
-        $avatarUrl = $user?->look ? setting('avatar_imager') . $user->look . '&direction=2&head_direction=3&gesture=sml&action=wav&size=l' : null;
+        {{-- Render via the local Nitro-imager (headless nitro-renderer at /imaging/),
+             not the seeded avatar_imager which points at habbo.com and can't see our
+             custom peacehotel/zara clothing libs. --}}
+        $avatarUrl = $user?->look ? '/imaging/?figure=' . $user->look . '&direction=2&head_direction=3&gesture=sml&action=wav&size=l' : null;
     @endphp
 
     <div class="flex flex-col gap-6">
@@ -205,7 +205,7 @@
                         <h2>{{ __('GANG') }}</h2>
                     </div>
                     <div class="pt-stat-card-body">
-                        @if ($gang['name'])
+                        @if ($gang)
                             <div class="flex items-center gap-3.5">
                                 <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-md border-2 border-(--color-panel-stroke) bg-(--color-ink-panel)">
                                     <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#D8E6FA" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>

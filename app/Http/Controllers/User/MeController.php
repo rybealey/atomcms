@@ -23,6 +23,7 @@ class MeController extends Controller
             'diamonds' => (int) ($user?->currency('diamonds') ?? 0),
             'stats' => $this->playerStats($user?->id),
             'employment' => $this->employment($user?->id),
+            'gang' => $this->gang($user?->id),
         ]);
     }
 
@@ -106,6 +107,36 @@ class MeController extends Controller
             'hired_at' => $row->hired_at,
             'weekly_shifts' => $weeklyShifts,
             'total_shifts' => $totalShifts,
+        ];
+    }
+
+    private function gang(?int $userId): ?array
+    {
+        if (! $userId) return null;
+
+        $row = DB::table('rp_gang_members AS m')
+            ->join('rp_gangs AS g', 'g.id', '=', 'm.gang_id')
+            ->leftJoin('rp_gang_ranks AS r', function ($join) {
+                $join->on('r.gang_id', '=', 'm.gang_id')->on('r.rank_num', '=', 'm.rank_num');
+            })
+            ->where('m.habbo_id', $userId)
+            ->select('g.id AS gang_id', 'g.name AS gang_name', 'g.founder_habbo_id', 'r.title AS rank_title')
+            ->first();
+
+        if (! $row) return null;
+
+        // Mirrors emulator StatsSnapshot.attachGang: founder displays as "Leader",
+        // member on an unmapped rank_num falls back to "Unranked".
+        $rank = (int) $row->founder_habbo_id === $userId
+            ? 'Leader'
+            : ($row->rank_title ?? 'Unranked');
+
+        return [
+            'name' => (string) $row->gang_name,
+            'rank' => $rank,
+            // Heists + turfs systems aren't built yet — emulator also sends 0.
+            'heists' => 0,
+            'turfs' => 0,
         ];
     }
 }
