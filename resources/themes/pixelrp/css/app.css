@@ -413,6 +413,10 @@ body {
     border: 2px solid var(--color-ink);
 }
 
+.pt-server-dot--updating {
+    background: var(--color-coin);
+}
+
 .pt-stat-tile {
     background: var(--color-ink-panel);
     border: 2px solid var(--color-panel-stroke);
