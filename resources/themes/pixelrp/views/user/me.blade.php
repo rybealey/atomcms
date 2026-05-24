@@ -207,9 +207,9 @@
                     <div class="pt-stat-card-body">
                         @if ($gang)
                             <div class="flex items-center gap-3.5">
-                                <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-md border-2 border-(--color-panel-stroke) bg-(--color-ink-panel)">
-                                    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#D8E6FA" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                                </div>
+                                <div class="h-16 w-16 shrink-0 rounded-md border-2 border-(--color-panel-stroke)"
+                                     title="{{ $gang['name'] }}"
+                                     style="background: linear-gradient(135deg, #{{ $gang['primary_color'] }} 50%, #{{ $gang['secondary_color'] }} 50%);"></div>
                                 <div class="flex flex-col gap-0.5 min-w-0">
                                     <span class="text-[16px] font-black text-white leading-tight">{{ $gang['name'] }}</span>
                                     <span class="text-[13px] font-medium text-(--color-hero-sub)">{{ $gang['rank'] }}</span>

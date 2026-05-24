@@ -120,7 +120,7 @@ class MeController extends Controller
                 $join->on('r.gang_id', '=', 'm.gang_id')->on('r.rank_num', '=', 'm.rank_num');
             })
             ->where('m.habbo_id', $userId)
-            ->select('g.id AS gang_id', 'g.name AS gang_name', 'g.founder_habbo_id', 'r.title AS rank_title')
+            ->select('g.id AS gang_id', 'g.name AS gang_name', 'g.founder_habbo_id', 'g.primary_color', 'g.secondary_color', 'r.title AS rank_title')
             ->first();
 
         if (! $row) return null;
@@ -131,9 +131,15 @@ class MeController extends Controller
             ? 'Leader'
             : ($row->rank_title ?? 'Unranked');
 
+        // Hex colors go into a style attribute; clamp to the schema-promised 6-hex
+        // shape so a corrupted row can't punch out of the CSS context.
+        $hex = static fn ($v) => preg_match('/^[0-9A-Fa-f]{6}$/', (string) $v) ? (string) $v : '4A4A4A';
+
         return [
             'name' => (string) $row->gang_name,
             'rank' => $rank,
+            'primary_color' => $hex($row->primary_color),
+            'secondary_color' => $hex($row->secondary_color),
             // Heists + turfs systems aren't built yet — emulator also sends 0.
             'heists' => 0,
             'turfs' => 0,
