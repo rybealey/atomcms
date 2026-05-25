@@ -16,12 +16,14 @@
        file; the values now carry the real brand palette. */
     /* Drop shadow = the wordmark's hard plum outline. */
     --color-shadow: #5A1853;
-    /* --color-coin* — the dominant hero pink and its highlight ladder.
-       The CMS uses these decoratively only; in-game currency stays gold. */
-    --color-coin: #FF417A;
-    --color-coin-hi: #FFADC6;
-    --color-coin-soft: #FFEDF3;
-    --color-eyebrow: #FF417A;
+    /* --color-coin* — temporary all-orange CMS pass; the ladder is the
+       sampled skyline-glow orange, a lighter shoulder, and a near-white
+       wash. The CMS uses these decoratively only; in-game currency
+       stays gold. */
+    --color-coin: #F79439;
+    --color-coin-hi: #FBC080;
+    --color-coin-soft: #FEEFDB;
+    --color-eyebrow: #F79439;
     --color-hero-sub: #B0B0B0;
     --color-paper: #FFFFFF;
     --color-surface: #F2F5FA;
