@@ -3,8 +3,8 @@
 <header class="w-full bg-(--color-ink-soft) border-b-4 border-(--color-coin)">
     <div class="mx-auto flex max-w-7xl items-center justify-between px-8 py-3">
         <a href="{{ route('welcome') }}" class="flex items-center">
-            <img src="{{ asset('assets/images/pixelrp/logo.gif') }}" alt="PixelRP"
-                style="image-rendering: pixelated; height: 40px; width: auto;">
+            <img src="{{ asset('assets/images/pixelrp/logo.png') }}" alt="PixelRP"
+                style="image-rendering: pixelated; height: 56px; width: auto;">
         </a>
 
         <div class="flex items-center gap-4">

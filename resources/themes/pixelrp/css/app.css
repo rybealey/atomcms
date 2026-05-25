@@ -10,12 +10,18 @@
     --color-ink-soft: #1A1A1A;
     --color-ink-panel: #2A2A2A;
     --color-panel-stroke: #4A4A4A;
-    --color-shadow: #0A1F4A;
-    --color-coin: #FFC700;
-    --color-coin-soft: #FFF6CC;
-    --color-coin-hi: #FFE266;
-    --color-sky: #3E8FD8;
-    --color-eyebrow: #FFC700;
+    /* Hard drop-shadow tinted to match the wordmark's deep-magenta outline
+       so floating cards/buttons read as one piece with the logo. */
+    --color-shadow: #3D0E26;
+    /* --color-coin* are the legacy token names but now carry the pink brand
+       accent (matches the wordmark + favicon "P"). Currency rendering is
+       in-game; CMS uses these strictly decoratively. */
+    --color-coin: #FF3D8A;
+    --color-coin-soft: #FFD9EA;
+    --color-coin-hi: #FF85B8;
+    /* Cyan picks up the skyline lights inside the logo. */
+    --color-sky: #4ADBE2;
+    --color-eyebrow: #FF3D8A;
     --color-hero-sub: #B0B0B0;
     --color-paper: #FFFFFF;
     --color-surface: #F2F5FA;
