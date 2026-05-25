@@ -10,18 +10,18 @@
     --color-ink-soft: #1A1A1A;
     --color-ink-panel: #2A2A2A;
     --color-panel-stroke: #4A4A4A;
-    /* Hard drop-shadow tinted to match the wordmark's deep-magenta outline
-       so floating cards/buttons read as one piece with the logo. */
-    --color-shadow: #3D0E26;
-    /* --color-coin* are the legacy token names but now carry the pink brand
-       accent (matches the wordmark + favicon "P"). Currency rendering is
-       in-game; CMS uses these strictly decoratively. */
-    --color-coin: #DB6262;
-    --color-coin-soft: #FFD9EA;
-    --color-coin-hi: #FF85B8;
-    /* Cyan picks up the skyline lights inside the logo. */
-    --color-sky: #4ADBE2;
-    --color-eyebrow: #DB6262;
+    /* Every accent value below was sampled from the animated PixelRP
+       wordmark (atomcms/public/assets/images/pixelrp/logo.gif). Names are
+       kept legacy ("coin", "quest-orange") to avoid touching every Blade
+       file; the values now carry the real brand palette. */
+    /* Drop shadow = the wordmark's hard plum outline. */
+    --color-shadow: #5A1853;
+    /* --color-coin* — the dominant hero pink and its highlight ladder.
+       The CMS uses these decoratively only; in-game currency stays gold. */
+    --color-coin: #FF417A;
+    --color-coin-hi: #FFADC6;
+    --color-coin-soft: #FFEDF3;
+    --color-eyebrow: #FF417A;
     --color-hero-sub: #B0B0B0;
     --color-paper: #FFFFFF;
     --color-surface: #F2F5FA;
@@ -31,8 +31,10 @@
     --color-footer-text: #7A7A7A;
     --color-xp-green: #5BC34A;
     --color-xp-green-deep: #3D9B2D;
-    --color-quest-orange: #FF7A00;
-    --color-mystic-purple: #9B59B6;
+    /* Warm accent = the orange skyline glow above the wordmark. */
+    --color-quest-orange: #F79439;
+    /* Deep magenta from the wordmark's lower-half shading. */
+    --color-mystic-purple: #7B005A;
     --color-danger: #FF6B6B;
     --color-discord: #5865F2;
 
