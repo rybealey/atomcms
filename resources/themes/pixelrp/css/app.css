@@ -16,12 +16,12 @@
     /* --color-coin* are the legacy token names but now carry the pink brand
        accent (matches the wordmark + favicon "P"). Currency rendering is
        in-game; CMS uses these strictly decoratively. */
-    --color-coin: #FA6697;
+    --color-coin: #DB6262;
     --color-coin-soft: #FFD9EA;
     --color-coin-hi: #FF85B8;
     /* Cyan picks up the skyline lights inside the logo. */
     --color-sky: #4ADBE2;
-    --color-eyebrow: #FA6697;
+    --color-eyebrow: #DB6262;
     --color-hero-sub: #B0B0B0;
     --color-paper: #FFFFFF;
     --color-surface: #F2F5FA;
