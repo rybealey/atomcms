@@ -65,12 +65,15 @@ body {
     letter-spacing: 2px;
 }
 
+/* Eyebrow text rides on the orange skyline-glow accent so it visually
+   sits "above" the pink wordmark/title underneath, the way the city
+   glow sits above the logo. */
 .pt-eyebrow {
     font-size: 12px;
     font-weight: 700;
     letter-spacing: 3px;
     text-transform: uppercase;
-    color: var(--color-coin);
+    color: var(--color-quest-orange);
 }
 
 .pt-section-label {
@@ -101,8 +104,17 @@ body {
     color: var(--color-ink);
 }
 
+/* Header stack mirrors the wordmark's color stratum: a thin deep-magenta
+   stripe at the very top (the logo's drop-shadow ridge), a light-pink
+   shoulder (the letter highlight), then the dominant brand pink body. */
 .pt-card-header {
-    background: linear-gradient(180deg, var(--color-coin-hi) 0%, var(--color-coin-hi) 8%, var(--color-coin) 8%, var(--color-coin) 100%);
+    background: linear-gradient(180deg,
+        var(--color-mystic-purple) 0%,
+        var(--color-mystic-purple) 4%,
+        var(--color-coin-hi) 4%,
+        var(--color-coin-hi) 10%,
+        var(--color-coin) 10%,
+        var(--color-coin) 100%);
     border-bottom: 4px solid var(--color-ink);
     padding: 18px 24px;
     color: var(--color-ink);
@@ -421,8 +433,10 @@ body {
     border: 2px solid var(--color-ink);
 }
 
+/* "Updating" reads as construction/warm-transitional, not as a brand
+   accent — orange differentiates it from the everyday pink coin. */
 .pt-server-dot--updating {
-    background: var(--color-coin);
+    background: var(--color-quest-orange);
 }
 
 .pt-stat-tile {
