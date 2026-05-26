@@ -159,10 +159,10 @@ class FurnitureImporter extends Page
                                     ->maxLength(56),
 
                                 TextInput::make('stack_height')
-                                    ->label('Sit/lay sprite height')
-                                    ->helperText('Avatar Z height when sitting or laying on it (0 = floor).')
+                                    ->label('Stack height')
+                                    ->helperText('Z offset added to anything stacked on this furni. 1 = a standard 1-tile block, 0 = a floor tile or rug (stacked items sit at floor level), 0.5 = a half-height block. Defaults to 1 because most furni is meant to be built on.')
                                     ->numeric()
-                                    ->default(0)
+                                    ->default(1)
                                     ->minValue(0)
                                     ->maxValue(4)
                                     ->step(0.25),
@@ -335,7 +335,7 @@ class FurnitureImporter extends Page
                 'walkable' => (bool) ($row['walkable'] ?? false),
                 'seating' => in_array(($row['seating'] ?? 'none'), ['none', 'sit', 'lay'], true)
                     ? $row['seating'] : 'none',
-                'stack_height' => max(0.0, min(4.0, (float) ($row['stack_height'] ?? 0))),
+                'stack_height' => max(0.0, min(4.0, (float) ($row['stack_height'] ?? 1.0))),
             ];
         }
 
