@@ -441,6 +441,12 @@ body {
     background: var(--color-quest-orange);
 }
 
+/* :shutdown lockdown — red signals "do not Play Now". The footer pill
+   prefers this over --updating when both are active. */
+.pt-server-dot--maintenance {
+    background: var(--color-danger);
+}
+
 .pt-stat-tile {
     background: var(--color-ink-panel);
     border: 2px solid var(--color-panel-stroke);

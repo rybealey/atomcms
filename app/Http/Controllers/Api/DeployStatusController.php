@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Services\ServerStatusService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Storage;
 
@@ -10,9 +11,12 @@ class DeployStatusController extends Controller
 {
     private const STATE_FILE = 'deploy-state.json';
 
+    public function __construct(private readonly ServerStatusService $serverStatus) {}
+
     public function show(): JsonResponse
     {
         $payload = $this->readState() ?? ['status' => 'idle'];
+        $payload['shutdown'] = $this->serverStatus->isShutdown();
 
         return response()
             ->json(['data' => $payload])

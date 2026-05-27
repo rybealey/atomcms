@@ -7,6 +7,7 @@ use App\Observers\WebsiteDrawBadgeObserver;
 use App\Services\InstallationService;
 use App\Services\PermissionsService;
 use App\Services\RconService;
+use App\Services\ServerStatusService;
 use App\Services\SettingsService;
 use App\Services\ViteService;
 use Filament\Tables\Table;
@@ -46,6 +47,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(
             RconService::class,
             fn () => new RconService,
+        );
+
+        $this->app->singleton(
+            ServerStatusService::class,
+            fn () => new ServerStatusService,
         );
     }
 
