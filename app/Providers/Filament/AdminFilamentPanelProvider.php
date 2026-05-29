@@ -49,6 +49,7 @@ class AdminFilamentPanelProvider extends PanelProvider
         $panel = $panel
             ->default()
             ->id('housekeeping')
+            ->brandName('PixelRP')
             ->colors([
                 'primary' => Color::Amber,
             ])
