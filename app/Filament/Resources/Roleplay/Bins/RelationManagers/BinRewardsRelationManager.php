@@ -31,6 +31,10 @@ use Illuminate\Support\Facades\DB;
  *     {@code zara_clothing_offers.id} becomes the {@code reward_ref};
  *     the plugin resolves it to the {@code zara_token_<clothingId>}
  *     backpack key at grant time.
+ *   - {@code currency} -> coins or diamonds. {@code reward_ref} is
+ *     literally {@code "coins"} / {@code "diamonds"}; {@code amount}
+ *     is the quantity granted via MoneyLedger.credit (coins) or
+ *     habbo.givePoints (diamonds).
  *
  * "Nothing" outcomes aren't authored here — they fall out of the
  * find-chance roll on the parent bin (find_chance_pct < 100 means
@@ -49,6 +53,7 @@ class BinRewardsRelationManager extends RelationManager
                     ->options([
                         BinReward::REWARD_TYPE_BACKPACK_ITEM => 'Backpack Item',
                         BinReward::REWARD_TYPE_ZARA_LTD_TOKEN => 'Zara LTD Token',
+                        BinReward::REWARD_TYPE_CURRENCY => 'Currency (Coins / Diamonds)',
                     ])
                     ->required()
                     ->live()
@@ -56,7 +61,7 @@ class BinRewardsRelationManager extends RelationManager
                     ->columnSpanFull(),
 
                 Select::make('reward_ref')
-                    ->label('Item / Token')
+                    ->label('Item / Token / Currency')
                     ->required()
                     ->options(function (callable $get) {
                         if ($get('reward_type') === BinReward::REWARD_TYPE_ZARA_LTD_TOKEN) {
@@ -65,6 +70,9 @@ class BinRewardsRelationManager extends RelationManager
                                 ->orderBy('display_name')
                                 ->pluck('display_name', 'id')
                                 ->toArray();
+                        }
+                        if ($get('reward_type') === BinReward::REWARD_TYPE_CURRENCY) {
+                            return BinReward::CURRENCY_OPTIONS;
                         }
                         return BinReward::BACKPACK_ITEM_OPTIONS;
                     })
@@ -91,7 +99,7 @@ class BinRewardsRelationManager extends RelationManager
                             ->disabled(fn (callable $get) => $get('reward_type') === BinReward::REWARD_TYPE_ZARA_LTD_TOKEN)
                             ->dehydrateStateUsing(fn ($state, callable $get) =>
                                 $get('reward_type') === BinReward::REWARD_TYPE_ZARA_LTD_TOKEN ? 1 : $state)
-                            ->helperText('Forced to 1 for LTD tokens.'),
+                            ->helperText('Forced to 1 for LTD tokens. For Currency, this is the coin or diamond quantity granted.'),
                     ]),
             ]);
     }
@@ -106,15 +114,19 @@ class BinRewardsRelationManager extends RelationManager
                     ->formatStateUsing(fn (string $state) => match ($state) {
                         BinReward::REWARD_TYPE_BACKPACK_ITEM => 'Backpack',
                         BinReward::REWARD_TYPE_ZARA_LTD_TOKEN => 'Zara LTD',
+                        BinReward::REWARD_TYPE_CURRENCY => 'Currency',
                         default => $state,
                     })
                     ->sortable(),
 
                 TextColumn::make('reward_ref')
-                    ->label('Item / Token')
+                    ->label('Item / Token / Currency')
                     ->formatStateUsing(function ($state, $record) {
                         if ($record->reward_type === BinReward::REWARD_TYPE_BACKPACK_ITEM) {
                             return BinReward::BACKPACK_ITEM_OPTIONS[$state] ?? $state;
+                        }
+                        if ($record->reward_type === BinReward::REWARD_TYPE_CURRENCY) {
+                            return BinReward::CURRENCY_OPTIONS[$state] ?? $state;
                         }
                         $display = DB::table('zara_clothing_offers')
                             ->where('id', $state)

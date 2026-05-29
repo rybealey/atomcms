@@ -36,6 +36,19 @@ class BinReward extends Model
 
     public const REWARD_TYPE_ZARA_LTD_TOKEN = 'zara_ltd_token';
 
+    public const REWARD_TYPE_CURRENCY = 'currency';
+
+    /**
+     * Currency options for the {@code currency} reward type. The key
+     * lands in {@code reward_ref}; the emulator's
+     * DumpsterDivingManager maps "coins" to MoneyLedger.credit and
+     * "diamonds" to habbo.givePoints(5, amount).
+     */
+    public const CURRENCY_OPTIONS = [
+        'coins' => 'Coins',
+        'diamonds' => 'Diamonds',
+    ];
+
     public function bin(): BelongsTo
     {
         return $this->belongsTo(Bin::class, 'bin_id');
