@@ -1,3 +1,6 @@
 <div class="pl-3" style="image-rendering: pixelated">
-    <img loading="lazy" src="{{ $column->getAvatarUrl() }}" alt="{{ $column->getRecord()->name }}" />
+    @php($avatarUrl = $column->getAvatarUrl())
+    @if ($avatarUrl)
+        <img loading="lazy" src="{{ $avatarUrl }}" alt="{{ $column->getRecord()->name }}" />
+    @endif
 </div>

@@ -15,17 +15,20 @@ class UserAvatarColumn extends Column
     public function getAvatarUrl(): string
     {
         $record = $this->getRecord();
-        $figureImagerUrl = setting('avatar_imager');
 
-        if (! $figureImagerUrl) {
+        $figure = ! $this->figurePointer
+            ? ($record->look ?? '')
+            : (string) data_get($record, $this->figurePointer);
+
+        if (! $figure) {
             return '';
         }
 
-        $figure = ! $this->figurePointer
-            ? $record->look
-            : data_get($record, $this->figurePointer);
-
-        return "{$figureImagerUrl}{$figure}{$this->avatarOptions}";
+        // Render through the local Nitro-imager (proxied at /imaging/ on the
+        // main AND ase vhosts) instead of setting('avatar_imager') - that
+        // default points at habbo.com, which cannot draw custom pixelrp
+        // looks, so the housekeeping panel showed broken avatars.
+        return "/imaging/?figure={$figure}{$this->avatarOptions}";
     }
 
     public function options(string $avatarOptions): UserAvatarColumn

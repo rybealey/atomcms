@@ -181,6 +181,81 @@ class FurnitureImporter extends Page
                                     ->default('none')
                                     ->inline()
                                     ->required(),
+
+                                ToggleButtons::make('furni_type')
+                                    ->label('Placement')
+                                    ->options([
+                                        's' => 'Floor',
+                                        'i' => 'Wall',
+                                    ])
+                                    ->default('s')
+                                    ->inline()
+                                    ->required(),
+
+                                Toggle::make('allow_stack')
+                                    ->label('Stackable (other furni can be placed on top)')
+                                    ->default(true),
+
+                                Select::make('interaction_type')
+                                    ->label('Behaviour (interaction type)')
+                                    ->helperText('Leave as Default for a normal prop. Other logics need a furni built for them.')
+                                    ->options([
+                                        'default' => 'Default (static prop)',
+                                        'gate' => 'Gate',
+                                        'vendingmachine' => 'Vending machine',
+                                        'roller' => 'Roller',
+                                        'bed' => 'Bed',
+                                        'teleport' => 'Teleport',
+                                        'dice' => 'Dice',
+                                        'habbowheel' => 'Wheel of fortune',
+                                        'bottle' => 'Spin the bottle',
+                                    ])
+                                    ->default('default')
+                                    ->required(),
+
+                                Section::make('Trading and economy')
+                                    ->columnSpanFull()
+                                    ->collapsible()
+                                    ->collapsed()
+                                    ->columns(2)
+                                    ->schema([
+                                        Toggle::make('allow_trade')
+                                            ->label('Tradeable')
+                                            ->default(true),
+                                        Toggle::make('allow_gift')
+                                            ->label('Giftable')
+                                            ->default(true),
+                                        Toggle::make('allow_recycle')
+                                            ->label('Recyclable')
+                                            ->default(false),
+                                        Toggle::make('allow_marketplace_sell')
+                                            ->label('Sellable on Marketplace')
+                                            ->default(false),
+                                    ]),
+
+                                Section::make('Advanced (effects)')
+                                    ->columnSpanFull()
+                                    ->collapsible()
+                                    ->collapsed()
+                                    ->columns(2)
+                                    ->schema([
+                                        TextInput::make('effect_id_male')
+                                            ->label('Male avatar effect id (0 = none)')
+                                            ->numeric()
+                                            ->default(0)
+                                            ->minValue(0),
+                                        TextInput::make('effect_id_female')
+                                            ->label('Female avatar effect id (0 = none)')
+                                            ->numeric()
+                                            ->default(0)
+                                            ->minValue(0),
+                                        TextInput::make('clothing_on_walk')
+                                            ->label('Clothing applied on walk-on (figure string, optional)')
+                                            ->maxLength(255),
+                                        TextInput::make('customparams')
+                                            ->label('Custom params (optional)')
+                                            ->maxLength(255),
+                                    ]),
                             ]),
                     ]),
             ])
@@ -336,6 +411,17 @@ class FurnitureImporter extends Page
                 'seating' => in_array(($row['seating'] ?? 'none'), ['none', 'sit', 'lay'], true)
                     ? $row['seating'] : 'none',
                 'stack_height' => max(0.0, min(4.0, (float) ($row['stack_height'] ?? 1.0))),
+                'furni_type' => ($row['furni_type'] ?? 's') === 'i' ? 'i' : 's',
+                'allow_stack' => (bool) ($row['allow_stack'] ?? true),
+                'allow_trade' => (bool) ($row['allow_trade'] ?? true),
+                'allow_gift' => (bool) ($row['allow_gift'] ?? true),
+                'allow_recycle' => (bool) ($row['allow_recycle'] ?? false),
+                'allow_marketplace_sell' => (bool) ($row['allow_marketplace_sell'] ?? false),
+                'interaction_type' => (string) ($row['interaction_type'] ?? 'default'),
+                'effect_id_male' => max(0, (int) ($row['effect_id_male'] ?? 0)),
+                'effect_id_female' => max(0, (int) ($row['effect_id_female'] ?? 0)),
+                'clothing_on_walk' => trim((string) ($row['clothing_on_walk'] ?? '')),
+                'customparams' => trim((string) ($row['customparams'] ?? '')),
             ];
         }
 
@@ -393,6 +479,70 @@ class FurnitureImporter extends Page
         }
 
         return json_decode($disk->get($path), true) ?: null;
+    }
+
+    /**
+     * Per-row preview thumbnails for the importer form. For each staged
+     * upload we drop a preview-request into the shared spool (the
+     * importer-worker renders a 64x64 icon via the same extractor the real
+     * import uses) and poll the result. Returns one entry per repeater row,
+     * in order, so the view can pair each card with its thumbnail.
+     *
+     * @return array<int, array{filename:string,state:string,dataUrl:?string,reason:?string}>
+     */
+    public function previewStates(): array
+    {
+        $disk = Storage::disk('import_spool');
+        $out = [];
+
+        foreach (($this->data['items'] ?? []) as $row) {
+            $stored = $row['file'] ?? null;
+            if (is_array($stored)) {
+                $stored = reset($stored);
+            }
+            if (! $stored || ! is_string($stored)) {
+                continue;
+            }
+
+            $filename = basename($stored);
+            $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+            if (! in_array($ext, ['swf', 'nitro'], true)) {
+                $out[] = ['filename' => $filename, 'state' => 'error',
+                    'dataUrl' => null, 'reason' => 'unsupported file'];
+
+                continue;
+            }
+
+            // Deterministic token off the staged path so polls are stable
+            // and a re-upload of the same file reuses its preview.
+            $token = sha1($stored);
+            $dir = "_preview/{$token}";
+            if (! $disk->exists("{$dir}/request.json")) {
+                $disk->put("{$dir}/request.json", json_encode([
+                    'staged_file' => $filename,
+                    'kind' => $ext,
+                ], JSON_PRETTY_PRINT));
+            }
+
+            if (! $disk->exists("{$dir}/result.json")) {
+                $out[] = ['filename' => $filename, 'state' => 'pending',
+                    'dataUrl' => null, 'reason' => null];
+
+                continue;
+            }
+
+            $result = json_decode($disk->get("{$dir}/result.json"), true) ?: [];
+            if (($result['state'] ?? '') === 'ok' && $disk->exists("{$dir}/preview.png")) {
+                $b64 = base64_encode($disk->get("{$dir}/preview.png"));
+                $out[] = ['filename' => $filename, 'state' => 'ok',
+                    'dataUrl' => "data:image/png;base64,{$b64}", 'reason' => null];
+            } else {
+                $out[] = ['filename' => $filename, 'state' => 'error',
+                    'dataUrl' => null, 'reason' => $result['reason'] ?? 'preview failed'];
+            }
+        }
+
+        return $out;
     }
 
     private function fail(string $message): void
