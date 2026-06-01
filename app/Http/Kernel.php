@@ -4,6 +4,7 @@ namespace App\Http;
 
 use App\Http\Middleware\Authenticate;
 use App\Http\Middleware\BannedMiddleware;
+use App\Http\Middleware\CdnAssetCookieMiddleware;
 use App\Http\Middleware\EncryptCookies;
 use App\Http\Middleware\FindRetrosMiddleware;
 use App\Http\Middleware\ForceStaffTwoFactorMiddleware;
@@ -73,6 +74,9 @@ class Kernel extends HttpKernel
             VerifyCsrfToken::class,
             SubstituteBindings::class,
             LocalizationMiddleware::class,
+            // After StartSession so Auth::check() is resolved: mints the
+            // Tier B asset-CDN cookie for logged-in players.
+            CdnAssetCookieMiddleware::class,
         ],
 
         'api' => [

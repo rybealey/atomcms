@@ -12,6 +12,8 @@ class EncryptCookies extends Middleware
      * @var array<int, string>
      */
     protected $except = [
-        //
+        // Tier B asset-CDN cookies: nginx secure_link must read them raw.
+        'cdn_e',
+        'cdn_h',
     ];
 }
