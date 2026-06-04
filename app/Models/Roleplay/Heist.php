@@ -2,23 +2,22 @@
 
 namespace App\Models\Roleplay;
 
-use App\Models\Game\Furniture\ItemBase;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 /**
- * Foundation clone of {@link Bin}. Heists mirror the dumpster-dive data
- * model; the trigger that starts a heist is a future UI component.
+ * A heist: a name, success/timing tuning, a weighted reward table, and a set
+ * of furnitures (each with a role: keypad / search / pickup). Furnitures
+ * replaced the old single item_base_id field.
  *
  * @property int $id
- * @property int $item_base_id
  * @property string $name
  * @property int $find_chance_pct
  * @property int $cooldown_seconds
  * @property int $search_seconds
- * @property-read ItemBase|null $itemBase
+ * @property-read Collection<int, HeistFurniture> $furnitures
  * @property-read Collection<int, HeistReward> $rewards
  * @property-read Collection<int, HeistKeypad> $keypads
  */
@@ -28,9 +27,9 @@ class Heist extends Model
 
     protected $guarded = [];
 
-    public function itemBase(): BelongsTo
+    public function furnitures(): HasMany
     {
-        return $this->belongsTo(ItemBase::class, 'item_base_id');
+        return $this->hasMany(HeistFurniture::class, 'heist_id');
     }
 
     public function rewards(): HasMany
@@ -39,12 +38,20 @@ class Heist extends Model
     }
 
     /**
-     * Placed keypads for this heist. Linked by item_base_id (the keypad
-     * furni's base) rather than the rp_heists primary key, since the emulator
-     * only knows the furni base when it stamps each placement's code row.
+     * Placed keypads for this heist, joined through its furnitures: a keypad's
+     * code row (rp_heist_keypads) links by item_base_id to a furniture of this
+     * heist. Only keypad furni ever get code rows, so this naturally yields
+     * just this heist's keypad placements.
      */
-    public function keypads(): HasMany
+    public function keypads(): HasManyThrough
     {
-        return $this->hasMany(HeistKeypad::class, 'item_base_id', 'item_base_id');
+        return $this->hasManyThrough(
+            HeistKeypad::class,
+            HeistFurniture::class,
+            'heist_id',      // FK on rp_heist_furnitures -> rp_heists.id
+            'item_base_id',  // FK on rp_heist_keypads -> furniture's item_base_id
+            'id',            // local key on rp_heists
+            'item_base_id',  // local key on rp_heist_furnitures
+        );
     }
 }

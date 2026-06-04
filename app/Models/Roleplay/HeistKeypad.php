@@ -11,15 +11,15 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * this model exists so staff can view and override codes from the parent
  * Heist's config page (HeistKeypadsRelationManager).
  *
- * Linked to its parent {@link Heist} by {@code item_base_id} (the keypad
- * furni's base, which is also the Heist's key).
+ * Linked to its heist's furniture by {@code item_base_id} (the keypad furni's
+ * base); the heist itself is reached via that furniture.
  *
  * @property int $id
  * @property int $placed_item_id
  * @property int $item_base_id
  * @property int $room_id
  * @property int $next_key
- * @property-read Heist|null $heist
+ * @property-read HeistFurniture|null $furniture
  */
 class HeistKeypad extends Model
 {
@@ -27,8 +27,8 @@ class HeistKeypad extends Model
 
     protected $guarded = [];
 
-    public function heist(): BelongsTo
+    public function furniture(): BelongsTo
     {
-        return $this->belongsTo(Heist::class, 'item_base_id', 'item_base_id');
+        return $this->belongsTo(HeistFurniture::class, 'item_base_id', 'item_base_id');
     }
 }

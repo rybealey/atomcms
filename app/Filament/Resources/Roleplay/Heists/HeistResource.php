@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Roleplay\Heists;
 use App\Filament\Resources\Roleplay\Heists\Pages\CreateHeist;
 use App\Filament\Resources\Roleplay\Heists\Pages\EditHeist;
 use App\Filament\Resources\Roleplay\Heists\Pages\ListHeists;
+use App\Filament\Resources\Roleplay\Heists\RelationManagers\HeistFurnituresRelationManager;
 use App\Filament\Resources\Roleplay\Heists\RelationManagers\HeistKeypadsRelationManager;
 use App\Filament\Resources\Roleplay\Heists\RelationManagers\HeistRewardsRelationManager;
 use App\Models\Roleplay\Heist;
@@ -12,27 +13,22 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Schema;
-use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
 
 /**
- * "Roleplay > Heists" housekeeping page. Foundation clone of
- * {@link \App\Filament\Resources\Roleplay\Bins\BinResource}: an
- * admin-curated list of furni that act as heist targets, with a per-target
- * success probability + a weighted reward table (managed via the
- * {@link HeistRewardsRelationManager} sub-form).
+ * "Roleplay > Heists" housekeeping page. Each heist is a name + success/timing
+ * tuning, a weighted reward table (HeistRewardsRelationManager), and a set of
+ * furnitures with roles (HeistFurnituresRelationManager): keypad (access gate),
+ * search, or pickup. Per-placement keypad codes are managed under
+ * HeistKeypadsRelationManager.
  *
- * The emulator's HeistManager loads {@code rp_heists} on boot (and on
- * {@code :reloadheists}) keyed by the rows here. The in-world trigger that
- * starts a heist is a future UI component (server seam:
- * HeistManager.tryStart); there is no furni interaction-type binding yet.
+ * The emulator's HeistManager loads these on boot (and on {@code :reloadheists})
+ * keyed by each heist's furniture bases.
  */
 class HeistResource extends Resource
 {
@@ -50,24 +46,12 @@ class HeistResource extends Resource
     {
         return $schema
             ->components([
-                Select::make('item_base_id')
-                    ->label('Heist Furniture')
-                    ->relationship(
-                        name: 'itemBase',
-                        titleAttribute: 'item_name',
-                        modifyQueryUsing: fn (Builder $query) => $query->orderBy('item_name'),
-                    )
-                    ->searchable()
-                    ->required()
-                    ->preload()
-                    ->helperText('Pick the items_base row that should act as a heist target. The in-world trigger is a future UI component, so no interaction_type binding is required yet.')
-                    ->columnSpanFull(),
-
                 TextInput::make('name')
                     ->label('Staff Label')
                     ->required()
                     ->maxLength(120)
-                    ->helperText('Internal label only. Never shown to players.'),
+                    ->helperText('Internal label only. Never shown to players. Attach furnitures (keypad / search / pickup) in the Furnitures tab after saving.')
+                    ->columnSpanFull(),
 
                 Grid::make(3)
                     ->schema([
@@ -102,21 +86,15 @@ class HeistResource extends Resource
     {
         return $table
             ->columns([
-                ImageColumn::make('icon')
-                    ->getStateUsing(fn ($record) => url($record->itemBase?->icon()))
-                    ->size('25px')
-                    ->label('Icon')
-                    ->circular(),
-
                 TextColumn::make('name')
                     ->label('Staff Label')
                     ->sortable()
                     ->searchable(),
 
-                TextColumn::make('itemBase.item_name')
-                    ->label('Furniture')
-                    ->sortable()
-                    ->searchable(),
+                TextColumn::make('furnitures_count')
+                    ->label('Furnitures')
+                    ->counts('furnitures')
+                    ->sortable(),
 
                 TextColumn::make('find_chance_pct')
                     ->label('Success %')
@@ -165,6 +143,7 @@ class HeistResource extends Resource
     public static function getRelations(): array
     {
         return [
+            HeistFurnituresRelationManager::class,
             HeistRewardsRelationManager::class,
             HeistKeypadsRelationManager::class,
         ];
