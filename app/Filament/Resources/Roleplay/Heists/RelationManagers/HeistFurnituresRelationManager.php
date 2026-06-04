@@ -37,8 +37,9 @@ class HeistFurnituresRelationManager extends RelationManager
 
     public function form(Schema $schema): Schema
     {
+        $isPlacement = fn (callable $get): bool => in_array($get('role'), HeistFurniture::PLACEMENT_ROLES, true);
         $isKeypad = fn (callable $get): bool => $get('role') === HeistFurniture::ROLE_KEYPAD;
-        $isLoot = fn (callable $get): bool => $get('role') !== HeistFurniture::ROLE_KEYPAD;
+        $isLoot = fn (callable $get): bool => ! in_array($get('role'), HeistFurniture::PLACEMENT_ROLES, true);
 
         return $schema
             ->components([
@@ -48,19 +49,19 @@ class HeistFurnituresRelationManager extends RelationManager
                     ->required()
                     ->live()
                     ->default(HeistFurniture::ROLE_KEYPAD)
-                    ->helperText('Keypad = access gate (by placed furni). Search / Pickup = loot (by furniture type).')
+                    ->helperText('Keypad + Entrance/Exit teleporters are added by placed furni id. Search / Pickup loot is added by furniture type.')
                     ->columnSpanFull(),
 
-                // Keypad role: a specific placed furni + its access code.
+                // Placement roles (keypad / entrance / exit): a specific placed furni.
                 TextInput::make('placed_item_id')
                     ->label('Placed Furni ID')
                     ->numeric()
-                    ->visible($isKeypad)
-                    ->required($isKeypad)
-                    ->dehydrated($isKeypad)
+                    ->visible($isPlacement)
+                    ->required($isPlacement)
+                    ->dehydrated($isPlacement)
                     ->unique(ignoreRecord: true)
-                    ->validationMessages(['unique' => 'That placed furni is already a keypad.'])
-                    ->helperText('items.id of the specific placed keypad furni in the room.')
+                    ->validationMessages(['unique' => 'That placed furni is already attached to a heist.'])
+                    ->helperText('items.id of the specific placed furni in the room (the keypad, or the entrance/exit teleporter).')
                     ->columnSpanFull(),
 
                 TextInput::make('next_key')
@@ -105,7 +106,7 @@ class HeistFurnituresRelationManager extends RelationManager
 
                 TextColumn::make('target')
                     ->label('Furniture / Placed')
-                    ->getStateUsing(fn ($record) => $record->role === HeistFurniture::ROLE_KEYPAD
+                    ->getStateUsing(fn ($record) => $record->placed_item_id !== null
                         ? ('Placed #' . $record->placed_item_id)
                         : ($record->itemBase?->item_name ?? ('Base #' . $record->item_base_id)))
                     ->searchable(false),
@@ -119,9 +120,7 @@ class HeistFurnituresRelationManager extends RelationManager
 
                 TextColumn::make('room_id')
                     ->label('Room')
-                    ->getStateUsing(fn ($record) => $record->role === HeistFurniture::ROLE_KEYPAD
-                        ? (string) ($record->room_id ?? '')
-                        : '')
+                    ->getStateUsing(fn ($record) => (string) ($record->room_id ?? ''))
                     ->sortable(),
 
                 TextColumn::make('updated_at')

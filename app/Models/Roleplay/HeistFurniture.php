@@ -35,13 +35,24 @@ class HeistFurniture extends Model
     protected $guarded = [];
 
     public const ROLE_KEYPAD = 'keypad';
+    public const ROLE_ENTRANCE = 'entrance';
+    public const ROLE_EXIT = 'exit';
     public const ROLE_SEARCH = 'search';
     public const ROLE_PICKUP = 'pickup';
 
     public const ROLE_OPTIONS = [
         self::ROLE_KEYPAD => 'Keypad (access gate)',
+        self::ROLE_ENTRANCE => 'Entrance teleporter',
+        self::ROLE_EXIT => 'Exit teleporter',
         self::ROLE_SEARCH => 'Search (stand and search)',
         self::ROLE_PICKUP => 'Pickup (grab and go)',
+    ];
+
+    /** Roles keyed by a specific placed furni (placed_item_id), not a base. */
+    public const PLACEMENT_ROLES = [
+        self::ROLE_KEYPAD,
+        self::ROLE_ENTRANCE,
+        self::ROLE_EXIT,
     ];
 
     public function heist(): BelongsTo
