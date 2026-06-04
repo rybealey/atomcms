@@ -52,31 +52,43 @@ class HeistResource extends Resource
                     ->helperText('Internal label only. Never shown to players. Attach furnitures (keypad / search / pickup) in the Furnitures tab after saving.')
                     ->columnSpanFull(),
 
-                Grid::make(3)
+                Grid::make(2)
+                    ->schema([
+                        TextInput::make('search_seconds')
+                            ->label('Access Window (s)')
+                            ->required()
+                            ->numeric()
+                            ->minValue(1)
+                            ->default(60)
+                            ->helperText('How long the heist stays active after the keypad is cracked (the entrance/exit teleporters stay open and the countdown runs).'),
+
+                        TextInput::make('cooldown_seconds')
+                            ->label('Heist Cooldown (s)')
+                            ->required()
+                            ->numeric()
+                            ->minValue(1)
+                            ->default(900)
+                            ->helperText('After the heist ends, how long before it can be triggered again.'),
+                    ]),
+
+                Grid::make(2)
                     ->schema([
                         TextInput::make('find_chance_pct')
-                            ->label('Success Chance %')
+                            ->label('Search Success Chance %')
                             ->required()
                             ->numeric()
                             ->minValue(0)
                             ->maxValue(100)
                             ->default(70)
-                            ->helperText('First-roll: did the heist pay off?'),
+                            ->helperText('Chance a Search furniture pays off. With the weighted Rewards tab, this is the find-chance for the bin-style search.'),
 
-                        TextInput::make('search_seconds')
-                            ->label('Duration (s)')
+                        TextInput::make('search_duration_seconds')
+                            ->label('Search Duration (s)')
                             ->required()
                             ->numeric()
                             ->minValue(1)
-                            ->default(10),
-
-                        TextInput::make('cooldown_seconds')
-                            ->label('Cooldown (s)')
-                            ->required()
-                            ->numeric()
-                            ->minValue(1)
-                            ->default(900)
-                            ->helperText('Per-target global cooldown after a successful heist.'),
+                            ->default(10)
+                            ->helperText('How long a player stands and searches a Search furniture before it pays out.'),
                     ]),
             ]);
     }
