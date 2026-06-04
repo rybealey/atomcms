@@ -24,6 +24,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int|null $placed_item_id
  * @property int|null $room_id
  * @property int|null $next_key
+ * @property int|null $search_duration_seconds
  * @property string $role
  * @property-read Heist|null $heist
  * @property-read ItemBase|null $itemBase

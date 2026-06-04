@@ -52,7 +52,7 @@ class HeistResource extends Resource
                     ->helperText('Internal label only. Never shown to players. Attach furnitures (keypad / search / pickup) in the Furnitures tab after saving.')
                     ->columnSpanFull(),
 
-                Grid::make(2)
+                Grid::make(3)
                     ->schema([
                         TextInput::make('search_seconds')
                             ->label('Access Window (s)')
@@ -60,7 +60,7 @@ class HeistResource extends Resource
                             ->numeric()
                             ->minValue(1)
                             ->default(60)
-                            ->helperText('How long the heist stays active after the keypad is cracked (the entrance/exit teleporters stay open and the countdown runs).'),
+                            ->helperText('How long the heist stays active after the keypad is cracked (teleporters open, countdown runs).'),
 
                         TextInput::make('cooldown_seconds')
                             ->label('Heist Cooldown (s)')
@@ -69,10 +69,7 @@ class HeistResource extends Resource
                             ->minValue(1)
                             ->default(900)
                             ->helperText('After the heist ends, how long before it can be triggered again.'),
-                    ]),
 
-                Grid::make(2)
-                    ->schema([
                         TextInput::make('find_chance_pct')
                             ->label('Search Success Chance %')
                             ->required()
@@ -80,15 +77,7 @@ class HeistResource extends Resource
                             ->minValue(0)
                             ->maxValue(100)
                             ->default(70)
-                            ->helperText('Chance a Search furniture pays off. With the weighted Rewards tab, this is the find-chance for the bin-style search.'),
-
-                        TextInput::make('search_duration_seconds')
-                            ->label('Search Duration (s)')
-                            ->required()
-                            ->numeric()
-                            ->minValue(1)
-                            ->default(10)
-                            ->helperText('How long a player stands and searches a Search furniture before it pays out.'),
+                            ->helperText('Chance a Search furniture pays off (with the weighted Rewards tab). Each Search furniture sets its own search time in the Furnitures tab.'),
                     ]),
             ]);
     }

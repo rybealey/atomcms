@@ -40,6 +40,7 @@ class HeistFurnituresRelationManager extends RelationManager
         $isPlacement = fn (callable $get): bool => in_array($get('role'), HeistFurniture::PLACEMENT_ROLES, true);
         $isKeypad = fn (callable $get): bool => $get('role') === HeistFurniture::ROLE_KEYPAD;
         $isLoot = fn (callable $get): bool => ! in_array($get('role'), HeistFurniture::PLACEMENT_ROLES, true);
+        $isSearch = fn (callable $get): bool => $get('role') === HeistFurniture::ROLE_SEARCH;
 
         return $schema
             ->components([
@@ -91,6 +92,18 @@ class HeistFurnituresRelationManager extends RelationManager
                     ->validationMessages(['unique' => 'That furniture is already attached to a heist.'])
                     ->helperText('items_base row to attach. Each furni base can belong to only one heist.')
                     ->columnSpanFull(),
+
+                // Search role only: how long the stand-and-search takes.
+                TextInput::make('search_duration_seconds')
+                    ->label('Search Duration (s)')
+                    ->numeric()
+                    ->minValue(1)
+                    ->default(10)
+                    ->visible($isSearch)
+                    ->required($isSearch)
+                    ->dehydrated($isSearch)
+                    ->helperText('How long a player stands and searches this furniture before it pays out.')
+                    ->columnSpanFull(),
             ]);
     }
 
@@ -115,6 +128,13 @@ class HeistFurnituresRelationManager extends RelationManager
                     ->label('Access Code')
                     ->getStateUsing(fn ($record) => ($record->role === HeistFurniture::ROLE_KEYPAD && $record->next_key !== null)
                         ? str_pad((string) $record->next_key, 2, '0', STR_PAD_LEFT)
+                        : '')
+                    ->sortable(),
+
+                TextColumn::make('search_duration_seconds')
+                    ->label('Search (s)')
+                    ->getStateUsing(fn ($record) => $record->role === HeistFurniture::ROLE_SEARCH
+                        ? (string) ($record->search_duration_seconds ?? '')
                         : '')
                     ->sortable(),
 
