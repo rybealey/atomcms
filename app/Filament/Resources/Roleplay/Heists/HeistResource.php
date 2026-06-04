@@ -6,7 +6,6 @@ use App\Filament\Resources\Roleplay\Heists\Pages\CreateHeist;
 use App\Filament\Resources\Roleplay\Heists\Pages\EditHeist;
 use App\Filament\Resources\Roleplay\Heists\Pages\ListHeists;
 use App\Filament\Resources\Roleplay\Heists\RelationManagers\HeistFurnituresRelationManager;
-use App\Filament\Resources\Roleplay\Heists\RelationManagers\HeistKeypadsRelationManager;
 use App\Filament\Resources\Roleplay\Heists\RelationManagers\HeistRewardsRelationManager;
 use App\Models\Roleplay\Heist;
 use Filament\Actions\BulkActionGroup;
@@ -23,12 +22,12 @@ use Filament\Tables\Table;
 /**
  * "Roleplay > Heists" housekeeping page. Each heist is a name + success/timing
  * tuning, a weighted reward table (HeistRewardsRelationManager), and a set of
- * furnitures with roles (HeistFurnituresRelationManager): keypad (access gate),
- * search, or pickup. Per-placement keypad codes are managed under
- * HeistKeypadsRelationManager.
+ * furnitures with roles (HeistFurnituresRelationManager): keypad (access gate,
+ * keyed by a placed furni id and carrying its access code), search, or pickup
+ * (loot, keyed by item base).
  *
- * The emulator's HeistManager loads these on boot (and on {@code :reloadheists})
- * keyed by each heist's furniture bases.
+ * The emulator's HeistManager loads loot furnitures by item base; the keypad
+ * gate validates a clicked placement against its keypad furniture row.
  */
 class HeistResource extends Resource
 {
@@ -145,7 +144,6 @@ class HeistResource extends Resource
         return [
             HeistFurnituresRelationManager::class,
             HeistRewardsRelationManager::class,
-            HeistKeypadsRelationManager::class,
         ];
     }
 }

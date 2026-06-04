@@ -8,13 +8,22 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * One furniture attached to a heist, with a role describing what it does:
- * keypad (the access gate), search (stand-and-search loot), or pickup
- * (grab-and-go loot). A heist owns many of these; a furni base belongs to
- * exactly one heist (item_base_id is unique).
+ *   - keypad: the access gate — keyed by a specific PLACED furni
+ *     ({@code placed_item_id}) and carrying that keypad's current access code
+ *     ({@code next_key}, re-rolled per open) and {@code room_id}.
+ *   - search / pickup: loot — keyed by furniture TYPE ({@code item_base_id}).
+ *
+ * A heist owns many of these. A loot furni base belongs to exactly one heist
+ * ({@code item_base_id} unique); a placed keypad is unique
+ * ({@code placed_item_id} unique). The unused id column for the row's role
+ * stays null.
  *
  * @property int $id
  * @property int $heist_id
- * @property int $item_base_id
+ * @property int|null $item_base_id
+ * @property int|null $placed_item_id
+ * @property int|null $room_id
+ * @property int|null $next_key
  * @property string $role
  * @property-read Heist|null $heist
  * @property-read ItemBase|null $itemBase
