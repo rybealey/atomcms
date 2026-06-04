@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Roleplay\Heists;
 use App\Filament\Resources\Roleplay\Heists\Pages\CreateHeist;
 use App\Filament\Resources\Roleplay\Heists\Pages\EditHeist;
 use App\Filament\Resources\Roleplay\Heists\Pages\ListHeists;
+use App\Filament\Resources\Roleplay\Heists\RelationManagers\HeistKeypadsRelationManager;
 use App\Filament\Resources\Roleplay\Heists\RelationManagers\HeistRewardsRelationManager;
 use App\Models\Roleplay\Heist;
 use Filament\Actions\BulkActionGroup;
@@ -165,6 +166,7 @@ class HeistResource extends Resource
     {
         return [
             HeistRewardsRelationManager::class,
+            HeistKeypadsRelationManager::class,
         ];
     }
 }

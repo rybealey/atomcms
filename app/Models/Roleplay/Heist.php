@@ -20,6 +20,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $search_seconds
  * @property-read ItemBase|null $itemBase
  * @property-read Collection<int, HeistReward> $rewards
+ * @property-read Collection<int, HeistKeypad> $keypads
  */
 class Heist extends Model
 {
@@ -35,5 +36,15 @@ class Heist extends Model
     public function rewards(): HasMany
     {
         return $this->hasMany(HeistReward::class, 'heist_id');
+    }
+
+    /**
+     * Placed keypads for this heist. Linked by item_base_id (the keypad
+     * furni's base) rather than the rp_heists primary key, since the emulator
+     * only knows the furni base when it stamps each placement's code row.
+     */
+    public function keypads(): HasMany
+    {
+        return $this->hasMany(HeistKeypad::class, 'item_base_id', 'item_base_id');
     }
 }
