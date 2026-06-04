@@ -6,9 +6,11 @@ namespace App\Providers;
 use App\Models\Roleplay\Bin;
 use App\Models\Roleplay\ChargeType;
 use App\Models\Roleplay\Heist;
+use App\Models\Roleplay\HeistKeypad;
 use App\Policies\ActivityPolicy;
 use App\Policies\BinPolicy;
 use App\Policies\ChargeTypePolicy;
+use App\Policies\HeistKeypadPolicy;
 use App\Policies\HeistPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Spatie\Activitylog\Models\Activity;
@@ -25,6 +27,7 @@ class AuthServiceProvider extends ServiceProvider
         Activity::class => ActivityPolicy::class,
         Bin::class => BinPolicy::class,
         Heist::class => HeistPolicy::class,
+        HeistKeypad::class => HeistKeypadPolicy::class,
         ChargeType::class => ChargeTypePolicy::class,
     ];
 
