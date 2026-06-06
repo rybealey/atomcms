@@ -17,6 +17,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $find_chance_pct
  * @property int $cooldown_seconds
  * @property int $search_seconds
+ * @property bool $allow_passive_players
+ * @property bool $gang_required
+ * @property int $gang_min_online
  * @property-read Collection<int, HeistFurniture> $furnitures
  * @property-read Collection<int, HeistReward> $rewards
  */
@@ -25,6 +28,14 @@ class Heist extends Model
     protected $table = 'rp_heists';
 
     protected $guarded = [];
+
+    protected function casts(): array
+    {
+        return [
+            'allow_passive_players' => 'boolean',
+            'gang_required' => 'boolean',
+        ];
+    }
 
     public function furnitures(): HasMany
     {

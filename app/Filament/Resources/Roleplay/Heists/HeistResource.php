@@ -13,9 +13,12 @@ use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
@@ -79,6 +82,29 @@ class HeistResource extends Resource
                             ->default(70)
                             ->helperText('Chance a Search furniture pays off (with the weighted Rewards tab). Each Search furniture sets its own search time in the Furnitures tab.'),
                     ]),
+
+                Grid::make(3)
+                    ->schema([
+                        Toggle::make('allow_passive_players')
+                            ->label('Allow Passive Players')
+                            ->default(true)
+                            ->helperText('When off, players in passive mode cannot take part in this heist.'),
+
+                        Toggle::make('gang_required')
+                            ->label('Gang Required')
+                            ->default(false)
+                            ->live()
+                            ->helperText('When on, the triggering player must belong to a gang.'),
+
+                        TextInput::make('gang_min_online')
+                            ->label('Gang Members Online')
+                            ->numeric()
+                            ->minValue(1)
+                            ->default(1)
+                            ->required(fn (Get $get): bool => (bool) $get('gang_required'))
+                            ->visible(fn (Get $get): bool => (bool) $get('gang_required'))
+                            ->helperText('Minimum number of the gang\'s members that must be online.'),
+                    ]),
             ]);
     }
 
@@ -112,6 +138,16 @@ class HeistResource extends Resource
 
                 TextColumn::make('cooldown_seconds')
                     ->label('Cooldown (s)')
+                    ->toggleable(),
+
+                IconColumn::make('allow_passive_players')
+                    ->label('Passive OK')
+                    ->boolean()
+                    ->toggleable(),
+
+                IconColumn::make('gang_required')
+                    ->label('Gang Req.')
+                    ->boolean()
                     ->toggleable(),
 
                 TextColumn::make('updated_at')
