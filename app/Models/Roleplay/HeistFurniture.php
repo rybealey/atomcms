@@ -5,6 +5,7 @@ namespace App\Models\Roleplay;
 use App\Models\Game\Furniture\ItemBase;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\DB;
 
 /**
  * One furniture attached to a heist, with a role describing what it does:
@@ -64,5 +65,55 @@ class HeistFurniture extends Model
     public function itemBase(): BelongsTo
     {
         return $this->belongsTo(ItemBase::class, 'item_base_id');
+    }
+
+    /**
+     * Keep items_base.interaction_type in sync so a Search furniture's base is
+     * bound to 'rp_heist_search' while it's attached, and reverted to 'default'
+     * once it's removed. The emulator still needs a restart to pick up a binding
+     * change (interaction_type is read at boot), but the DB stays correct
+     * without any manual SQL.
+     */
+    protected static function booted(): void
+    {
+        static::saved(function (HeistFurniture $furniture): void {
+            $furniture->syncSearchBinding($furniture->item_base_id);
+            $previous = $furniture->getOriginal('item_base_id');
+            if ($previous && (int) $previous !== (int) $furniture->item_base_id) {
+                $furniture->syncSearchBinding((int) $previous);
+            }
+        });
+
+        static::deleted(function (HeistFurniture $furniture): void {
+            $furniture->syncSearchBinding($furniture->item_base_id);
+        });
+    }
+
+    /**
+     * Set the base to 'rp_heist_search' when a role=search furniture references
+     * it, or revert it to 'default' when none does. Only ever touches our own
+     * binding, never another interaction_type.
+     */
+    public function syncSearchBinding(?int $baseId): void
+    {
+        if (! $baseId) {
+            return;
+        }
+
+        $isSearch = static::query()
+            ->where('item_base_id', $baseId)
+            ->where('role', self::ROLE_SEARCH)
+            ->exists();
+
+        $current = DB::table('items_base')->where('id', $baseId)->value('interaction_type');
+        if ($current === null) {
+            return; // base not in items_base — nothing to bind
+        }
+
+        if ($isSearch && $current !== 'rp_heist_search') {
+            DB::table('items_base')->where('id', $baseId)->update(['interaction_type' => 'rp_heist_search']);
+        } elseif (! $isSearch && $current === 'rp_heist_search') {
+            DB::table('items_base')->where('id', $baseId)->update(['interaction_type' => 'default']);
+        }
     }
 }
