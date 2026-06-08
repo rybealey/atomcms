@@ -41,6 +41,7 @@ class HeistFurniture extends Model
     public const ROLE_EXIT = 'exit';
     public const ROLE_SEARCH = 'search';
     public const ROLE_PICKUP = 'pickup';
+    public const ROLE_SAFE = 'safe';
 
     public const ROLE_OPTIONS = [
         self::ROLE_KEYPAD => 'Keypad (access gate)',
@@ -48,6 +49,13 @@ class HeistFurniture extends Model
         self::ROLE_EXIT => 'Exit teleporter',
         self::ROLE_SEARCH => 'Search (stand and search)',
         self::ROLE_PICKUP => 'Pickup (grab and go)',
+        self::ROLE_SAFE => 'Safe (searchable, currency only)',
+    ];
+
+    /** Roles that are searched stand-and-search style (bound to rp_heist_search). */
+    public const SEARCHABLE_ROLES = [
+        self::ROLE_SEARCH,
+        self::ROLE_SAFE,
     ];
 
     /** Roles keyed by a specific placed furni (placed_item_id), not a base. */
@@ -68,11 +76,11 @@ class HeistFurniture extends Model
     }
 
     /**
-     * Keep items_base.interaction_type in sync so a Search furniture's base is
-     * bound to 'rp_heist_search' while it's attached, and reverted to 'default'
-     * once it's removed. The emulator still needs a restart to pick up a binding
-     * change (interaction_type is read at boot), but the DB stays correct
-     * without any manual SQL.
+     * Keep items_base.interaction_type in sync so a searchable furniture's base
+     * (role 'search' or 'safe') is bound to 'rp_heist_search' while it's attached,
+     * and reverted to 'default' once it's removed. The emulator still needs a
+     * restart to pick up a binding change (interaction_type is read at boot), but
+     * the DB stays correct without any manual SQL.
      */
     protected static function booted(): void
     {
@@ -90,9 +98,9 @@ class HeistFurniture extends Model
     }
 
     /**
-     * Set the base to 'rp_heist_search' when a role=search furniture references
-     * it, or revert it to 'default' when none does. Only ever touches our own
-     * binding, never another interaction_type.
+     * Set the base to 'rp_heist_search' when a searchable furniture (role
+     * 'search' or 'safe') references it, or revert it to 'default' when none
+     * does. Only ever touches our own binding, never another interaction_type.
      */
     public function syncSearchBinding(?int $baseId): void
     {
@@ -102,7 +110,7 @@ class HeistFurniture extends Model
 
         $isSearch = static::query()
             ->where('item_base_id', $baseId)
-            ->where('role', self::ROLE_SEARCH)
+            ->whereIn('role', self::SEARCHABLE_ROLES)
             ->exists();
 
         $current = DB::table('items_base')->where('id', $baseId)->value('interaction_type');

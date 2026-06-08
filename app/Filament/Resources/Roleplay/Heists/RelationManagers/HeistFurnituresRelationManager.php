@@ -40,7 +40,9 @@ class HeistFurnituresRelationManager extends RelationManager
         $isPlacement = fn (callable $get): bool => in_array($get('role'), HeistFurniture::PLACEMENT_ROLES, true);
         $isKeypad = fn (callable $get): bool => $get('role') === HeistFurniture::ROLE_KEYPAD;
         $isLoot = fn (callable $get): bool => ! in_array($get('role'), HeistFurniture::PLACEMENT_ROLES, true);
-        $isSearch = fn (callable $get): bool => $get('role') === HeistFurniture::ROLE_SEARCH;
+        $isSafe = fn (callable $get): bool => $get('role') === HeistFurniture::ROLE_SAFE;
+        // Search and Safe are both stand-and-search furnitures (they share the dig timer).
+        $isSearchable = fn (callable $get): bool => in_array($get('role'), HeistFurniture::SEARCHABLE_ROLES, true);
 
         return $schema
             ->components([
@@ -93,17 +95,83 @@ class HeistFurnituresRelationManager extends RelationManager
                     ->helperText('items_base row to attach. Each furni base can belong to only one heist.')
                     ->columnSpanFull(),
 
-                // Search role only: how long the stand-and-search takes.
+                // Search / Safe roles: how long the stand-and-search takes.
                 TextInput::make('search_duration_seconds')
                     ->label('Search Duration (s)')
                     ->numeric()
                     ->minValue(1)
                     ->default(10)
-                    ->visible($isSearch)
-                    ->required($isSearch)
-                    ->dehydrated($isSearch)
+                    ->visible($isSearchable)
+                    ->required($isSearchable)
+                    ->dehydrated($isSearchable)
                     ->helperText('How long a player stands and searches this furniture before it pays out.')
                     ->columnSpanFull(),
+
+                // Safe role only: currency-only payout. One overall award chance, then a
+                // weighted coins-vs-diamonds split, each rolling a random amount in its range.
+                TextInput::make('safe_award_chance_pct')
+                    ->label('Award Chance %')
+                    ->numeric()
+                    ->minValue(0)
+                    ->maxValue(100)
+                    ->default(25)
+                    ->visible($isSafe)
+                    ->required($isSafe)
+                    ->dehydrated($isSafe)
+                    ->helperText('Chance (0-100) the safe pays out anything. On a miss the player gets nothing.')
+                    ->columnSpanFull(),
+
+                TextInput::make('safe_coins_weight')
+                    ->label('Coins Weight')
+                    ->numeric()
+                    ->minValue(0)
+                    ->default(80)
+                    ->visible($isSafe)
+                    ->dehydrated($isSafe)
+                    ->helperText('Relative weight of the coins branch when the safe pays out. Set both weights to 0 for no payout.'),
+
+                TextInput::make('safe_coins_min')
+                    ->label('Coins Min')
+                    ->numeric()
+                    ->minValue(1)
+                    ->default(100)
+                    ->visible($isSafe)
+                    ->dehydrated($isSafe),
+
+                TextInput::make('safe_coins_max')
+                    ->label('Coins Max')
+                    ->numeric()
+                    ->minValue(1)
+                    ->default(500)
+                    ->visible($isSafe)
+                    ->dehydrated($isSafe)
+                    ->helperText('Payout is a random amount between Coins Min and Coins Max (inclusive).'),
+
+                TextInput::make('safe_diamonds_weight')
+                    ->label('Diamonds Weight')
+                    ->numeric()
+                    ->minValue(0)
+                    ->default(20)
+                    ->visible($isSafe)
+                    ->dehydrated($isSafe)
+                    ->helperText('Relative weight of the diamonds branch when the safe pays out.'),
+
+                TextInput::make('safe_diamonds_min')
+                    ->label('Diamonds Min')
+                    ->numeric()
+                    ->minValue(1)
+                    ->default(1)
+                    ->visible($isSafe)
+                    ->dehydrated($isSafe),
+
+                TextInput::make('safe_diamonds_max')
+                    ->label('Diamonds Max')
+                    ->numeric()
+                    ->minValue(1)
+                    ->default(3)
+                    ->visible($isSafe)
+                    ->dehydrated($isSafe)
+                    ->helperText('Payout is a random amount between Diamonds Min and Diamonds Max (inclusive).'),
             ]);
     }
 
@@ -133,10 +201,28 @@ class HeistFurnituresRelationManager extends RelationManager
 
                 TextColumn::make('search_duration_seconds')
                     ->label('Search (s)')
-                    ->getStateUsing(fn ($record) => $record->role === HeistFurniture::ROLE_SEARCH
+                    ->getStateUsing(fn ($record) => in_array($record->role, HeistFurniture::SEARCHABLE_ROLES, true)
                         ? (string) ($record->search_duration_seconds ?? '')
                         : '')
                     ->sortable(),
+
+                TextColumn::make('safe_payout')
+                    ->label('Safe Payout')
+                    ->getStateUsing(function ($record) {
+                        if ($record->role !== HeistFurniture::ROLE_SAFE) {
+                            return '';
+                        }
+                        $parts = [];
+                        if ((int) $record->safe_coins_weight > 0) {
+                            $parts[] = $record->safe_coins_min . '-' . $record->safe_coins_max . ' coins';
+                        }
+                        if ((int) $record->safe_diamonds_weight > 0) {
+                            $parts[] = $record->safe_diamonds_min . '-' . $record->safe_diamonds_max . ' diamonds';
+                        }
+                        $payout = $parts === [] ? 'nothing' : implode(' / ', $parts);
+
+                        return ((int) $record->safe_award_chance_pct) . '% -> ' . $payout;
+                    }),
 
                 TextColumn::make('room_id')
                     ->label('Room')
