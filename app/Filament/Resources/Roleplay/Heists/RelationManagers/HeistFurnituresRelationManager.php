@@ -41,6 +41,7 @@ class HeistFurnituresRelationManager extends RelationManager
         $isKeypad = fn (callable $get): bool => $get('role') === HeistFurniture::ROLE_KEYPAD;
         $isLoot = fn (callable $get): bool => ! in_array($get('role'), HeistFurniture::PLACEMENT_ROLES, true);
         $isSafe = fn (callable $get): bool => $get('role') === HeistFurniture::ROLE_SAFE;
+        $isVault = fn (callable $get): bool => $get('role') === HeistFurniture::ROLE_VAULT;
         // Search and Cash Box are both stand-and-search furnitures (they share the dig timer).
         $isSearchable = fn (callable $get): bool => in_array($get('role'), HeistFurniture::SEARCHABLE_ROLES, true);
 
@@ -172,6 +173,29 @@ class HeistFurnituresRelationManager extends RelationManager
                     ->visible($isSafe)
                     ->dehydrated($isSafe)
                     ->helperText('Payout is a random amount between Diamonds Min and Diamonds Max (inclusive).'),
+
+                // Vault role only: lockpick-cracked, coins-only. The 20% crack
+                // chance is fixed in the emulator (not authored here); a hit pays
+                // a random amount in [min,max] and empties the vault for the rest
+                // of the heist. A miss just burns the lockpick.
+                TextInput::make('vault_coins_min')
+                    ->label('Coins Min')
+                    ->numeric()
+                    ->minValue(1)
+                    ->default(100)
+                    ->visible($isVault)
+                    ->required($isVault)
+                    ->dehydrated($isVault)
+                    ->helperText('Players spend a lockpick to crack it (fixed 20% chance). On a hit the payout is a random amount between Coins Min and Coins Max (inclusive).'),
+
+                TextInput::make('vault_coins_max')
+                    ->label('Coins Max')
+                    ->numeric()
+                    ->minValue(1)
+                    ->default(500)
+                    ->visible($isVault)
+                    ->required($isVault)
+                    ->dehydrated($isVault),
             ]);
     }
 
@@ -222,6 +246,15 @@ class HeistFurnituresRelationManager extends RelationManager
                         $payout = $parts === [] ? 'nothing' : implode(' / ', $parts);
 
                         return ((int) $record->safe_award_chance_pct) . '% -> ' . $payout;
+                    }),
+
+                TextColumn::make('vault_payout')
+                    ->label('Vault Payout')
+                    ->getStateUsing(function ($record) {
+                        if ($record->role !== HeistFurniture::ROLE_VAULT) {
+                            return '';
+                        }
+                        return $record->vault_coins_min . '-' . $record->vault_coins_max . ' coins (20% crack)';
                     }),
 
                 TextColumn::make('room_id')

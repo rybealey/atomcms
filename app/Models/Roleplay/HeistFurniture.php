@@ -42,6 +42,7 @@ class HeistFurniture extends Model
     public const ROLE_SEARCH = 'search';
     public const ROLE_PICKUP = 'pickup';
     public const ROLE_SAFE = 'safe';
+    public const ROLE_VAULT = 'vault';
 
     public const ROLE_OPTIONS = [
         self::ROLE_KEYPAD => 'Keypad (access gate)',
@@ -50,6 +51,7 @@ class HeistFurniture extends Model
         self::ROLE_SEARCH => 'Search (stand and search)',
         self::ROLE_PICKUP => 'Pickup (grab and go)',
         self::ROLE_SAFE => 'Cash Box (searchable, currency only)',
+        self::ROLE_VAULT => 'Vault (lockpick, coins only)',
     ];
 
     /** Roles that are searched stand-and-search style (bound to rp_heist_search). */
@@ -76,24 +78,28 @@ class HeistFurniture extends Model
     }
 
     /**
-     * Keep items_base.interaction_type in sync so a searchable furniture's base
-     * (role 'search' or 'safe') is bound to 'rp_heist_search' while it's attached,
-     * and reverted to 'default' once it's removed. The emulator still needs a
-     * restart to pick up a binding change (interaction_type is read at boot), but
-     * the DB stays correct without any manual SQL.
+     * Keep items_base.interaction_type in sync: a searchable furniture's base
+     * (role 'search'/'safe') binds to 'rp_heist_search', a Vault base (role
+     * 'vault') binds to 'rp_heist_vault', and either reverts to 'default' once
+     * it's removed. The emulator still needs a restart to pick up a binding
+     * change (interaction_type is read at boot), but the DB stays correct
+     * without any manual SQL.
      */
     protected static function booted(): void
     {
         static::saved(function (HeistFurniture $furniture): void {
             $furniture->syncSearchBinding($furniture->item_base_id);
+            $furniture->syncVaultBinding($furniture->item_base_id);
             $previous = $furniture->getOriginal('item_base_id');
             if ($previous && (int) $previous !== (int) $furniture->item_base_id) {
                 $furniture->syncSearchBinding((int) $previous);
+                $furniture->syncVaultBinding((int) $previous);
             }
         });
 
         static::deleted(function (HeistFurniture $furniture): void {
             $furniture->syncSearchBinding($furniture->item_base_id);
+            $furniture->syncVaultBinding($furniture->item_base_id);
         });
     }
 
@@ -121,6 +127,34 @@ class HeistFurniture extends Model
         if ($isSearch && $current !== 'rp_heist_search') {
             DB::table('items_base')->where('id', $baseId)->update(['interaction_type' => 'rp_heist_search']);
         } elseif (! $isSearch && $current === 'rp_heist_search') {
+            DB::table('items_base')->where('id', $baseId)->update(['interaction_type' => 'default']);
+        }
+    }
+
+    /**
+     * Set the base to 'rp_heist_vault' when a Vault furniture (role 'vault')
+     * references it, or revert it to 'default' when none does. Mirror of
+     * {@see syncSearchBinding}; only ever touches our own binding.
+     */
+    public function syncVaultBinding(?int $baseId): void
+    {
+        if (! $baseId) {
+            return;
+        }
+
+        $isVault = static::query()
+            ->where('item_base_id', $baseId)
+            ->where('role', self::ROLE_VAULT)
+            ->exists();
+
+        $current = DB::table('items_base')->where('id', $baseId)->value('interaction_type');
+        if ($current === null) {
+            return; // base not in items_base — nothing to bind
+        }
+
+        if ($isVault && $current !== 'rp_heist_vault') {
+            DB::table('items_base')->where('id', $baseId)->update(['interaction_type' => 'rp_heist_vault']);
+        } elseif (! $isVault && $current === 'rp_heist_vault') {
             DB::table('items_base')->where('id', $baseId)->update(['interaction_type' => 'default']);
         }
     }
