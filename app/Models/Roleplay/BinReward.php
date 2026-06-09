@@ -24,12 +24,20 @@ class BinReward extends Model
      * Backpack item_keys the emulator's DumpsterDivingManager will
      * actually grant. Mirror of the BACKPACK_ITEM_SPECS map in
      * plugins/pixeltower-rp/.../DumpsterDivingManager.java — when you
-     * add a key in one, add it in the other.
+     * add a key in one, add it in the other. The emulator grants each
+     * with its catalog shape (consumables stack, weapons arrive at full
+     * durability, the lockpick stacks as gear), so the staff just pick
+     * the item and a weight here.
      */
     public const BACKPACK_ITEM_OPTIONS = [
         'medkit' => 'Medkit',
         'kylie_smoothie' => 'Kylie Jeener Smoothie',
         'chips' => 'Protein Bar',
+        'stat_reset' => 'Stat Reset',
+        'bat' => 'Baseball Bat',
+        'knife' => 'Knife',
+        'axe' => 'Axe',
+        'lockpick' => 'Lockpick',
     ];
 
     public const REWARD_TYPE_BACKPACK_ITEM = 'backpack_item';
