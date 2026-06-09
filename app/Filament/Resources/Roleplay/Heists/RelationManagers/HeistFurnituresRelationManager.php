@@ -41,7 +41,7 @@ class HeistFurnituresRelationManager extends RelationManager
         $isKeypad = fn (callable $get): bool => $get('role') === HeistFurniture::ROLE_KEYPAD;
         $isLoot = fn (callable $get): bool => ! in_array($get('role'), HeistFurniture::PLACEMENT_ROLES, true);
         $isSafe = fn (callable $get): bool => $get('role') === HeistFurniture::ROLE_SAFE;
-        // Search and Safe are both stand-and-search furnitures (they share the dig timer).
+        // Search and Cash Box are both stand-and-search furnitures (they share the dig timer).
         $isSearchable = fn (callable $get): bool => in_array($get('role'), HeistFurniture::SEARCHABLE_ROLES, true);
 
         return $schema
@@ -95,7 +95,7 @@ class HeistFurnituresRelationManager extends RelationManager
                     ->helperText('items_base row to attach. Each furni base can belong to only one heist.')
                     ->columnSpanFull(),
 
-                // Search / Safe roles: how long the stand-and-search takes.
+                // Search / Cash Box roles: how long the stand-and-search takes.
                 TextInput::make('search_duration_seconds')
                     ->label('Search Duration (s)')
                     ->numeric()
@@ -107,7 +107,7 @@ class HeistFurnituresRelationManager extends RelationManager
                     ->helperText('How long a player stands and searches this furniture before it pays out.')
                     ->columnSpanFull(),
 
-                // Safe role only: currency-only payout. One overall award chance, then a
+                // Cash Box role only: currency-only payout. One overall award chance, then a
                 // weighted coins-vs-diamonds split, each rolling a random amount in its range.
                 TextInput::make('safe_award_chance_pct')
                     ->label('Award Chance %')
@@ -118,7 +118,7 @@ class HeistFurnituresRelationManager extends RelationManager
                     ->visible($isSafe)
                     ->required($isSafe)
                     ->dehydrated($isSafe)
-                    ->helperText('Chance (0-100) the safe pays out anything. On a miss the player gets nothing.')
+                    ->helperText('Chance (0-100) the cash box pays out anything. On a miss the player gets nothing.')
                     ->columnSpanFull(),
 
                 TextInput::make('safe_coins_weight')
@@ -128,7 +128,7 @@ class HeistFurnituresRelationManager extends RelationManager
                     ->default(80)
                     ->visible($isSafe)
                     ->dehydrated($isSafe)
-                    ->helperText('Relative weight of the coins branch when the safe pays out. Set both weights to 0 for no payout.'),
+                    ->helperText('Relative weight of the coins branch when the cash box pays out. Set both weights to 0 for no payout.'),
 
                 TextInput::make('safe_coins_min')
                     ->label('Coins Min')
@@ -154,7 +154,7 @@ class HeistFurnituresRelationManager extends RelationManager
                     ->default(20)
                     ->visible($isSafe)
                     ->dehydrated($isSafe)
-                    ->helperText('Relative weight of the diamonds branch when the safe pays out.'),
+                    ->helperText('Relative weight of the diamonds branch when the cash box pays out.'),
 
                 TextInput::make('safe_diamonds_min')
                     ->label('Diamonds Min')
@@ -207,7 +207,7 @@ class HeistFurnituresRelationManager extends RelationManager
                     ->sortable(),
 
                 TextColumn::make('safe_payout')
-                    ->label('Safe Payout')
+                    ->label('Cash Box Payout')
                     ->getStateUsing(function ($record) {
                         if ($record->role !== HeistFurniture::ROLE_SAFE) {
                             return '';

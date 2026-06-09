@@ -49,7 +49,7 @@ class HeistFurniture extends Model
         self::ROLE_EXIT => 'Exit teleporter',
         self::ROLE_SEARCH => 'Search (stand and search)',
         self::ROLE_PICKUP => 'Pickup (grab and go)',
-        self::ROLE_SAFE => 'Safe (searchable, currency only)',
+        self::ROLE_SAFE => 'Cash Box (searchable, currency only)',
     ];
 
     /** Roles that are searched stand-and-search style (bound to rp_heist_search). */
