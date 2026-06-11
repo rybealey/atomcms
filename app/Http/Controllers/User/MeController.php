@@ -38,7 +38,7 @@ class MeController extends Controller
 
     private function playerStats(?int $userId): array
     {
-        $defaults = ['hp' => 100, 'max_hp' => 100, 'energy' => 100, 'max_energy' => 100, 'level' => 1, 'is_on_duty' => false];
+        $defaults = ['hp' => 100, 'max_hp' => 100, 'energy' => 100, 'max_energy' => 100, 'is_on_duty' => false];
 
         if (! $userId) return $defaults;
 
@@ -50,7 +50,6 @@ class MeController extends Controller
             'max_hp' => (int) $row->max_hp,
             'energy' => (int) $row->energy,
             'max_energy' => (int) $row->max_energy,
-            'level' => (int) $row->level,
             'is_on_duty' => (bool) $row->is_on_duty,
         ];
     }
