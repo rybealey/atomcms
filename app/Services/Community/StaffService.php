@@ -16,14 +16,13 @@ class StaffService
         $cacheEnabled = setting('enable_caching') === '1';
         $includeHidden = $viewer->rank >= (int) setting('min_rank_to_see_hidden_staff');
         $resolve = fn (): Collection => Permission::query()
-            ->select('id', 'rank_name', 'badge', 'staff_color', 'job_description')
             ->when(! $includeHidden, fn ($query) => $query->where('hidden_rank', false))
             ->where('id', '>=', setting('min_staff_rank'))
             ->orderByDesc('id')
             ->with(['users' => function ($query) use ($includeHidden) {
                 $query->select('id', 'username', 'rank', 'motto', 'look', 'hidden_staff', 'online')
                     ->when(! $includeHidden, fn ($query) => $query->where('hidden_staff', false))
-                    ->with('permission:id,rank_name,staff_background');
+                    ->with('permission');
             }])
             ->get();
 

@@ -194,8 +194,12 @@ class UserResource extends Resource
                                             ->options(function () {
                                                 $actor = Filament::auth()->user();
 
+                                                // Collection::pluck (not the query builder's), so the Permission
+                                                // model's rank_name accessor runs instead of selecting a raw
+                                                // `rank_name` column - the Plus driver's `ranks` table has no
+                                                // such column (see Permission::getRankNameAttribute()).
                                                 return $actor instanceof User
-                                                    ? Permission::query()->where('id', '<', $actor->rank)->pluck('rank_name', 'id')
+                                                    ? Permission::query()->where('id', '<', $actor->rank)->get()->pluck('rank_name', 'id')
                                                     : [];
                                             })
                                             ->required(),

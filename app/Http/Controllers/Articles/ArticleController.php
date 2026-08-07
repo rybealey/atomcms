@@ -32,7 +32,7 @@ class ArticleController extends Controller
     {
         $article->load(['user' => function ($query) {
             $query->select('id', 'username', 'look', 'motto', 'rank', 'hidden_staff', 'online')
-                ->with('permission:id,rank_name,staff_background');
+                ->with('permission');
         }]);
 
         $reactions = $article->reactions()
