@@ -8,7 +8,12 @@ class CoreSqlFile extends Migration
 {
     public function up(): void
     {
-        if (! app()->environment('testing') || Schema::hasTable('users')) {
+        // The plus driver's test database is pre-seeded from PlusEMU's own
+        // dump (see pixelrp_test setup); importing the Arcturus schema here
+        // would clobber it. Schema::hasTable('users') already short-circuits
+        // once that dump is present, but we guard on the driver explicitly
+        // too so this migration can never run against a plus-driver database.
+        if (! app()->environment('testing') || config('emulator.driver') === 'plus' || Schema::hasTable('users')) {
             return;
         }
 

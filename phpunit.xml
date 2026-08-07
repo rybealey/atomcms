@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.3/phpunit.xsd" bootstrap="vendor/autoload.php" colors="true" cacheDirectory=".phpunit.cache">
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.3/phpunit.xsd" bootstrap="tests/bootstrap.php" colors="true" cacheDirectory=".phpunit.cache">
   <testsuites>
     <testsuite name="Feature">
       <directory suffix="Test.php">./tests/Feature</directory>
@@ -10,21 +10,35 @@
   </testsuites>
   <coverage/>
   <php>
-    <env name="APP_ENV" value="testing"/>
-    <env name="APP_KEY" value="base64:dGVzdGluZy10ZXN0aW5nLXRlc3RpbmctdGVzdGluZy0="/>
-    <env name="APP_DEBUG" value="false"/>
-    <env name="BCRYPT_ROUNDS" value="4"/>
-    <env name="CACHE_DRIVER" value="array"/>
-    <env name="DB_CONNECTION" value="mariadb"/>
-    <env name="DB_HOST" value="127.0.0.1"/>
-    <env name="DB_PORT" value="3306"/>
-    <env name="DB_DATABASE" value="testing"/>
-    <env name="DB_USERNAME" value="root"/>
-    <env name="DB_PASSWORD" value="password"/>
-    <env name="MAIL_MAILER" value="array"/>
-    <env name="QUEUE_CONNECTION" value="sync"/>
-    <env name="SESSION_DRIVER" value="array"/>
-    <env name="TELESCOPE_ENABLED" value="false"/>
+    <!--
+      force="true" on every entry below is load bearing, not decoration.
+      compose.yaml sets APP_ENV/DB_* as real container environment
+      variables for the cms service, and PHPUnit's env tag refuses to
+      overwrite an already set OS env var unless force="true" is given.
+      Without it, these overrides are silently ignored and the suite
+      connects straight to the live pixelrp database instead of the
+      isolated test database, which is exactly how the shared PlusEMU DB
+      got wiped by RefreshDatabase earlier in this project. Verify with
+      docker compose exec cms php artisan test and confirm
+      database.connections.mysql.database resolves to pixelrp_test inside
+      the test, not pixelrp.
+    -->
+    <env name="APP_ENV" value="testing" force="true"/>
+    <env name="APP_KEY" value="base64:dGVzdGluZy10ZXN0aW5nLXRlc3RpbmctdGVzdGluZy0=" force="true"/>
+    <env name="APP_DEBUG" value="false" force="true"/>
+    <env name="BCRYPT_ROUNDS" value="4" force="true"/>
+    <env name="CACHE_DRIVER" value="array" force="true"/>
+    <env name="DB_CONNECTION" value="mysql" force="true"/>
+    <env name="DB_HOST" value="db" force="true"/>
+    <env name="DB_PORT" value="3306" force="true"/>
+    <env name="DB_DATABASE" value="pixelrp_test" force="true"/>
+    <env name="DB_USERNAME" value="pixelrp" force="true"/>
+    <env name="DB_PASSWORD" value="changeme-local" force="true"/>
+    <env name="EMULATOR_DRIVER" value="plus" force="true"/>
+    <env name="MAIL_MAILER" value="array" force="true"/>
+    <env name="QUEUE_CONNECTION" value="sync" force="true"/>
+    <env name="SESSION_DRIVER" value="array" force="true"/>
+    <env name="TELESCOPE_ENABLED" value="false" force="true"/>
   </php>
   <source>
     <include>
