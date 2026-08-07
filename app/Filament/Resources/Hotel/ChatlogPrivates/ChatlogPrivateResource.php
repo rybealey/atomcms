@@ -92,7 +92,12 @@ class ChatlogPrivateResource extends Resource
 
             TextColumn::make('timestamp')
                 ->label(__('filament::resources.columns.executed_at'))
-                ->dateTime('Y-m-d H:i')
+                // Arcturus `chatlogs_private.timestamp` is a raw Unix timestamp, not a
+                // DATETIME string, so ->dateTime()'s Carbon::parse($state) throws
+                // InvalidFormatException. Format from the timestamp explicitly.
+                ->formatStateUsing(fn ($state) => $state
+                    ? \Carbon\Carbon::createFromTimestamp((int) $state)->format('Y-m-d H:i')
+                    : null)
                 ->toggleable(),
         ];
     }

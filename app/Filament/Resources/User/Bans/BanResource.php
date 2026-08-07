@@ -126,7 +126,12 @@ class BanResource extends Resource
 
                 TextColumn::make('timestamp')
                     ->label(__('filament::resources.columns.banned_at'))
-                    ->date('Y-m-d H:i'),
+                    // Arcturus `bans.timestamp` is a raw Unix timestamp column, not a
+                    // DATETIME string, so ->date()'s Carbon::parse($state) throws
+                    // InvalidFormatException. Format from the timestamp explicitly.
+                    ->formatStateUsing(fn ($state) => $state
+                        ? \Carbon\Carbon::createFromTimestamp((int) $state)->format('Y-m-d H:i')
+                        : null),
 
                 TextColumn::make('ban_expire')
                     ->label(__('filament::resources.columns.expires_at'))

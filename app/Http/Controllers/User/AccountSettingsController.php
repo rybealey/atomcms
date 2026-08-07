@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\User;
 
 use App\Contracts\Rcon;
+use App\Emulator\Data\Feature;
+use App\Emulator\Emulator;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\AccountSettingsFormRequest;
 use App\Services\User\SessionService;
@@ -15,8 +17,20 @@ class AccountSettingsController extends Controller
 {
     public function edit(): View
     {
+        $user = AuthenticatedUser::current();
+
+        // The `settings` relation only exists on drivers that keep a
+        // users_settings table (see UserObserver::createEmulatorSettings());
+        // both eager-loading it and merely touching $user->settings lazily
+        // run a query against that table, throwing a missing-table error on
+        // drivers without it. Resolve the flag up front, behind the feature
+        // check, so the blade never has to touch the relation itself.
+        $allowNameChange = Emulator::supports(Feature::EmulatorUserSettings)
+            && $user->load('settings:allow_name_change')->settings?->allow_name_change;
+
         return view('user.settings.account', [
-            'user' => AuthenticatedUser::current()->load('settings:allow_name_change'),
+            'user' => $user,
+            'allowNameChange' => (bool) $allowNameChange,
         ]);
     }
 
