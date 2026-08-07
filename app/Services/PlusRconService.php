@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Contracts\Rcon;
 use App\Data\RconResponse;
+use App\Emulator\Contracts\FurnitureRepository;
 use App\Enums\CurrencyTypes;
 use App\Exceptions\RconConnectionException;
 use App\Models\User;
@@ -19,13 +20,29 @@ use Illuminate\Support\Facades\Log;
  * parsed reply. Commands PlusEMU has no equivalent for return a failure
  * response WITHOUT opening a socket, so the CMS's existing DB-fallback
  * paths (see FurnitureRepository, SendCurrency, etc.) kick in.
+ *
+ * `sendGift()` is a special case of that fallback: callers like
+ * SendFurniture gate on isConnected() (a pure reachability check) before
+ * calling it, so a silent "unsupported" no-op here would drop the gift
+ * entirely - isConnected() would say true while sendGift() did nothing.
+ * Since there's no PlusEMU wire command for it, sendGift() always grants
+ * the item directly through FurnitureRepository (the same DB-write-first
+ * pattern setMotto/setRank use), instead of routing through
+ * sendCommand()/unsupported(). See individual method docs below for why
+ * forwardUser()/updateConfig() are correct as a logged no-op instead.
  */
 class PlusRconService implements Rcon
 {
     public function __construct(
         private ?string $host = null,
         private ?int $port = null,
+        private ?FurnitureRepository $furniture = null,
     ) {}
+
+    private function furniture(): FurnitureRepository
+    {
+        return $this->furniture ??= app(FurnitureRepository::class);
+    }
 
     public function isConnected(): bool
     {
@@ -67,8 +84,11 @@ class PlusRconService implements Rcon
             ]),
             'updatewordfilter' => $this->sendPlusCommand('reload_filter'),
             'updatecatalog' => $this->sendPlusCommand('reload_catalog'),
-            // sendgift, forwarduser, executecommand, and any unknown key:
-            // PlusEMU has no wire command for these.
+            // forwarduser, executecommand, and any unknown key: PlusEMU has
+            // no wire command for these, and there's no fallback state to
+            // write, so a logged no-op is correct (see forwardUser()'s and
+            // updateConfig()'s docblocks). 'sendgift' is never routed here -
+            // see sendGift()'s docblock for why it grants directly instead.
             default => $this->unsupported($command),
         };
     }
@@ -95,13 +115,22 @@ class PlusRconService implements Rcon
         return new RconResponse(status: 0, message: 'ok');
     }
 
+    /**
+     * PlusEMU has no RCON command for gifting an item into inventory, so this
+     * is not routed through sendCommand()/unsupported() like the rest of the
+     * "no wire equivalent" commands. Callers (SendFurniture) check
+     * isConnected() first and expect sendGift() to actually deliver the item
+     * when that check passes - a logged no-op here would silently drop the
+     * gift instead of degrading to the database path. Grant it directly.
+     */
     public function sendGift(User $user, int $itemId, string $message = 'Here is a gift.'): void
     {
-        $this->dispatchCommand('sendgift', [
+        Log::info("PlusRconService: 'sendgift' has no PlusEMU RCON equivalent; granting via FurnitureRepository instead", [
             'user_id' => $user->id,
-            'itemid' => $itemId,
-            'message' => $message,
+            'item_id' => $itemId,
         ]);
+
+        $this->furniture()->grant($user, $itemId, 1);
     }
 
     public function giveCurrency(User $user, CurrencyTypes $currency, int $amount): void
@@ -172,6 +201,14 @@ class PlusRconService implements Rcon
         ]);
     }
 
+    /**
+     * Unlike sendGift, this is correct as a logged no-op: forwarding a
+     * player's live client to a room is meaningless when nobody is
+     * connected to forward, and there's no persisted state to write as a
+     * fallback (there's nothing analogous to a FurnitureRepository row for
+     * "the room the user is standing in"). No PlusEMU RCON equivalent
+     * exists either way, so this always degrades via unsupported().
+     */
     public function forwardUser(User $user, int $roomId): void
     {
         $this->dispatchCommand('forwarduser', [
@@ -180,6 +217,12 @@ class PlusRconService implements Rcon
         ]);
     }
 
+    /**
+     * Same reasoning as forwardUser(): this executes an arbitrary staff
+     * command against a live session. There's no data to lose and nothing
+     * to write to the database as a fallback if the command can't reach a
+     * connected client, so a logged no-op is the correct degrade here too.
+     */
     public function updateConfig(User $user, string $command): void
     {
         $this->dispatchCommand('executecommand', [
