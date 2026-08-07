@@ -11,6 +11,7 @@ use App\Services\HousekeepingPermissionsService;
 use App\Services\InstallationService;
 use App\Services\Payments\SrmklivePaypalGateway;
 use App\Services\PermissionsService;
+use App\Services\PlusRconService;
 use App\Services\RconService;
 use App\Services\SettingsService;
 use App\Services\ViteService;
@@ -62,7 +63,11 @@ class AppServiceProvider extends ServiceProvider
         // commits - a rolled-back purchase never grants items in the emulator.
         $this->app->singleton(
             Rcon::class,
-            fn () => new AfterCommitRcon(new RconService),
+            fn () => new AfterCommitRcon(
+                config('emulator.driver') === 'plus'
+                    ? new PlusRconService
+                    : new RconService,
+            ),
         );
 
         // Resolve the PayPal client pre-authenticated so consumers can inject
