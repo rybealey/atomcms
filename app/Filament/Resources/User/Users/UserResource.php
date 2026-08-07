@@ -272,7 +272,14 @@ class UserResource extends Resource
 
                 TextColumn::make('account_created')
                     ->toggleable()
-                    ->date('Y-m-d H:i')
+                    // account_created is a Unix timestamp (Plus: `char(12)`, Arcturus:
+                    // an int column) rather than a DATETIME string, so the ->date()
+                    // column formatter's Carbon::parse($state) throws
+                    // InvalidFormatException on the raw digit string. Format from the
+                    // timestamp explicitly instead.
+                    ->formatStateUsing(fn ($state) => $state
+                        ? \Carbon\Carbon::createFromTimestamp((int) $state)->format('Y-m-d H:i')
+                        : null)
                     ->label(__('filament::resources.columns.created_at')),
             ])
             ->filters([
