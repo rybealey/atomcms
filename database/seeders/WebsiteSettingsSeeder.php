@@ -62,7 +62,16 @@ class WebsiteSettingsSeeder extends Seeder
             ],
             [
                 'key' => 'start_look',
-                'value' => 'fa-201407-1324.hr-828-1035.ch-3001-1261-1408.sh-3068-92-1408.cp-9032-1308.lg-270-1281.hd-209-3',
+                // Atom's own default referenced `fa-201407` and `cp-9032`, which don't
+                // exist in every FigureData.json a Plus-driver hotel might be serving
+                // (e.g. one produced by the nitro-converter recipe in
+                // docker/nitro/README.md) - Nitro's AvatarFigureContainer doesn't guard
+                // a missing set and throws ("e.parts is not iterable") while building
+                // the very first avatar it renders, which is every new user's own
+                // avatar right after registration. Replaced with a widely-supported
+                // classic figure (hair/shirt/legs/shoes/body) that exists in both the
+                // stock Arcturus figuredata and a live-Habbo-sourced conversion.
+                'value' => 'hd-180-1.hr-100-61.ch-210-66.lg-270-82.sh-290-80',
                 'comment' => 'Sets the starting outfit for any new user registering',
             ],
             [
