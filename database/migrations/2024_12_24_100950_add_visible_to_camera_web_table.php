@@ -8,7 +8,7 @@ class AddVisibleToCameraWebTable extends Migration
 {
     public function up()
     {
-        if (! Schema::hasTable('camera_web')) {
+        if (! Schema::hasTable('camera_web') || Schema::hasColumn('camera_web', 'visible')) {
             return;
         }
 
@@ -19,7 +19,7 @@ class AddVisibleToCameraWebTable extends Migration
 
     public function down()
     {
-        if (! Schema::hasTable('camera_web')) {
+        if (! Schema::hasTable('camera_web') || ! Schema::hasColumn('camera_web', 'visible')) {
             return;
         }
 
