@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Dedicated PHPUnit configuration for the plus-driver conformance tests in
+  tests/Feature/Plus/. Run with:
+
+    docker compose exec cms php artisan test -c phpunit.plus.xml (add a filter=PlusRegistrationTest option to scope to one test)
+
+  or, equivalently:
+
+    docker compose exec cms php vendor/bin/phpunit -c phpunit.plus.xml
+
+  Why a separate file instead of one shared phpunit.xml: the default
+  phpunit.xml points every RefreshDatabase-based test (the whole rest of the
+  suite, via Tests\TestCase) at upstream's own "testing" database using the
+  arcturus driver. tests/Feature/Plus needs the PlusEMU-schema pixelrp_test
+  database and EMULATOR_DRIVER=plus instead - and since env vars are process
+  global once Laravel boots, the two configurations cannot coexist within one
+  phpunit invocation. Splitting into two config files (each a separate PHP
+  process) is what actually isolates them; the default phpunit.xml's
+  testsuite explicitly <exclude>s tests/Feature/Plus so a plain
+  `php artisan test` run never picks this suite up under the wrong database.
+
+  pixelrp_test setup (one-time, or after this file's own RefreshDatabase
+  tests scoped elsewhere wipe it - see task-7-report.md):
+    1. CREATE DATABASE pixelrp_test + GRANT ALL to the pixelrp user.
+    2. Import PlusEMU's dump:
+       docker compose exec -T db sh -c 'mysql -uroot -p$MYSQL_ROOT_PASSWORD pixelrp_test' \
+         < emulator/Resources/SQLs/'Original Database.sql'
+    3. Run cms migrations once, manually, with this file's env values:
+       docker compose exec -e APP_ENV=testing -e DB_CONNECTION=mysql -e DB_HOST=db \
+         -e DB_PORT=3306 -e DB_DATABASE=pixelrp_test -e DB_USERNAME=pixelrp \
+         -e DB_PASSWORD=changeme-local -e EMULATOR_DRIVER=plus \
+         cms php artisan migrate (with the force option, non-interactive)
+-->
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.3/phpunit.xsd" bootstrap="tests/bootstrap.php" colors="true" cacheDirectory=".phpunit.cache/plus">
+  <testsuites>
+    <testsuite name="Plus">
+      <directory suffix="Test.php">./tests/Feature/Plus</directory>
+    </testsuite>
+  </testsuites>
+  <coverage/>
+  <php>
+    <!--
+      force="true" plus tests/bootstrap.php's $_SERVER unset are both
+      required - see phpunit.xml's comment for why. Only the values below
+      differ from the default config: pixelrp_test instead of testing, plus
+      instead of arcturus.
+    -->
+    <env name="APP_ENV" value="testing" force="true"/>
+    <env name="APP_KEY" value="base64:dGVzdGluZy10ZXN0aW5nLXRlc3RpbmctdGVzdGluZy0=" force="true"/>
+    <env name="APP_DEBUG" value="false" force="true"/>
+    <env name="BCRYPT_ROUNDS" value="4" force="true"/>
+    <env name="CACHE_DRIVER" value="array" force="true"/>
+    <env name="DB_CONNECTION" value="mysql" force="true"/>
+    <env name="DB_HOST" value="db" force="true"/>
+    <env name="DB_PORT" value="3306" force="true"/>
+    <env name="DB_DATABASE" value="pixelrp_test" force="true"/>
+    <env name="DB_USERNAME" value="pixelrp" force="true"/>
+    <env name="DB_PASSWORD" value="changeme-local" force="true"/>
+    <env name="EMULATOR_DRIVER" value="plus" force="true"/>
+    <env name="MAIL_MAILER" value="array" force="true"/>
+    <env name="QUEUE_CONNECTION" value="sync" force="true"/>
+    <env name="SESSION_DRIVER" value="array" force="true"/>
+    <env name="TELESCOPE_ENABLED" value="false" force="true"/>
+  </php>
+  <source>
+    <include>
+      <directory suffix=".php">./app</directory>
+    </include>
+  </source>
+</phpunit>

@@ -3,6 +3,17 @@
   <testsuites>
     <testsuite name="Feature">
       <directory suffix="Test.php">./tests/Feature</directory>
+      <!--
+        tests/Feature/Plus targets the PlusEMU-schema pixelrp_test database
+        with EMULATOR_DRIVER=plus, run via phpunit.plus.xml (see that file).
+        It must never run under this default, arcturus-driver configuration:
+        RefreshDatabase (used by Tests\TestCase, the base class for every
+        test under this config) would migrate:fresh whatever database this
+        file points at using the arcturus CoreSqlFile import path, which
+        cannot recreate PlusEMU's schema - see task-7-report.md "FIX ROUND 1"
+        for the incident this excludes against.
+      -->
+      <exclude>./tests/Feature/Plus</exclude>
     </testsuite>
     <testsuite name="Unit">
       <directory suffix="Test.php">./tests/Unit</directory>
@@ -15,13 +26,19 @@
       compose.yaml sets APP_ENV/DB_* as real container environment
       variables for the cms service, and PHPUnit's env tag refuses to
       overwrite an already set OS env var unless force="true" is given.
-      Without it, these overrides are silently ignored and the suite
-      connects straight to the live pixelrp database instead of the
-      isolated test database, which is exactly how the shared PlusEMU DB
-      got wiped by RefreshDatabase earlier in this project. Verify with
-      docker compose exec cms php artisan test and confirm
-      database.connections.mysql.database resolves to pixelrp_test inside
-      the test, not pixelrp.
+      Even with force="true", PHPUnit only forces $_ENV/getenv(), never
+      $_SERVER - and Laravel's env reader checks $_SERVER first. That's
+      what tests/bootstrap.php (this file's "bootstrap" attribute) is for:
+      it unsets the $_SERVER keys these <env> entries override, before
+      Laravel boots, so the values below actually take effect instead of
+      being silently ignored in favour of the live "pixelrp" database. See
+      task-7-report.md for the full incident this combination fixes.
+
+      This is upstream Atom's own testing database (arcturus schema,
+      self-imported by database/migrations/2014_01_01_000000_core_sql_file.php
+      on first RefreshDatabase run) - NOT the plus-driver pixelrp_test
+      database, which only tests/Feature/Plus (excluded above) uses via
+      phpunit.plus.xml.
     -->
     <env name="APP_ENV" value="testing" force="true"/>
     <env name="APP_KEY" value="base64:dGVzdGluZy10ZXN0aW5nLXRlc3RpbmctdGVzdGluZy0=" force="true"/>
@@ -31,10 +48,10 @@
     <env name="DB_CONNECTION" value="mysql" force="true"/>
     <env name="DB_HOST" value="db" force="true"/>
     <env name="DB_PORT" value="3306" force="true"/>
-    <env name="DB_DATABASE" value="pixelrp_test" force="true"/>
+    <env name="DB_DATABASE" value="testing" force="true"/>
     <env name="DB_USERNAME" value="pixelrp" force="true"/>
     <env name="DB_PASSWORD" value="changeme-local" force="true"/>
-    <env name="EMULATOR_DRIVER" value="plus" force="true"/>
+    <env name="EMULATOR_DRIVER" value="arcturus" force="true"/>
     <env name="MAIL_MAILER" value="array" force="true"/>
     <env name="QUEUE_CONNECTION" value="sync" force="true"/>
     <env name="SESSION_DRIVER" value="array" force="true"/>

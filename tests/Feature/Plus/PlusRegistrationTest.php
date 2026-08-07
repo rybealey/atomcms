@@ -1,9 +1,12 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Feature\Plus;
 
+use App\Models\Miscellaneous\WebsiteInstallation;
 use App\Models\User;
-use Database\Seeders\TestingSeeder;
+use Database\Seeders\WebsiteLanguageSeeder;
+use Database\Seeders\WebsitePermissionSeeder;
+use Database\Seeders\WebsiteSettingsSeeder;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Tests\CreatesApplication;
 
@@ -12,9 +15,16 @@ use Tests\CreatesApplication;
  * (see emulator/Resources/SQLs/'Original Database.sql') and that
  * User::ssoTicket() mints an auth_ticket PlusEMU's Authenticator will honour.
  *
+ * Lives in tests/Feature/Plus/ and is only ever run via phpunit.plus.xml
+ * (see that file and cms/README or task-7-report.md "FIX ROUND 1" for the
+ * documented invocation). The default phpunit.xml testsuite explicitly
+ * <exclude>s this directory - running it under the default config would
+ * point it at the arcturus-schema "testing" database instead of the
+ * PlusEMU-schema "pixelrp_test" database and fail outright.
+ *
  * Deliberately does NOT extend Tests\TestCase: that base class pulls in
  * RefreshDatabase, which runs `migrate:fresh` against whatever database
- * phpunit.xml points at. Doing that against pixelrp_test would drop the
+ * phpunit.plus.xml points at. Doing that against pixelrp_test would drop the
  * PlusEMU schema imported from the emulator's own dump - cms migrations
  * alone cannot recreate the `users` table's Plus-specific shape. This class
  * extends Laravel's base TestCase directly and uses DatabaseTransactions
@@ -34,11 +44,26 @@ class PlusRegistrationTest extends \Illuminate\Foundation\Testing\TestCase
         $this->withoutVite();
 
         // The registration route sits behind InstallationMiddleware; seed the
-        // same fixtures the arcturus feature suite relies on (installation
-        // marked complete, website settings, permissions). Idempotent
-        // (firstOrCreate) and guarded against re-creating tables the PlusEMU
-        // dump already provides, so it is safe to run before every test.
-        $this->seed(TestingSeeder::class);
+        // same fixtures the stock feature suite relies on (installation
+        // marked complete, website settings, permissions) directly, rather
+        // than via Database\Seeders\TestingSeeder. TestingSeeder's
+        // createPlusEmulatorSchema() stubs Plus-shaped tables onto the
+        // *arcturus* testing database for cross-driver dataset tests (see
+        // e.g. tests/Feature/Emulator/BadgeRepositoryTest's "plus" dataset)
+        // - it assumes a table literally named `user_stats`. PlusEMU's own
+        // dump renames that table to `user_statistics` as part of its own
+        // embedded migration script (see Original Database.sql around line
+        // 25066), so against pixelrp_test, TestingSeeder's hasTable('user_stats')
+        // guard sees it as "missing" and creates a bogus 4-column stub
+        // alongside the real 20-column `user_statistics` table. Calling the
+        // three fixture seeders individually avoids that (and avoids the
+        // unconditional `DB::table('users')->delete()` at the top of
+        // TestingSeeder::run(), which is unnecessary here - pixelrp_test's
+        // `users` table is already empty at the start of each transaction).
+        WebsiteInstallation::query()->firstOrCreate(['installation_key' => 'key'], ['completed' => true]);
+        $this->seed(WebsiteSettingsSeeder::class);
+        $this->seed(WebsiteLanguageSeeder::class);
+        $this->seed(WebsitePermissionSeeder::class);
     }
 
     public function test_registered_user_row_is_plusemu_valid(): void

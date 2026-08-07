@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
@@ -15,7 +16,7 @@ use Illuminate\Support\Facades\Schema;
  * database/factories/UserFactory.php, which the whole test suite (and any
  * future seeding/tooling) relies on - fails with "Field 'auth_ticket'
  * doesn't have a default value" on the plus driver. Discovered via
- * tests/Feature/PlusRegistrationTest.php's SSO round-trip test.
+ * tests/Feature/Plus/PlusRegistrationTest.php's SSO round-trip test.
  *
  * This is a separate migration rather than an addition to
  * 2014_10_12_300000_plus_users_compatibility_columns.php because that
@@ -27,13 +28,30 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (config('emulator.driver') !== 'plus') {
+        if (config('emulator.driver') !== 'plus' || $this->authTicketAlreadyHasDefault()) {
             return;
         }
 
         Schema::table('users', function (Blueprint $table) {
             $table->string('auth_ticket', 60)->default('')->change();
         });
+    }
+
+    /**
+     * Task 5's compat migration guards each addition with Schema::hasColumn;
+     * a column default change has no such built-in check, so ask
+     * information_schema directly - same "only act if not already applied"
+     * idiom, applied to an ALTER instead of an ADD COLUMN.
+     */
+    private function authTicketAlreadyHasDefault(): bool
+    {
+        $column = DB::selectOne(
+            'SELECT COLUMN_DEFAULT FROM information_schema.COLUMNS '
+            . 'WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?',
+            ['users', 'auth_ticket'],
+        );
+
+        return $column !== null && $column->COLUMN_DEFAULT === '';
     }
 
     public function down(): void
