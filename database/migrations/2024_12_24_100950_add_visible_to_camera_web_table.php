@@ -8,6 +8,10 @@ class AddVisibleToCameraWebTable extends Migration
 {
     public function up()
     {
+        if (! Schema::hasTable('camera_web')) {
+            return;
+        }
+
         Schema::table('camera_web', function (Blueprint $table) {
             $table->boolean('visible')->default(true);
         });
@@ -15,6 +19,10 @@ class AddVisibleToCameraWebTable extends Migration
 
     public function down()
     {
+        if (! Schema::hasTable('camera_web')) {
+            return;
+        }
+
         Schema::table('camera_web', function (Blueprint $table) {
             $table->dropColumn('visible');
         });

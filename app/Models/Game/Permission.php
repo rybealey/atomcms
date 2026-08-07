@@ -441,11 +441,21 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class Permission extends Model implements HasBadge
 {
-    protected $table = 'permissions';
-
     public $timestamps = false;
 
     protected $guarded = ['id'];
+
+    public function __construct(array $attributes = [])
+    {
+        parent::__construct($attributes);
+
+        $this->setTable(config('emulator.driver') === 'plus' ? 'ranks' : 'permissions');
+    }
+
+    public function getRankNameAttribute(): string
+    {
+        return (string) ($this->attributes['rank_name'] ?? $this->attributes['name'] ?? '');
+    }
 
     /** @return HasMany<User, $this> */
     public function users(): HasMany
@@ -466,6 +476,6 @@ class Permission extends Model implements HasBadge
 
     public function getBadgeName(): string
     {
-        return $this->badge;
+        return (string) ($this->attributes['badge'] ?? $this->attributes['badgeid'] ?? '');
     }
 }

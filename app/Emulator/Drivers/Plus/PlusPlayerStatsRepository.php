@@ -10,8 +10,8 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Plus EMU stores per-player statistics in user_stats, keyed by the user id,
- * with differently cased column names.
+ * Plus EMU stores per-player statistics in user_statistics, keyed by the
+ * user id, with differently cased column names.
  */
 class PlusPlayerStatsRepository implements PlayerStatsRepository
 {
@@ -19,7 +19,7 @@ class PlusPlayerStatsRepository implements PlayerStatsRepository
     {
         $column = $this->column($stat);
 
-        $rows = DB::table('user_stats')
+        $rows = DB::table('user_statistics')
             ->whereNotIn('id', $excludeUserIds)
             ->orderByDesc($column)
             ->limit($limit)
