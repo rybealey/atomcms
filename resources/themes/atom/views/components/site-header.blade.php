@@ -1,17 +1,17 @@
 <div class="relative flex h-52 w-full items-center justify-center header-bg"
-    style="background: url({{ setting('cms_header') }});">
+    style="background: url({{ setting('cms_header') }}) center / cover no-repeat;">
     <div class="absolute h-full w-full bg-black/50"></div>
 
     @auth
         <div class="relative flex h-full w-full max-w-7xl items-center justify-center pr-10 md:justify-between">
             <div class="flex items-center gap-x-4">
                 <a href="{{ route('me.show') }}" class="ml-7">
-                    <img class="drop-shadow transition duration-300 ease-in-out hover:scale-105"
+                    <img class="drop-shadow"
                         src="{{ setting('cms_logo') }}" alt="{{ __('Hotel logo') }}">
                 </a>
 
                 <div
-                    class="hidden md:flex items-center bg-white dark:bg-gray-900 dark:text-white px-4 rounded-md relative h-[50px]">
+                    class="hidden md:flex items-center bg-white dark:bg-gray-900 dark:text-white px-4 rounded-md relative top-4 h-[50px]">
                     <div class="absolute -left-1 h-6 w-6 rotate-45 bg-white dark:bg-gray-900"></div>
 
                     <span class="relative">
