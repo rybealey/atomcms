@@ -102,7 +102,7 @@ class PlusRconService implements Rcon
      */
     public function sendPlusCommand(string $command, array $params = []): RconResponse
     {
-        $payload = $command."\x01".implode(':', $params);
+        $payload = $command . "\x01" . implode(':', $params);
 
         $socket = $this->connect();
 
@@ -232,7 +232,7 @@ class PlusRconService implements Rcon
     }
 
     /**
-     * @param  array<string, mixed>|null  $data
+     * @param  array<string, mixed>  $data
      */
     private function translateGivePoints(array $data): RconResponse
     {
