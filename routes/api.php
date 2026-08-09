@@ -19,4 +19,5 @@ Route::get('/user/{username}', [HotelApiController::class, 'fetchUser'])->name('
 Route::get('/users/search', [HotelApiController::class, 'searchUsers'])->name('api.search-users')->middleware('throttle:60,1');
 Route::get('/online-users', [HotelApiController::class, 'onlineUsers'])->name('api.online-users')->middleware('throttle:50,1');
 Route::get('/online-count', [HotelApiController::class, 'onlineUserCount'])->name('api.online-count')->middleware('throttle:50,1');
+Route::get('/deploy-status', [HotelApiController::class, 'deployStatus'])->name('api.deploy-status')->middleware('throttle:60,1');
 Route::post('/paypal/webhook', PaypalWebhookController::class)->name('paypal.webhook');

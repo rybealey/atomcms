@@ -35,4 +35,16 @@ return [
         'key' => env('TURNSTILE_SITE_KEY'),
         'secret' => env('TURNSTILE_SECRET_KEY'),
     ],
+
+    'github_deploy' => [
+        'repo' => env('GITHUB_DEPLOY_REPO', 'rybealey/pixelrp'),
+        'workflow' => env('GITHUB_DEPLOY_WORKFLOW', 'deploy.yml'),
+        // Optional: the repo is public, and conditional requests keep
+        // unauthenticated polling within GitHub's rate limit. A token only
+        // raises the ceiling.
+        'token' => env('GITHUB_DEPLOY_TOKEN'),
+        // Defaults to base_path('CHANGELOG.md') (compose mounts it there);
+        // falls back to raw.githubusercontent.com when absent.
+        'changelog_path' => env('DEPLOY_CHANGELOG_PATH'),
+    ],
 ];

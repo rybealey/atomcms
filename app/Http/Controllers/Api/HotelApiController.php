@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\DeployStatusResource;
 use App\Http\Resources\OnlineUserCountResource;
 use App\Http\Resources\UserResource;
 use App\Models\User;
+use App\Services\Deploy\DeployStatusService;
 use App\Services\User\UserApiService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -57,5 +59,10 @@ class HotelApiController extends Controller
     public function onlineUserCount(): OnlineUserCountResource
     {
         return new OnlineUserCountResource($this->userApiService->onlineUserCount());
+    }
+
+    public function deployStatus(DeployStatusService $deployStatusService): DeployStatusResource
+    {
+        return new DeployStatusResource($deployStatusService->status());
     }
 }
