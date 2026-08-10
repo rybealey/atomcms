@@ -32,6 +32,7 @@ class AdminFilamentPanelProvider extends PanelProvider
             ->path('housekeeping')
             ->strictAuthorization()
             ->login()
+            ->favicon(asset('favicon-32x32.png'))
             ->viteTheme('resources/css/filament/housekeeping/theme.css')
             ->colors([
                 'primary' => Color::Amber,
