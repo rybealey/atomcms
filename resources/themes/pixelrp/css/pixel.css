@@ -1,0 +1,575 @@
+/*
+ * PixelRP pixel-art design system.
+ *
+ * Ported from the Claude Design "PixelRP Design System" bundle. The tokens are
+ * a verbatim copy of the design system's token files; the component classes
+ * below are Blade/CSS equivalents of its React Button/Input/Checkbox/Card so
+ * the guest auth screens can be plain server-rendered forms.
+ *
+ * Everything here is deliberately un-layered: Tailwind v4 emits its utilities
+ * inside @layer, and un-layered rules always win over layered ones, so the
+ * theme's global `* { font-family: poppins }` cannot bleed into pixel type.
+ */
+
+:root {
+    /* Ink & outline - every pixel element is outlined in near-black */
+    --ink: #1a0a14;
+    --ink-soft: #3a1f30;
+
+    /* Brand pink -> magenta ramp (logo face, top -> bottom) */
+    --pink-100: #ffd9e6;
+    --pink-200: #ff9dbf;
+    --pink-300: #ff7ba9;
+    --pink-400: #f8558c;
+    --pink-500: #e93a7d;
+    --magenta-500: #d62a86;
+    --magenta-600: #b81e74;
+    --magenta-700: #8f1263;
+    --plum-800: #6d1057;
+    --plum-900: #4a0b3d;
+
+    /* Sunset orange ramp (backgrounds, avatar field) */
+    --orange-100: #ffe9c9;
+    --orange-200: #f8d8a8;
+    --orange-300: #f5b96a;
+    --orange-400: #f0954a;
+    --orange-500: #e87332;
+    --orange-600: #c95a24;
+    --orange-700: #a3451c;
+
+    /* Duotone scene mauves (right side of the sunset wash) */
+    --mauve-300: #d8aab2;
+    --mauve-400: #bd8a96;
+    --mauve-500: #a06e80;
+    --mauve-700: #5f3e4e;
+
+    /* Surfaces */
+    --cream: #fff3e0;
+    --paper: #fdeed6;
+
+    /* Semantic (pixel-game flavored) */
+    --success: #3fbf5a;
+    --warning: #f5c542;
+    --danger: #e03131;
+    --info: #3f8fbf;
+
+    /* Aliases */
+    --brand: var(--magenta-500);
+    --brand-hot: var(--pink-400);
+    --brand-deep: var(--plum-800);
+    --text-body: var(--ink);
+    --text-muted: var(--mauve-700);
+    --text-inverse: var(--cream);
+    --surface-page: var(--cream);
+    --surface-card: #ffffff;
+    --surface-sunken: var(--orange-100);
+    --border-strong: var(--ink);
+
+    /* Signature gradients */
+    --grad-logo: linear-gradient(180deg, var(--orange-300) 0%, var(--pink-300) 22%, var(--pink-500) 48%, var(--magenta-600) 72%, var(--plum-800) 100%);
+    --grad-sunset: linear-gradient(105deg, var(--orange-500) 0%, var(--orange-400) 30%, var(--mauve-400) 70%, var(--mauve-500) 100%);
+    --grad-cta: linear-gradient(180deg, var(--pink-400) 0%, var(--magenta-600) 100%);
+
+    /* Type */
+    --font-display: "Press Start 2P", monospace;
+    --font-pixel: "Silkscreen", monospace;
+    --font-body: "Barlow", system-ui, sans-serif;
+    --tracking-pixel: 0.5px;
+
+    /* 4px pixel grid */
+    --radius-0: 0px;
+    --px: 2px;
+
+    /* Pixel outline: hard 2px ink border, square corners */
+    --outline-pixel: var(--px) solid var(--ink);
+
+    /* Hard-offset drop shadows - never blurred */
+    --shadow-pixel: 4px 4px 0 var(--ink);
+    --shadow-pixel-sm: 2px 2px 0 var(--ink);
+    --shadow-pixel-brand: 4px 4px 0 var(--plum-900);
+
+    /* Bevel: light top-left, dark bottom-right inset steps */
+    --bevel-raised: inset 0 var(--px) 0 rgba(255, 255, 255, 0.45), inset 0 calc(-1 * var(--px)) 0 rgba(0, 0, 0, 0.28);
+    --bevel-sunken: inset 0 var(--px) 0 rgba(0, 0, 0, 0.28), inset 0 calc(-1 * var(--px)) 0 rgba(255, 255, 255, 0.35);
+
+    /* Motion - snappy, stepped; no soft easing */
+    --anim-fast: 80ms steps(2, end);
+    --anim-med: 160ms steps(3, end);
+    --press-shift: 2px;
+}
+
+@keyframes pixel-twinkle {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.15;
+    }
+}
+
+@keyframes pixel-blink {
+    0%,
+    49% {
+        opacity: 1;
+    }
+    50%,
+    100% {
+        opacity: 0;
+    }
+}
+
+/* ---------------------------------------------------------------- scene --- */
+
+.pixel-scene {
+    position: relative;
+    display: flex;
+    min-height: 100vh;
+    min-height: 100dvh;
+    flex-direction: column;
+    background-color: var(--plum-900);
+    background-image: url("/assets/images/pixelrp/scene-terrace-960.webp");
+    background-position: center;
+    background-size: cover;
+    font-family: var(--font-body);
+    color: var(--ink);
+    image-rendering: pixelated;
+}
+
+/* The full-size scene is only worth its bytes on displays that can show it. */
+@media (min-width: 768px) {
+    .pixel-scene {
+        background-image: url("/assets/images/pixelrp/scene-terrace.webp");
+    }
+}
+
+.pixel-scene__overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(26, 10, 20, 0.7) 0%, rgba(26, 10, 20, 0.3) 40%, rgba(26, 10, 20, 0.9) 100%);
+}
+
+.pixel-scene__stars {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+}
+
+.pixel-star {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: var(--cream);
+    animation: pixel-twinkle var(--star-duration, 6s) steps(2) infinite;
+    animation-delay: var(--star-delay, 0s);
+}
+
+.pixel-scene__body {
+    position: relative;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 28px;
+    padding: 48px 24px;
+}
+
+.pixel-logo {
+    width: 280px;
+    max-width: 70vw;
+    image-rendering: pixelated;
+}
+
+.pixel-logo--sm {
+    width: 220px;
+    max-width: 60vw;
+}
+
+/* Keep the login screen to a single viewport on laptop-height displays. The
+   registration form is taller than any of these and is expected to scroll. */
+@media (max-height: 820px) {
+    .pixel-scene__body {
+        gap: 20px;
+        padding: 28px 24px;
+    }
+
+    .pixel-logo {
+        width: 220px;
+    }
+
+    .pixel-logo--sm {
+        width: 180px;
+    }
+}
+
+.pixel-ticker {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    border-top: var(--outline-pixel);
+    background: var(--orange-500);
+    padding: 10px 20px;
+    font-family: var(--font-pixel);
+    font-size: 12px;
+    letter-spacing: 1px;
+    color: var(--cream);
+}
+
+.pixel-ticker__dot {
+    width: 8px;
+    height: 8px;
+    border: var(--outline-pixel);
+    background: var(--success);
+    animation: pixel-twinkle 2s steps(2) infinite;
+}
+
+.pixel-footer {
+    position: relative;
+    background: var(--ink);
+    padding: 8px 20px;
+    text-align: center;
+    font-family: var(--font-pixel);
+    font-size: 11px;
+    color: var(--mauve-300);
+}
+
+.pixel-footer a {
+    color: var(--mauve-300);
+    text-decoration: underline;
+}
+
+.pixel-footer a:hover {
+    color: var(--cream);
+}
+
+/* ----------------------------------------------------------------- card --- */
+
+.pixel-card {
+    display: flex;
+    width: 360px;
+    max-width: 90vw;
+    flex-direction: column;
+    border: var(--outline-pixel);
+    background: var(--cream);
+    box-shadow: var(--shadow-pixel);
+}
+
+.pixel-card--wide {
+    width: 400px;
+    max-width: 92vw;
+}
+
+.pixel-card__body {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 28px;
+}
+
+.pixel-card__title {
+    font-family: var(--font-display);
+    font-size: 14px;
+    line-height: 1.4;
+    letter-spacing: 1px;
+    text-align: center;
+    color: var(--ink);
+}
+
+.pixel-card__lede {
+    font-family: var(--font-pixel);
+    font-size: 11px;
+    line-height: 1.6;
+    color: var(--text-muted);
+}
+
+/* Boarding-pass header used by the registration screen. */
+.pixel-pass {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: var(--ink);
+    padding: 14px 18px;
+}
+
+.pixel-pass__row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+}
+
+.pixel-pass__meta {
+    font-family: var(--font-pixel);
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--orange-300);
+}
+
+.pixel-pass__boarding {
+    animation: pixel-blink 1.2s steps(1) infinite;
+}
+
+.pixel-pass__route {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.pixel-pass__code {
+    font-family: var(--font-display);
+    font-size: 18px;
+    color: var(--cream);
+}
+
+.pixel-pass__code small {
+    font-size: 9px;
+    color: var(--mauve-300);
+}
+
+.pixel-pass__arrow {
+    font-family: var(--font-display);
+    font-size: 14px;
+    color: var(--pink-400);
+}
+
+.pixel-pass__stub {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--font-pixel);
+    font-size: 9px;
+    color: var(--mauve-300);
+}
+
+.pixel-card__body--stub {
+    border-top: var(--px) dashed var(--ink);
+    padding: 24px;
+}
+
+/* ---------------------------------------------------------------- forms --- */
+
+.pixel-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-family: var(--font-body);
+    color: var(--ink);
+}
+
+.pixel-field__label {
+    font-family: var(--font-pixel);
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.pixel-field__input {
+    box-sizing: border-box;
+    width: 100%;
+    border: var(--px) solid var(--ink);
+    border-radius: 0;
+    background: #fff;
+    box-shadow: var(--bevel-sunken);
+    padding: 10px 12px;
+    font-family: var(--font-body);
+    font-size: 15px;
+    color: var(--ink);
+    outline: none;
+}
+
+.pixel-field__input:focus {
+    background: var(--orange-100);
+}
+
+.pixel-field__input::placeholder {
+    color: var(--mauve-400);
+    opacity: 1;
+}
+
+.pixel-field__input[aria-invalid="true"] {
+    border-color: var(--danger);
+}
+
+.pixel-field__hint {
+    font-size: 13px;
+    color: var(--mauve-700);
+}
+
+.pixel-field__error {
+    font-size: 13px;
+    color: var(--danger);
+}
+
+.pixel-checkbox {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-size: 15px;
+    color: var(--ink);
+}
+
+.pixel-checkbox input {
+    position: absolute;
+    width: 0;
+    opacity: 0;
+}
+
+.pixel-checkbox__box {
+    display: grid;
+    width: 20px;
+    height: 20px;
+    flex: none;
+    place-items: center;
+    border: var(--outline-pixel);
+    background: #fff;
+    box-shadow: var(--bevel-sunken);
+    font-family: var(--font-pixel);
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    transition: background var(--anim-fast);
+}
+
+.pixel-checkbox__box::after {
+    content: "\2713";
+    opacity: 0;
+}
+
+.pixel-checkbox input:checked + .pixel-checkbox__box {
+    background: var(--magenta-500);
+    box-shadow: var(--bevel-raised);
+}
+
+.pixel-checkbox input:checked + .pixel-checkbox__box::after {
+    opacity: 1;
+}
+
+.pixel-checkbox input:focus-visible + .pixel-checkbox__box {
+    outline: var(--px) solid var(--pink-400);
+    outline-offset: 2px;
+}
+
+/* --------------------------------------------------------------- button --- */
+
+.pixel-button {
+    box-sizing: border-box;
+    display: inline-flex;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: var(--outline-pixel);
+    border-radius: 0;
+    padding: 12px 22px;
+    font-family: var(--font-pixel);
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: var(--tracking-pixel);
+    text-transform: uppercase;
+    text-decoration: none;
+    background: var(--grad-cta);
+    color: #fff;
+    box-shadow: var(--shadow-pixel), var(--bevel-raised);
+    transition: transform var(--anim-fast), box-shadow var(--anim-fast), filter var(--anim-fast);
+}
+
+.pixel-button--lg {
+    padding: 16px 30px;
+    font-size: 16px;
+}
+
+.pixel-button--sm {
+    padding: 8px 14px;
+    font-size: 11px;
+}
+
+.pixel-button--secondary {
+    background: var(--orange-300);
+    color: var(--ink);
+}
+
+.pixel-button--ghost {
+    background: var(--cream);
+    color: var(--ink);
+    box-shadow: var(--shadow-pixel-sm), var(--bevel-raised);
+}
+
+.pixel-button--full {
+    width: 100%;
+}
+
+.pixel-button:hover {
+    filter: brightness(1.12);
+}
+
+.pixel-button:active {
+    transform: translate(var(--press-shift), var(--press-shift));
+    box-shadow: var(--bevel-raised);
+}
+
+.pixel-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+    filter: none;
+    transform: none;
+}
+
+/* --------------------------------------------------------------- alerts --- */
+
+.pixel-alert {
+    border: var(--px) solid var(--danger);
+    background: #fde3e3;
+    padding: 8px 10px;
+    font-family: var(--font-pixel);
+    font-size: 11px;
+    line-height: 1.6;
+    color: var(--danger);
+}
+
+.pixel-alert--success {
+    border-color: var(--success);
+    background: #e2f7e6;
+    color: #1f7a35;
+}
+
+.pixel-alert ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+/* ---------------------------------------------------------------- links --- */
+
+.pixel-meta {
+    text-align: center;
+    font-family: var(--font-pixel);
+    font-size: 11px;
+    line-height: 1.8;
+    color: var(--text-muted);
+}
+
+.pixel-link {
+    color: var(--magenta-600);
+    text-decoration: none;
+}
+
+.pixel-link:hover {
+    color: var(--pink-400);
+    text-decoration: underline;
+}
+
+/* Nothing in the pixel scene should move for users who ask it not to. */
+@media (prefers-reduced-motion: reduce) {
+    .pixel-star,
+    .pixel-ticker__dot,
+    .pixel-pass__boarding {
+        animation: none;
+    }
+
+    .pixel-button {
+        transition: none;
+    }
+}

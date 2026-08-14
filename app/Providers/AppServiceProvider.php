@@ -99,7 +99,8 @@ class AppServiceProvider extends ServiceProvider
 
         Blaze::optimize()
             ->in(resource_path('themes/atom/components'))
-            ->in(resource_path('themes/dusk/components'));
+            ->in(resource_path('themes/dusk/components'))
+            ->in(resource_path('themes/pixelrp/components'));
 
         if (config('habbo.site.force_https')) {
             URL::forceScheme('https');

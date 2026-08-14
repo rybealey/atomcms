@@ -33,7 +33,7 @@ class AtomInstallCommand extends Command
 
     protected $description = 'One-command installer: configures the database, imports the Arcturus base SQL, links storage, runs migrations with seeders and builds your theme';
 
-    private const THEMES = ['atom', 'dusk'];
+    private const THEMES = ['atom', 'dusk', 'pixelrp'];
 
     private const ARCTURUS_MARKER_TABLE = 'emulator_settings';
 

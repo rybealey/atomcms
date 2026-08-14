@@ -41,10 +41,12 @@ test('the full password reset flow works and tokens are single-use', function ()
     expect(PasswordResetToken::whereKey(PasswordResetToken::hashToken($token))->exists())->toBeTrue()
         ->and(Hash::check('password', $user->fresh()->password))->toBeTrue();
 
+    // Straight to the landing page rather than /login: /login only redirects
+    // there, and the flash would not survive that extra hop.
     $this->post(route('reset.password.post', $token), [
         'password' => 'N3wPassword!',
         'password_confirmation' => 'N3wPassword!',
-    ])->assertRedirect(route('login'));
+    ])->assertRedirect(route('welcome'))->assertSessionHas('success');
 
     expect(Hash::check('N3wPassword!', $user->fresh()->password))->toBeTrue();
 

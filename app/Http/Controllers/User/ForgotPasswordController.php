@@ -60,7 +60,10 @@ class ForgotPasswordController extends Controller
         $prt->user->changePassword($request->password);
         $prt->delete();
 
-        return to_route('login')->with('success', __('Your password has been successfully reset!'));
+        // Straight to 'welcome', not 'login': /login only redirects here, and the
+        // flash would be reaped at the end of that intermediate request, so the
+        // confirmation would never reach the screen the user lands on.
+        return to_route('welcome')->with('success', __('Your password has been successfully reset!'));
     }
 
     private function validToken(string $token): ?PasswordResetToken
