@@ -2,7 +2,8 @@
 @props(['user'])
 
 <div class="relative flex items-center justify-between overflow-hidden rounded px-10 me-backdrop"
-    style="background: rgba(0, 0, 0, 0.3) url({{ setting('cms_me_backdrop') }});">
+    {{-- center / cover keeps a full-scene backdrop framed at any width --}}
+    style="background: rgba(0, 0, 0, 0.3) url({{ setting('cms_me_backdrop') }}) center / cover;">
     <div>
         <a href="{{ route('home.show', $user) }}"
             class="absolute -bottom-12 left-0 drop-shadow transition duration-300 ease-in-out hover:scale-105">
