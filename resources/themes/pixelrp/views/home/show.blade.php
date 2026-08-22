@@ -205,7 +205,7 @@
                                     <div class="mb-3 pb-2 border-b dark:border-gray-700" x-show="userBalance">
                                         <p class="text-[10px] text-gray-400 uppercase tracking-wider mb-1.5">{{ __('Your balance') }}</p>
                                         <div class="grid grid-cols-2 gap-x-2 gap-y-1">
-                                            <template x-for="[key, label] in [['-1', 'Credits'], ['0', 'Duckets'], ['5', 'Diamonds'], ['101', 'Points']]" :key="key">
+                                            <template x-for="[key, label] in [['-1', 'Credits'], ['5', 'Diamonds'], ['101', 'Points']]" :key="key">
                                                 <div class="flex items-center gap-1">
                                                     <img :src="currIcon(key)" class="w-3.5 h-3.5">
                                                     <span class="text-[11px] font-medium" x-text="getBalance(key).toLocaleString()"></span>

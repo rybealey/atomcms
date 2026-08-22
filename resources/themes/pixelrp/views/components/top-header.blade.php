@@ -8,14 +8,6 @@
             {{ __('Credits') }}
         </x-top-header-currency>
 
-        <x-top-header-currency icon="nav-ducket-icon">
-            <x-slot:currency>
-                {{ auth()->user()->currency('duckets') }}
-            </x-slot:currency>
-
-            {{ __('Duckets') }}
-        </x-top-header-currency>
-
         <x-top-header-currency icon="nav-diamond-icon">
             <x-slot:currency>
                 {{ auth()->user()->currency('diamonds') }}
