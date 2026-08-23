@@ -4,7 +4,7 @@
     </label>
 
     <input
-        class="focus:ring-0 border-4 border-gray-200 rounded focus:border-[#eeb425] w-full @error($setting->key)border-red-600 ring-red-500 @enderror"
+        class="focus:ring-0 border-4 border-gray-200 rounded focus:border-[#d62a86] w-full @error($setting->key)border-red-600 ring-red-500 @enderror"
         id="{{ $setting->key }}"
         type="text"
         name="{{ $setting->key }}"

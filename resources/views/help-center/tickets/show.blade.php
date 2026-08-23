@@ -75,7 +75,7 @@
                                      d="M11.25 4.5l7.5 7.5-7.5 7.5m-6-15l7.5 7.5-7.5 7.5"/>
                            </svg>
 
-                           <a data-turbolinks="false" href="{{ route('help-center.ticket.show', $ticket) }}" class="hover:text-[#eeb425]">
+                           <a data-turbolinks="false" href="{{ route('help-center.ticket.show', $ticket) }}" class="hover:text-[#d62a86]">
                                {{ Str::limit($ticket->title, 20) }}
                            </a>
                        </div>

@@ -18,7 +18,7 @@
                         <textarea wire:model="comment"
                             wire:keydown.ctrl.enter.prevent="postComment"
                             maxlength="255"
-                            class="focus:ring-0 border-2 rounded w-full min-h-[110px] max-h-[160px] @error('comment') border-red-600 ring-red-500 @enderror {{ $theme === 'dusk' ? 'border-gray-600 bg-gray-800 text-gray-100 focus:border-[#eeb425]' : 'border-gray-300 bg-white text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 focus:border-[#eeb425]' }}"
+                            class="focus:ring-0 border-2 rounded w-full min-h-[110px] max-h-[160px] @error('comment') border-red-600 ring-red-500 @enderror {{ $theme === 'dusk' ? 'border-gray-600 bg-gray-800 text-gray-100 focus:border-[#d62a86]' : 'border-gray-300 bg-white text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 focus:border-[#d62a86]' }}"
                             placeholder="{{ __('Write a comment...') }}"></textarea>
 
                         @error('comment')

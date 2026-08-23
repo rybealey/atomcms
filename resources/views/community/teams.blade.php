@@ -15,7 +15,7 @@
                         x-model="q"
                         type="text"
                         placeholder="{{ __('Search teams…') }}"
-                        class="w-full rounded-xl border border-gray-200 px-4 py-2.5 pr-10 text-sm focus:border-[#eeb425] focus:outline-none focus:ring-0 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
+                        class="w-full rounded-xl border border-gray-200 px-4 py-2.5 pr-10 text-sm focus:border-[#d62a86] focus:outline-none focus:ring-0 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
                     />
                     <svg class="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 opacity-60"
                          xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -26,7 +26,7 @@
 
                 <label class="inline-flex items-center gap-2 text-sm">
                     <input type="checkbox" x-model="hideEmpty"
-                           class="rounded border-gray-300 text-[#eeb425] focus:ring-[#eeb425]" />
+                           class="rounded border-gray-300 text-[#d62a86] focus:ring-[#d62a86]" />
                     <span class="select-none">{{ __('Hide empty teams') }}</span>
                 </label>
             </div>

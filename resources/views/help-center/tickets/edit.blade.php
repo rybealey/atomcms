@@ -15,7 +15,7 @@
             @csrf
 
             <select name="category_id" id="category_id"
-                    class="focus:ring-0 border-4 border-gray-200 rounded dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 focus:border-[#eeb425] w-full @error('category_id') border-red-600 ring-red-500 @enderror">
+                    class="focus:ring-0 border-4 border-gray-200 rounded dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 focus:border-[#d62a86] w-full @error('category_id') border-red-600 ring-red-500 @enderror">
                 <option value="{{ $ticket->category_id }}" selected>
                     {{ $ticket->category->name }}
                 </option>
@@ -66,7 +66,7 @@
                                       d="M11.25 4.5l7.5 7.5-7.5 7.5m-6-15l7.5 7.5-7.5 7.5"/>
                             </svg>
 
-                            <a data-turbolinks="false" href="{{ route('help-center.ticket.show', $ticket) }}" class="hover:text-[#eeb425]">
+                            <a data-turbolinks="false" href="{{ route('help-center.ticket.show', $ticket) }}" class="hover:text-[#d62a86]">
                                 {{ Str::limit($ticket->title, 20) }}
                             </a>
                         </div>

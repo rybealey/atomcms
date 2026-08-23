@@ -5,7 +5,7 @@
         @if ($isAuthenticated)
             <button
                 type="button"
-                class="px-2 hover:scale-110 transition-all font-semibold h-8 flex items-center justify-center border-2 text-xs border-yellow-400 cursor-pointer bg-[#eeb425] text-white rounded-lg"
+                class="px-2 hover:scale-110 transition-all font-semibold h-8 flex items-center justify-center border-2 text-xs border-yellow-400 cursor-pointer bg-[#d62a86] text-white rounded-lg"
                 wire:click="openModal"
             >
                 {{ __('Add') }}
