@@ -31,7 +31,7 @@
                 </p>
 
                 @if($article->user)
-                    <div class="w-4 h-4 rounded-full mt-2 {{ $article->user->online ? 'bg-green-600' : 'bg-red-600' }}">
+                    <div class="w-4 h-4 rounded-full mt-2 {{ $article->user->online ? 'bg-[#e87332]' : 'bg-red-600' }}">
                     </div>
                 @endif
             </div>

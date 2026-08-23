@@ -27,7 +27,7 @@
         </p>
 
         <div
-            class="min-w-[15px] max-w-[15px] min-h-[15px] max-h-[15px] rounded-full mt-2 flex items-start {{ $user->online ? 'bg-green-600' : 'bg-red-600' }}">
+            class="min-w-[15px] max-w-[15px] min-h-[15px] max-h-[15px] rounded-full mt-2 flex items-start {{ $user->online ? 'bg-[#e87332]' : 'bg-red-600' }}">
         </div>
     </div>
 </div>

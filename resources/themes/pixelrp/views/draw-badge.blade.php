@@ -93,7 +93,7 @@
                     </div>
                     <div class="flex flex-col md:flex-row gap-4 justify-between">
                         <button type="button" @click="clearBoard" class="w-full rounded bg-red-600 hover:bg-red-700 text-white p-2 border-2 border-red-500 transition ease-in-out duration-150 font-semibold">{{ __('Clear All') }}</button>
-                        <button type="button" @click="generateCanvas('download')" class="w-full rounded bg-[#eeb425] text-white p-2 border-2 border-yellow-400 transition ease-in-out duration-200 hover:bg-[#d49f1c] font-semibold"> {{ __('Download badge') }} </button>
+                        <button type="button" @click="generateCanvas('download')" class="w-full rounded bg-[#d62a86] text-white p-2 border-2 border-yellow-400 transition ease-in-out duration-200 hover:bg-[#b81e74] font-semibold"> {{ __('Download badge') }} </button>
                     </div>
                 </div>
             </div>
@@ -124,13 +124,13 @@
                     </div>
                     <div class="">
                         <label for="badgeName" class="font-semibold dark:text-gray-100">{{ __('Badge Name:') }}</label>
-                        <input type="text" id="badgeName" x-model="badgeName" maxlength="24" class="mt-1 focus:ring-0 border-4 border-gray-200 rounded dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 focus:border-[#eeb425] w-full">
+                        <input type="text" id="badgeName" x-model="badgeName" maxlength="24" class="mt-1 focus:ring-0 border-4 border-gray-200 rounded dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 focus:border-[#d62a86] w-full">
                     </div>
                     <div class="mt-2">
                         <label for="badgeDescription" class="font-semibold mb-4 dark:text-gray-100">{{ __('Badge Description:') }}</label>
-                        <input type="text" id="badgeDescription" x-model="badgeDescription" maxlength="255" class="mt-1 focus:ring-0 border-4 border-gray-200 rounded dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 focus:border-[#eeb425] w-full">
+                        <input type="text" id="badgeDescription" x-model="badgeDescription" maxlength="255" class="mt-1 focus:ring-0 border-4 border-gray-200 rounded dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 focus:border-[#d62a86] w-full">
                     </div>
-                    <button type="button" x-text="buttonText" @click="buyBadge" class="w-full rounded text-white p-2 border-2 border-green-500 transition ease-in-out duration-150 font-semibold bg-green-600 hover:bg-green-700" :class="isValid ? 'cursor-pointer' : 'cursor-not-allowed'" :disabled="!isValid || {{ $folderError ? 'true' : 'false' }}"></button>
+                    <button type="button" x-text="buttonText" @click="buyBadge" class="w-full rounded text-white p-2 border-2 border-[#f0954a] transition ease-in-out duration-150 font-semibold bg-[#e87332] hover:bg-[#c95a24]" :class="isValid ? 'cursor-pointer' : 'cursor-not-allowed'" :disabled="!isValid || {{ $folderError ? 'true' : 'false' }}"></button>
                 </div>
             </div>
         </x-content.content-card>

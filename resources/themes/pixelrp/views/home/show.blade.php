@@ -9,11 +9,11 @@
                     <div class="flex justify-between items-center">
                         <div class="flex gap-2">
                             <button class="border-2 border-blue-400 bg-blue-500 hover:bg-blue-600 text-white font-semibold text-sm px-4 py-1.5 rounded transition" @click="openBag('inventory')" x-show="!saving">{{ __('Inventory') }}</button>
-                            <button class="border-2 border-yellow-400 bg-[#eeb425] hover:bg-[#d49f1c] text-white font-semibold text-sm px-4 py-1.5 rounded transition" @click="openBag('shop')" x-show="!saving">{{ __('Shop') }}</button>
+                            <button class="border-2 border-yellow-400 bg-[#d62a86] hover:bg-[#b81e74] text-white font-semibold text-sm px-4 py-1.5 rounded transition" @click="openBag('shop')" x-show="!saving">{{ __('Shop') }}</button>
                         </div>
                         <div class="flex gap-2">
                             <button class="border-2 border-red-400 bg-red-500 hover:bg-red-600 text-white font-semibold text-sm px-4 py-1.5 rounded transition" @click="cancel()" x-show="!saving">{{ __('Cancel') }}</button>
-                            <button class="border-2 border-green-500 bg-green-600 hover:bg-green-700 text-white font-semibold text-sm px-4 py-1.5 rounded transition disabled:opacity-50" @click="save()" :disabled="saving">
+                            <button class="border-2 border-[#f0954a] bg-[#e87332] hover:bg-[#c95a24] text-white font-semibold text-sm px-4 py-1.5 rounded transition disabled:opacity-50" @click="save()" :disabled="saving">
                                 <span x-show="!saving">{{ __('Save') }}</span>
                                 <span x-show="saving">{{ __('Saving...') }}</span>
                             </button>
@@ -21,7 +21,7 @@
                     </div>
                 </template>
                 <template x-if="!editing">
-                    <button class="border-2 border-yellow-400 bg-[#eeb425] hover:bg-[#d49f1c] text-white font-semibold text-sm px-5 py-1.5 rounded transition" @click="editing = true">{{ __('Edit Home') }}</button>
+                    <button class="border-2 border-yellow-400 bg-[#d62a86] hover:bg-[#b81e74] text-white font-semibold text-sm px-5 py-1.5 rounded transition" @click="editing = true">{{ __('Edit Home') }}</button>
                 </template>
             </div>
         @else
@@ -33,7 +33,7 @@
                 <span class="text-sm text-cyan-700 dark:text-cyan-200">{{ __('Preview mode - drag items to arrange, then purchase') }}</span>
                 <div class="flex gap-2">
                     <button class="border border-gray-300 dark:border-gray-500 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm font-semibold px-4 py-1 rounded transition" @click="endPreview()">{{ __('Cancel') }}</button>
-                    <button class="border-2 border-green-500 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-1 rounded transition" @click="openConfirmModal()">{{ __('Buy & Save') }}</button>
+                    <button class="border-2 border-[#f0954a] bg-[#e87332] hover:bg-[#c95a24] text-white text-sm font-semibold px-4 py-1 rounded transition" @click="openConfirmModal()">{{ __('Buy & Save') }}</button>
                 </div>
             </div>
         </template>
@@ -49,7 +49,7 @@
                     class="absolute select-none"
                     :class="{
                         'cursor-grab active:cursor-grabbing': editing && !item._preview,
-                        'ring-2 ring-[#eeb425] rounded': selectedItem?.id === item.id,
+                        'ring-2 ring-[#d62a86] rounded': selectedItem?.id === item.id,
                         'opacity-60 ring-2 ring-dashed ring-cyan-400 rounded cursor-grab active:cursor-grabbing': item._preview,
                     }"
                     :style="{ left: (item.x||0)+'px', top: (item.y||0)+'px', zIndex: item.z||0, transform: item.is_reversed ? 'scaleX(-1)' : '' }"
@@ -94,7 +94,7 @@
 
                     <div class="flex items-center bg-gray-50 dark:bg-gray-900 border-b dark:border-gray-700 px-3 py-2 gap-1 shrink-0" :id="$id('bag-modal')">
                         <button class="px-4 py-1.5 rounded text-sm font-semibold transition" :class="bagTab === 'inventory' ? 'bg-blue-500 text-white' : 'text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 dark:text-gray-400'" @click="bagTab = 'inventory'; fetchInv()">{{ __('Inventory') }}</button>
-                        <button class="px-4 py-1.5 rounded text-sm font-semibold transition" :class="bagTab === 'shop' ? 'bg-[#eeb425] text-white' : 'text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 dark:text-gray-400'" @click="bagTab = 'shop'; fetchShopCats(); fetchBalance()">{{ __('Shop') }}</button>
+                        <button class="px-4 py-1.5 rounded text-sm font-semibold transition" :class="bagTab === 'shop' ? 'bg-[#d62a86] text-white' : 'text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 dark:text-gray-400'" @click="bagTab = 'shop'; fetchShopCats(); fetchBalance()">{{ __('Shop') }}</button>
                         <button class="ml-auto text-gray-400 hover:text-gray-700 dark:hover:text-white text-lg leading-none px-2" @click="showBag = false">&times;</button>
                     </div>
 
@@ -118,11 +118,11 @@
                                             <div class="flex flex-wrap gap-1.5">
                                                 <template x-for="item in invItems()" :key="item.home_item_id">
                                                     <div class="w-16 h-16 border rounded flex items-center justify-center cursor-pointer relative transition"
-                                                        :class="invIsSelected(item) ? 'border-[#eeb425] bg-yellow-50 dark:bg-[#eeb425]/10' : 'border-gray-200 dark:border-gray-600 hover:border-gray-400'"
+                                                        :class="invIsSelected(item) ? 'border-[#d62a86] bg-yellow-50 dark:bg-[#d62a86]/10' : 'border-gray-200 dark:border-gray-600 hover:border-gray-400'"
                                                         @click="invToggle(item)" @dblclick="quickPlace(item)">
                                                         <img :src="img(item.home_item?.image)" class="max-w-[56px] max-h-[56px] object-contain" :style="invTab === 'backgrounds' ? 'image-rendering: pixelated' : ''">
                                                         <span x-show="item.item_ids?.length > 1" class="absolute -top-1 -right-1 bg-blue-500 text-white text-[9px] rounded-full min-w-[16px] h-4 flex items-center justify-center px-0.5" x-text="item.item_ids?.length"></span>
-                                                        <div x-show="invIsSelected(item)" class="absolute top-0 left-0 w-4 h-4 bg-[#eeb425] rounded-br flex items-center justify-center">
+                                                        <div x-show="invIsSelected(item)" class="absolute top-0 left-0 w-4 h-4 bg-[#d62a86] rounded-br flex items-center justify-center">
                                                             <svg class="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                                                         </div>
                                                     </div>
@@ -136,7 +136,7 @@
                                     <template x-if="invSelected.length > 1">
                                         <div class="flex flex-col items-center gap-2 text-center">
                                             <p class="font-semibold text-sm"><span x-text="invSelected.length"></span> {{ __('items selected') }}</p>
-                                            <button class="w-full border-2 border-green-500 bg-green-600 hover:bg-green-700 text-white rounded font-semibold text-sm py-1.5 transition" @click="place()">{{ __('Place All') }}</button>
+                                            <button class="w-full border-2 border-[#f0954a] bg-[#e87332] hover:bg-[#c95a24] text-white rounded font-semibold text-sm py-1.5 transition" @click="place()">{{ __('Place All') }}</button>
                                         </div>
                                     </template>
                                     <template x-if="invSelected.length === 1 && invActive">
@@ -147,7 +147,7 @@
                                             <template x-if="invActive.home_item?.type === 's' && invActive.item_ids?.length > 1">
                                                 <input type="number" x-model.number="placeQty" min="1" :max="Math.min(15, invActive.item_ids?.length)" class="w-16 border dark:border-gray-600 dark:bg-gray-700 rounded px-2 py-1 text-sm text-center">
                                             </template>
-                                            <button class="w-full border-2 border-green-500 bg-green-600 hover:bg-green-700 text-white rounded font-semibold text-sm py-1.5 transition mt-auto" @click="place()">{{ __('Place') }}</button>
+                                            <button class="w-full border-2 border-[#f0954a] bg-[#e87332] hover:bg-[#c95a24] text-white rounded font-semibold text-sm py-1.5 transition mt-auto" @click="place()">{{ __('Place') }}</button>
                                         </div>
                                     </template>
                                     <template x-if="invSelected.length === 0"><p class="text-gray-400 text-xs text-center mt-8">{{ __('Click items to select, double-click to quick-place.') }}</p></template>
@@ -158,13 +158,13 @@
                         <template x-if="bagTab === 'shop'">
                             <div class="flex w-full min-h-0">
                                 <div class="w-44 shrink-0 border-r dark:border-gray-700 p-2 flex flex-col gap-0.5 overflow-y-auto">
-                                    <button class="text-left px-3 py-1.5 rounded text-sm transition" :class="shopTab === 'notes' ? 'bg-[#eeb425] text-white' : 'hover:bg-gray-100 dark:hover:bg-gray-700'" @click="setShopTab('notes')">{{ __('Notes') }}</button>
-                                    <button class="text-left px-3 py-1.5 rounded text-sm transition" :class="shopTab === 'widgets' ? 'bg-[#eeb425] text-white' : 'hover:bg-gray-100 dark:hover:bg-gray-700'" @click="setShopTab('widgets')">{{ __('Widgets') }}</button>
-                                    <button class="text-left px-3 py-1.5 rounded text-sm transition" :class="shopTab === 'backgrounds' ? 'bg-[#eeb425] text-white' : 'hover:bg-gray-100 dark:hover:bg-gray-700'" @click="setShopTab('backgrounds')">{{ __('Backgrounds') }}</button>
+                                    <button class="text-left px-3 py-1.5 rounded text-sm transition" :class="shopTab === 'notes' ? 'bg-[#d62a86] text-white' : 'hover:bg-gray-100 dark:hover:bg-gray-700'" @click="setShopTab('notes')">{{ __('Notes') }}</button>
+                                    <button class="text-left px-3 py-1.5 rounded text-sm transition" :class="shopTab === 'widgets' ? 'bg-[#d62a86] text-white' : 'hover:bg-gray-100 dark:hover:bg-gray-700'" @click="setShopTab('widgets')">{{ __('Widgets') }}</button>
+                                    <button class="text-left px-3 py-1.5 rounded text-sm transition" :class="shopTab === 'backgrounds' ? 'bg-[#d62a86] text-white' : 'hover:bg-gray-100 dark:hover:bg-gray-700'" @click="setShopTab('backgrounds')">{{ __('Backgrounds') }}</button>
                                     <div class="border-t dark:border-gray-700 mt-1 pt-1">
                                         <p class="text-[10px] text-gray-400 uppercase tracking-wider px-3 mb-1">{{ __('Stickers') }}</p>
                                         <template x-for="cat in shopCategories" :key="cat.id">
-                                            <button class="text-left px-3 py-1 rounded text-sm w-full flex items-center gap-1.5 transition truncate" :class="shopTab === 'cat-'+cat.id ? 'bg-[#eeb425] text-white' : 'hover:bg-gray-100 dark:hover:bg-gray-700'" @click="openCat(cat.id)">
+                                            <button class="text-left px-3 py-1 rounded text-sm w-full flex items-center gap-1.5 transition truncate" :class="shopTab === 'cat-'+cat.id ? 'bg-[#d62a86] text-white' : 'hover:bg-gray-100 dark:hover:bg-gray-700'" @click="openCat(cat.id)">
                                                 <img :src="img(cat.icon)" class="w-4 h-4 shrink-0 object-contain">
                                                 <span x-text="cat.name" class="truncate"></span>
                                             </button>
@@ -185,11 +185,11 @@
                                                     <div class="flex flex-wrap gap-1.5">
                                                         <template x-for="item in shopItems" :key="item.id">
                                                             <div class="w-16 h-16 border rounded flex items-center justify-center cursor-pointer relative transition"
-                                                                :class="shopIsSelected(item) ? 'border-[#eeb425] bg-yellow-50 dark:bg-[#eeb425]/10' : 'border-gray-200 dark:border-gray-600 hover:border-gray-400'"
+                                                                :class="shopIsSelected(item) ? 'border-[#d62a86] bg-yellow-50 dark:bg-[#d62a86]/10' : 'border-gray-200 dark:border-gray-600 hover:border-gray-400'"
                                                                 @click="shopToggle(item)">
                                                                 <img :src="img(item.image)" class="max-w-[56px] max-h-[56px] object-contain" :style="item.type === 'b' ? 'image-rendering: pixelated' : ''">
                                                                 <span class="absolute bottom-0 right-0 bg-black/60 text-[9px] text-white px-1 rounded-tl leading-tight" x-text="item.price"></span>
-                                                                <div x-show="shopIsSelected(item)" class="absolute top-0 left-0 w-4 h-4 bg-[#eeb425] rounded-br flex items-center justify-center">
+                                                                <div x-show="shopIsSelected(item)" class="absolute top-0 left-0 w-4 h-4 bg-[#d62a86] rounded-br flex items-center justify-center">
                                                                     <svg class="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                                                                 </div>
                                                             </div>
@@ -228,12 +228,12 @@
                                                     </div>
                                                 </template>
                                             </div>
-                                            <button class="w-full border-2 border-yellow-400 bg-[#eeb425] hover:bg-[#d49f1c] text-white rounded font-semibold text-sm py-1.5 transition disabled:opacity-50 disabled:cursor-not-allowed" @click="buy()" :disabled="buying || !canAffordSelection()">
+                                            <button class="w-full border-2 border-yellow-400 bg-[#d62a86] hover:bg-[#b81e74] text-white rounded font-semibold text-sm py-1.5 transition disabled:opacity-50 disabled:cursor-not-allowed" @click="buy()" :disabled="buying || !canAffordSelection()">
                                                 <span x-show="!buying && canAffordSelection()">{{ __('Buy All') }}</span>
                                                 <span x-show="!buying && !canAffordSelection()">{{ __('Insufficient funds') }}</span>
                                                 <span x-show="buying">{{ __('Buying...') }}</span>
                                             </button>
-                                            <button class="w-full border-2 border-green-500 bg-green-600 hover:bg-green-700 text-white rounded font-semibold text-sm py-1.5 transition disabled:opacity-50 disabled:cursor-not-allowed" @click="buyAndPlace()" :disabled="buying || !canAffordSelection()">
+                                            <button class="w-full border-2 border-[#f0954a] bg-[#e87332] hover:bg-[#c95a24] text-white rounded font-semibold text-sm py-1.5 transition disabled:opacity-50 disabled:cursor-not-allowed" @click="buyAndPlace()" :disabled="buying || !canAffordSelection()">
                                                 {{ __('Buy & Place All') }}
                                             </button>
                                             <button class="w-full border border-cyan-400 dark:border-cyan-600 text-cyan-600 dark:text-cyan-300 hover:bg-cyan-50 dark:hover:bg-cyan-900/40 rounded text-sm py-1 transition mt-1" @click="previewSelected()">
@@ -253,12 +253,12 @@
                                             <template x-if="shopActive.type !== 'b' && shopActive.type !== 'w'">
                                                 <input type="number" x-model.number="buyQty" @input="clampBuyQty()" min="1" max="100" class="w-16 border dark:border-gray-600 dark:bg-gray-700 rounded px-2 py-1 text-sm text-center">
                                             </template>
-                                            <button class="w-full border-2 border-yellow-400 bg-[#eeb425] hover:bg-[#d49f1c] text-white rounded font-semibold text-sm py-1.5 transition disabled:opacity-50 disabled:cursor-not-allowed" @click="buy()" :disabled="buying || !canAffordItem(shopActive, buyQty)">
+                                            <button class="w-full border-2 border-yellow-400 bg-[#d62a86] hover:bg-[#b81e74] text-white rounded font-semibold text-sm py-1.5 transition disabled:opacity-50 disabled:cursor-not-allowed" @click="buy()" :disabled="buying || !canAffordItem(shopActive, buyQty)">
                                                 <span x-show="!buying && canAffordItem(shopActive, buyQty)">{{ __('Buy') }}</span>
                                                 <span x-show="!buying && !canAffordItem(shopActive, buyQty)">{{ __('Insufficient funds') }}</span>
                                                 <span x-show="buying">{{ __('Buying...') }}</span>
                                             </button>
-                                            <button class="w-full border-2 border-green-500 bg-green-600 hover:bg-green-700 text-white rounded font-semibold text-sm py-1.5 transition disabled:opacity-50 disabled:cursor-not-allowed" @click="buyAndPlace()" :disabled="buying || !canAffordItem(shopActive, buyQty)">
+                                            <button class="w-full border-2 border-[#f0954a] bg-[#e87332] hover:bg-[#c95a24] text-white rounded font-semibold text-sm py-1.5 transition disabled:opacity-50 disabled:cursor-not-allowed" @click="buyAndPlace()" :disabled="buying || !canAffordItem(shopActive, buyQty)">
                                                 {{ __('Buy & Place') }}
                                             </button>
                                             <button class="w-full border border-cyan-400 dark:border-cyan-600 text-cyan-600 dark:text-cyan-300 hover:bg-cyan-50 dark:hover:bg-cyan-900/40 rounded text-sm py-1 transition mt-1" @click="preview(shopActive)">
@@ -332,7 +332,7 @@
 
                         <div class="mt-5 flex gap-2">
                             <button type="button" @click="showConfirmModal = false" class="w-full rounded bg-red-500 hover:bg-red-600 text-white p-2 border-2 border-red-400 transition ease-in-out duration-150 font-semibold">{{ __('Cancel') }}</button>
-                            <button type="button" @click="confirmPurchase()" :disabled="confirmUnaffordable.length > 0" class="w-full rounded bg-green-600 hover:bg-green-700 text-white p-2 border-2 border-green-500 transition ease-in-out duration-150 font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
+                            <button type="button" @click="confirmPurchase()" :disabled="confirmUnaffordable.length > 0" class="w-full rounded bg-[#e87332] hover:bg-[#c95a24] text-white p-2 border-2 border-[#f0954a] transition ease-in-out duration-150 font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
                                 <span x-show="confirmUnaffordable.length > 0">{{ __('Cannot afford') }}</span>
                                 <span x-show="confirmUnaffordable.length === 0">{{ __('Confirm Purchase') }}</span>
                             </button>
@@ -352,7 +352,7 @@
             x-transition:leave-start="opacity-100"
             x-transition:leave-end="opacity-0"
             class="fixed bottom-6 right-6 z-[60] px-4 py-2.5 rounded-lg shadow-lg text-sm font-semibold text-white"
-            :class="toast?.type === 'error' ? 'bg-red-500' : 'bg-green-600'"
+            :class="toast?.type === 'error' ? 'bg-red-500' : 'bg-[#e87332]'"
             x-text="toast?.msg"
         ></div>
     </div>

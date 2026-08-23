@@ -24,9 +24,9 @@
         x-on:focusin.window="! $refs.panel.contains($event.target) && close()"
         x-id="['dropdown-button']"
         @class([
-            'relative md:h-[60px] text-[14px] font-semibold text-black md:border-b-4! md:border-transparent! md:hover:border-b-[#eeb425]! transition duration-200 ease-in-out dark:text-gray-200 z-5',
+            'relative md:h-[60px] text-[14px] font-semibold text-black md:border-b-4! md:border-transparent! md:hover:border-b-[#d62a86]! transition duration-200 ease-in-out dark:text-gray-200 z-5',
             $classes,
-            'md:border-b-4! md:border-b-[#eeb425]!' => request()->is($routeGroup),
+            'md:border-b-4! md:border-b-[#d62a86]!' => request()->is($routeGroup),
         ])"
 >
     <!-- Button -->

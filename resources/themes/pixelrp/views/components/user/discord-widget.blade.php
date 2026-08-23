@@ -75,7 +75,7 @@
                                 status.style.backgroundColor = "#16a34a";
                             }
                             if (users[i].status === 'idle') {
-                                status.style.backgroundColor = "#e9b124";
+                                status.style.backgroundColor = "#d62a86";
                             }
                             if (users[i].status === 'dnd') {
                                 status.style.backgroundColor = "#9c0017";

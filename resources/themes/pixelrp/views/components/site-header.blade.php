@@ -58,7 +58,7 @@
 
                         <a data-turbolinks="false" href="{{ route('register') }}">
                             <button
-                                class="uppercase bg-green-600/80! px-8! py-2.5! rounded-full transition! ease-in-out! duration-200! hover:bg-green-600! text-white">
+                                class="uppercase bg-[#d62a86]/90! px-8! py-2.5! rounded-full transition! ease-in-out! duration-200! hover:bg-[#b81e74]! text-white">
                                 {{ __('Create an account') }}
                             </button>
                         </a>

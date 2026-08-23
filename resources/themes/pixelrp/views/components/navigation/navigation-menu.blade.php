@@ -19,7 +19,7 @@
         </x-navigation.dropdown>
     @else
         <a href="{{ route('welcome') }}"
-           class="nav-item dark:text-gray-200 {{ request()->routeIs('welcome') ? 'md:border-b-4! md:border-b-[#eeb425]!' : '' }}">
+           class="nav-item dark:text-gray-200 {{ request()->routeIs('welcome') ? 'md:border-b-4! md:border-b-[#d62a86]!' : '' }}">
             <i class="mr-1 hidden navigation-icon home lg:inline-flex"></i>
             {{ __('Home') }}
         </a>
@@ -57,19 +57,19 @@
         </x-navigation.dropdown>
 
         <a href="{{ route('leaderboard.index') }}"
-           class="nav-item dark:text-gray-200 {{ request()->routeIs('leaderboard.*') ? 'md:border-b-4! md:border-b-[#eeb425]!' : '' }}">
+           class="nav-item dark:text-gray-200 {{ request()->routeIs('leaderboard.*') ? 'md:border-b-4! md:border-b-[#d62a86]!' : '' }}">
             <i class="navigation-icon leaderboards mr-1 hidden lg:inline-flex"></i>
             {{ __('Leaderboards') }}
         </a>
 
         <a href="{{ route('values.index') }}"
-           class="nav-item dark:text-gray-200 {{ request()->routeIs('values.*') ? 'md:border-b-4! md:border-b-[#eeb425]!' : '' }}">
+           class="nav-item dark:text-gray-200 {{ request()->routeIs('values.*') ? 'md:border-b-4! md:border-b-[#d62a86]!' : '' }}">
             <i class="navigation-icon leaderboards mr-1 hidden lg:inline-flex"></i>
             {{ __('Rare values') }}
         </a>
 
         <a data-turbolinks="false" href="{{ route('shop.index') }}"
-           class="nav-item dark:text-gray-200 {{ request()->routeIs('shop.*') ? 'md:border-b-4! md:border-b-[#eeb425]!' : '' }}">
+           class="nav-item dark:text-gray-200 {{ request()->routeIs('shop.*') ? 'md:border-b-4! md:border-b-[#d62a86]!' : '' }}">
             <i class="navigation-icon mr-1 hidden lg:inline-flex shop"></i>
             {{ __('Shop') }}
         </a>

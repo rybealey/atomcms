@@ -7,8 +7,8 @@
         <div
             class="flex flex-col gap-3 rounded border bg-white p-1 shadow-sm dark:border-gray-900 dark:bg-gray-800 lg:flex-row lg:items-center lg:justify-between">
             <div
-                class="relative flex items-center justify-center rounded bg-[#e9b124] py-2 px-2 text-sm font-semibold dark:text-gray-300 dark:border-gray-700 lg:self-stretch">
-                <div class="invisible h-6 w-6 -right-1 rotate-45 bg-[#e9b124] lg:visible lg:absolute"></div>
+                class="relative flex items-center justify-center rounded bg-[#d62a86] py-2 px-2 text-sm font-semibold dark:text-gray-300 dark:border-gray-700 lg:self-stretch">
+                <div class="invisible h-6 w-6 -right-1 rotate-45 bg-[#d62a86] lg:visible lg:absolute"></div>
                 <img src="{{ asset('/assets/images/icons/online-friends.png') }}" alt="{{ __('Online Friends') }}"
                      class="mr-2 mb-1 inline-flex" style="max-width: 24px; max-height: 24px">
                 <span class="relative text-white">{{ __('Online Friends') }}</span>

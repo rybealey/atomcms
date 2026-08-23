@@ -14,7 +14,7 @@
         <div class="mt-4 px-4">
             <p @class([
                 'font-semibold text-lg truncate dark:text-gray-200',
-                'group-hover:text-[#e9b124] transition duration-200' => $forSlider,
+                'group-hover:text-[#d62a86] transition duration-200' => $forSlider,
             ])>
                 {{ $article->title }}
             </p>

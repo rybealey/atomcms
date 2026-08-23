@@ -129,7 +129,7 @@
                                            name="receiver"
                                            placeholder="{{ __('Search for a user...') }}"
                                            autocomplete="off"
-                                           class="mb-2 focus:ring-0 border-4 border-gray-200 rounded dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 focus:border-[#eeb425] w-full"
+                                           class="mb-2 focus:ring-0 border-4 border-gray-200 rounded dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 focus:border-[#d62a86] w-full"
                                            role="combobox"
                                            aria-expanded="showDropdown"
                                            aria-autocomplete="list"
@@ -164,7 +164,7 @@
                                 <button type="submit"
                                         :disabled="!query.trim()"
                                         :class="{ 'opacity-50 cursor-not-allowed': !query.trim() }"
-                                        class="w-full rounded bg-green-600 hover:bg-green-700 text-white p-2 border-2 border-green-500 transition ease-in-out duration-150 font-semibold">
+                                        class="w-full rounded bg-[#e87332] hover:bg-[#c95a24] text-white p-2 border-2 border-[#f0954a] transition ease-in-out duration-150 font-semibold">
                                     {{ __('Gift for :cost', ['cost' => $package->formattedPrice()]) }}
                                 </button>
                             </form>
@@ -183,7 +183,7 @@
                 @csrf
 
                 <button type="submit"
-                        class="w-full rounded bg-green-600 hover:bg-green-700 text-white p-2 border-2 border-green-500 transition ease-in-out duration-150 font-semibold">
+                        class="w-full rounded bg-[#e87332] hover:bg-[#c95a24] text-white p-2 border-2 border-[#f0954a] transition ease-in-out duration-150 font-semibold">
                     {{ __('Buy for :cost', ['cost' => $package->formattedPrice()]) }}
                 </button>
             </form>
@@ -213,7 +213,7 @@
                                 {{ __('Cancel') }}
                             </button>
                             <button type="submit"
-                                    class="flex-1 rounded bg-green-600 hover:bg-green-700 text-white p-2 border-2 border-green-500 transition ease-in-out duration-150 font-semibold">
+                                    class="flex-1 rounded bg-[#e87332] hover:bg-[#c95a24] text-white p-2 border-2 border-[#f0954a] transition ease-in-out duration-150 font-semibold">
                                 {{ __('Confirm') }}
                             </button>
                         </form>
