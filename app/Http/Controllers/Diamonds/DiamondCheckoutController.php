@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Diamonds;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Diamonds\DiamondCheckoutFormRequest;
+use App\Models\User;
 use App\Models\WebsiteDiamondOrder;
 use App\Support\AuthenticatedUser;
 use Illuminate\Http\JsonResponse;
@@ -25,12 +26,11 @@ class DiamondCheckoutController extends Controller
             $session = Session::create([
                 'ui_mode' => 'embedded_page',
                 'mode' => 'payment',
+                // Checkout always collects an email; prefilling the account's
+                // address removes the field from the form entirely. Skip
+                // invalid stored addresses - Stripe rejects them at create.
+                ...$this->customerEmail($user),
                 'redirect_on_completion' => 'never',
-                // Restrict to card only: async/delayed-notification payment
-                // methods (e.g. bank redirects) can leave the Checkout
-                // Session in a completed-but-unpaid state, which the webhook
-                // guards against via payment_status, but a synchronous
-                // card-only flow avoids that class of event entirely.
                 'line_items' => [[
                     'quantity' => 1,
                     'price_data' => [
@@ -71,5 +71,19 @@ class DiamondCheckoutController extends Controller
             'clientSecret' => $session->client_secret,
             'publishableKey' => config('services.stripe.key'),
         ]);
+    }
+
+    /**
+     * @return array{customer_email?: string}
+     */
+    private function customerEmail(User $user): array
+    {
+        $email = $user->mail;
+
+        if (blank($email) || filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
+            return [];
+        }
+
+        return ['customer_email' => $email];
     }
 }
