@@ -14,6 +14,7 @@ use Stripe\Event;
 use Stripe\Exception\SignatureVerificationException;
 use Stripe\Exception\UnexpectedValueException;
 use Stripe\Webhook;
+use Throwable;
 
 class DiamondStripeWebhookController extends Controller
 {
@@ -51,7 +52,19 @@ class DiamondStripeWebhookController extends Controller
             return;
         }
 
-        DB::transaction(function () use ($session, $credit): void {
+        // The transaction only locks the row, checks idempotency and flips
+        // the order to paid - it does NOT call the RCON/DB credit. Crediting
+        // inside the transaction risked a worse failure mode: if the grant
+        // succeeded but the commit then failed (e.g. a deadlock retry
+        // exhausting `attempts`), the order would roll back to pending and a
+        // Stripe retry would credit the user a second time. With crediting
+        // moved after the commit, the fallback chain in DiamondCreditService
+        // makes the post-commit credit near-certain (worst case is a plain
+        // DB increment); the residual risk is a crash between commit and
+        // credit, which leaves a paid-but-uncredited order that a support
+        // script can reconcile from the log below - strictly better than a
+        // double-credit.
+        $order = DB::transaction(function () use ($session): ?WebsiteDiamondOrder {
             $order = WebsiteDiamondOrder::where('stripe_session_id', $session->id)
                 ->lockForUpdate()
                 ->first();
@@ -59,7 +72,7 @@ class DiamondStripeWebhookController extends Controller
             // Missing order, or already handled by a prior delivery of this
             // event (Stripe may retry): idempotent no-op.
             if (! $order || $order->status !== WebsiteDiamondOrder::STATUS_PENDING) {
-                return;
+                return null;
             }
 
             $order->update([
@@ -67,7 +80,24 @@ class DiamondStripeWebhookController extends Controller
                 'paid_at' => now(),
             ]);
 
+            return $order;
+        }, attempts: 3);
+
+        if ($order === null) {
+            return;
+        }
+
+        try {
             $credit->credit($order);
-        });
+        } catch (Throwable $exception) {
+            // The order is already committed as paid; never let a credit
+            // failure bubble into a 500 back to Stripe (that would trigger a
+            // retry and risk a double-credit on top of an already-paid
+            // order). Log for reconciliation instead.
+            Log::error('Diamond order committed as paid but crediting threw.', [
+                'order_id' => $order->id,
+                'exception_class' => $exception::class,
+            ]);
+        }
     }
 }
