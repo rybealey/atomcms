@@ -46,8 +46,17 @@ class DiamondStripeWebhookController extends Controller
             return $this->jsonResponse(['message' => 'Invalid payload or signature.'], 400);
         }
 
-        if ($event->type === 'checkout.session.completed') {
+        // Dynamic payment methods (no hardcoded payment_method_types, per
+        // Stripe best practices) mean some methods pay asynchronously: the
+        // completed event then arrives with payment_status 'unpaid' and the
+        // outcome follows as async_payment_succeeded / _failed.
+        if ($event->type === 'checkout.session.completed'
+            || $event->type === 'checkout.session.async_payment_succeeded') {
             $this->handleCheckoutCompleted($event, $credit);
+        }
+
+        if ($event->type === 'checkout.session.async_payment_failed') {
+            $this->handleAsyncPaymentFailed($event);
         }
 
         // Always 200 on handled (verified) events, including types we don't
@@ -60,6 +69,8 @@ class DiamondStripeWebhookController extends Controller
         /** @var Session $session */
         $session = $event->data->object;
 
+        // An async method's completed event reports 'unpaid'; the order stays
+        // pending until async_payment_succeeded (or _failed) settles it.
         if ($session->payment_status !== 'paid') {
             return;
         }
@@ -111,5 +122,23 @@ class DiamondStripeWebhookController extends Controller
                 'exception_class' => $exception::class,
             ]);
         }
+    }
+
+    private function handleAsyncPaymentFailed(Event $event): void
+    {
+        /** @var Session $session */
+        $session = $event->data->object;
+
+        DB::transaction(function () use ($session): void {
+            $order = WebsiteDiamondOrder::where('stripe_session_id', $session->id)
+                ->lockForUpdate()
+                ->first();
+
+            if (! $order || $order->status !== WebsiteDiamondOrder::STATUS_PENDING) {
+                return;
+            }
+
+            $order->update(['status' => WebsiteDiamondOrder::STATUS_FAILED]);
+        }, attempts: 3);
     }
 }

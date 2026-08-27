@@ -31,7 +31,6 @@ class DiamondCheckoutController extends Controller
                 // Session in a completed-but-unpaid state, which the webhook
                 // guards against via payment_status, but a synchronous
                 // card-only flow avoids that class of event entirely.
-                'payment_method_types' => ['card'],
                 'line_items' => [[
                     'quantity' => 1,
                     'price_data' => [
