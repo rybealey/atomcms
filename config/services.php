@@ -36,6 +36,12 @@ return [
         'secret' => env('TURNSTILE_SECRET_KEY'),
     ],
 
+    'stripe' => [
+        'key' => env('STRIPE_KEY'),
+        'secret' => env('STRIPE_SECRET'),
+        'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
+    ],
+
     'github_deploy' => [
         'repo' => env('GITHUB_DEPLOY_REPO', 'rybealey/pixelrp'),
         'workflow' => env('GITHUB_DEPLOY_WORKFLOW', 'deploy.yml'),

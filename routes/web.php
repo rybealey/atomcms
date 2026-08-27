@@ -13,6 +13,8 @@ use App\Http\Controllers\Community\Staff\StaffController;
 use App\Http\Controllers\Community\Staff\WebsiteTeamApplicationsController;
 use App\Http\Controllers\Community\Staff\WebsiteTeamsController;
 use App\Http\Controllers\Community\WebsiteRareValuesController;
+use App\Http\Controllers\Diamonds\DiamondCheckoutController;
+use App\Http\Controllers\Diamonds\DiamondStripeWebhookController;
 use App\Http\Controllers\Help\HelpCenterController;
 use App\Http\Controllers\Help\TicketController;
 use App\Http\Controllers\Help\TicketReplyController;
@@ -44,6 +46,13 @@ use Laravel\Fortify\Http\Controllers\RegisteredUserController;
 
 // Language route
 Route::get('/language/{locale}', LocaleController::class)->name('language.select');
+
+// Diamonds store webhook - standalone from the CMS shop system. Public and
+// signature-verified rather than session-authenticated, so it is registered
+// outside every route group (maintenance/ban/2FA and auth alike) and
+// CSRF-excluded below in VerifyCsrfToken, mirroring how the PayPal webhook
+// is kept outside of session/CSRF concerns entirely (there via routes/api.php).
+Route::post('/webhooks/diamonds-stripe', DiamondStripeWebhookController::class)->name('diamonds.webhook');
 
 // Installation routes
 Route::prefix('installation')->controller(InstallationController::class)->group(function () {
@@ -207,6 +216,14 @@ Route::middleware(['maintenance', 'check.ban', 'force.staff.2fa'])->group(functi
             Route::post('/process-transaction', 'process')->name('paypal.process-transaction')->middleware('throttle:10,1');
             Route::get('/successful-transaction', 'successful')->name('paypal.successful-transaction');
             Route::get('/cancelled-transaction', 'cancelled')->name('paypal.cancelled-transaction');
+        });
+
+        // Diamonds store routes - standalone Stripe purchase flow, separate
+        // from the website_balance shop system above.
+        Route::prefix('diamonds')->group(function () {
+            Route::post('/checkout-session', DiamondCheckoutController::class)
+                ->name('diamonds.checkout-session')
+                ->middleware('throttle:10,1');
         });
 
         // Rare values routes - reads the emulator's furniture schema, so only
