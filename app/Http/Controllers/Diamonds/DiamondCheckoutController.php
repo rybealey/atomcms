@@ -23,7 +23,7 @@ class DiamondCheckoutController extends Controller
             Stripe::setApiKey(config('services.stripe.secret'));
 
             $session = Session::create([
-                'ui_mode' => 'embedded',
+                'ui_mode' => 'embedded_page',
                 'mode' => 'payment',
                 'redirect_on_completion' => 'never',
                 // Restrict to card only: async/delayed-notification payment
@@ -50,6 +50,7 @@ class DiamondCheckoutController extends Controller
                 'user_id' => $user->getKey(),
                 'diamonds' => $diamonds,
                 'exception_class' => $exception::class,
+                'exception_message' => $exception->getMessage(),
             ]);
 
             return $this->jsonResponse([
