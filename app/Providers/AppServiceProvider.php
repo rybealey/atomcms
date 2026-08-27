@@ -70,6 +70,19 @@ class AppServiceProvider extends ServiceProvider
             ),
         );
 
+        // Independent of the Rcon::class binding above (and of
+        // EMULATOR_DRIVER): DiamondCreditService always needs the concrete
+        // Arcturus/JSON-dialect client, never the driver-selected contract.
+        // When EMULATOR_DRIVER=plus, Rcon::class resolves to PlusRconService,
+        // whose fire-and-forget dialect cannot carry a real ack for a paid
+        // purchase. RconService's constructor args are optional/scalar
+        // (pulled from settings when omitted), so this mirrors the same
+        // `new RconService` construction used above for the non-plus driver.
+        $this->app->singleton(
+            RconService::class,
+            fn () => new RconService,
+        );
+
         // Resolve the PayPal client pre-authenticated so consumers can inject
         // it and tests can swap it for a fake.
         $this->app->bind(PayPalClient::class, function (): PayPalClient {

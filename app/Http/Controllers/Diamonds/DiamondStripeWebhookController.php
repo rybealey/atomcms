@@ -20,11 +20,23 @@ class DiamondStripeWebhookController extends Controller
 {
     public function __invoke(Request $request, DiamondCreditService $credit): JsonResponse
     {
+        $webhookSecret = config('services.stripe.webhook_secret');
+
+        if (blank($webhookSecret)) {
+            // Never call constructEvent() with an empty secret: Stripe's SDK
+            // signs against it, and a blank secret is not a "verification
+            // failed" case worth 400-ing (which would look like a spoofed
+            // request) - it's a misconfigured deployment. Fail loudly.
+            Log::error('Diamonds Stripe webhook secret is not configured; refusing to verify.');
+
+            return $this->jsonResponse(['message' => 'Webhook is not configured.'], 500);
+        }
+
         try {
             $event = Webhook::constructEvent(
                 $request->getContent(),
                 (string) $request->header('Stripe-Signature'),
-                config('services.stripe.webhook_secret'),
+                $webhookSecret,
             );
         } catch (UnexpectedValueException|SignatureVerificationException $exception) {
             Log::warning('Diamonds Stripe webhook signature verification failed.', [
