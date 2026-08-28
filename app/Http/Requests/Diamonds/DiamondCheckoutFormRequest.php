@@ -10,7 +10,7 @@ class DiamondCheckoutFormRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'diamonds' => ['required', 'integer', 'min:100', 'max:100000', 'multiple_of:100'],
+            'diamonds' => ['required', 'integer', 'min:500', 'max:100000', 'multiple_of:100'],
         ];
     }
 }
