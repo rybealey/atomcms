@@ -14,10 +14,12 @@ class RouteServiceProvider extends ServiceProvider
      * The path to the "home" route for your application.
      *
      * Typically, users are redirected here after authentication.
+     * PixelRP sends players straight into the game client instead of
+     * the CMS dashboard (an intended deep link still wins).
      *
      * @var string
      */
-    public const HOME = '/user/me';
+    public const HOME = '/game/nitro';
 
     /**
      * Define your route model bindings, pattern filters, and other route configuration.
