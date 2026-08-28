@@ -78,6 +78,11 @@ class AfterCommitRcon implements Rcon
         $this->defer(fn () => $this->inner->alertUser($user, $message));
     }
 
+    public function grantPassive(User $user, int $seconds): void
+    {
+        $this->defer(fn () => $this->inner->grantPassive($user, $seconds));
+    }
+
     public function forwardUser(User $user, int $roomId): void
     {
         $this->defer(fn () => $this->inner->forwardUser($user, $roomId));

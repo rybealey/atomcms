@@ -40,6 +40,12 @@ interface Rcon
 
     public function alertUser(User $user, string $message): void;
 
+    /**
+     * Silently grant (or extend to at least) passive status on the live
+     * emulator, e.g. while a player has the payment form open.
+     */
+    public function grantPassive(User $user, int $seconds): void;
+
     public function forwardUser(User $user, int $roomId): void;
 
     public function updateConfig(User $user, string $command): void;

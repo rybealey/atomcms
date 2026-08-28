@@ -84,6 +84,9 @@ class PlusRconService implements Rcon
             ]),
             'updatewordfilter' => $this->sendPlusCommand('reload_filter'),
             'updatecatalog' => $this->sendPlusCommand('reload_catalog'),
+            'givepassive' => $this->sendPlusCommand('give_user_passive', [
+                $data['user_id'], $data['seconds'],
+            ]),
             // forwarduser, executecommand, and any unknown key: PlusEMU has
             // no wire command for these, and there's no fallback state to
             // write, so a logged no-op is correct (see forwardUser()'s and
@@ -198,6 +201,14 @@ class PlusRconService implements Rcon
         $this->dispatchCommand('alertuser', [
             'user_id' => $user->id,
             'message' => $message,
+        ]);
+    }
+
+    public function grantPassive(User $user, int $seconds): void
+    {
+        $this->dispatchCommand('givepassive', [
+            'user_id' => $user->id,
+            'seconds' => $seconds,
         ]);
     }
 

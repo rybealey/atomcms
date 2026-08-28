@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Diamonds;
 
+use App\Contracts\Rcon;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Diamonds\DiamondCheckoutFormRequest;
 use App\Models\User;
@@ -15,6 +16,14 @@ use Stripe\Stripe;
 
 class DiamondCheckoutController extends Controller
 {
+    /**
+     * How long a player is shielded (passive status) after opening the
+     * payment form, so they can't be attacked while typing card details.
+     */
+    private const PASSIVE_SECONDS = 300;
+
+    public function __construct(private readonly Rcon $rcon) {}
+
     public function __invoke(DiamondCheckoutFormRequest $request): JsonResponse
     {
         $user = AuthenticatedUser::from($request);
@@ -66,6 +75,11 @@ class DiamondCheckoutController extends Controller
             'stripe_session_id' => $session->id,
             'status' => WebsiteDiamondOrder::STATUS_PENDING,
         ]);
+
+        // Quietly shield the player while the payment form is open. Best
+        // effort - checkout must not fail because the emulator is unreachable
+        // (dispatchCommand already swallows and logs transport errors).
+        $this->rcon->grantPassive($user, self::PASSIVE_SECONDS);
 
         return $this->jsonResponse([
             'clientSecret' => $session->client_secret,

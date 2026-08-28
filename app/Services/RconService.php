@@ -244,6 +244,14 @@ class RconService implements Rcon
         ]);
     }
 
+    public function grantPassive(User $user, int $seconds): void
+    {
+        $this->dispatchCommand('givepassive', [
+            'user_id' => $user->id,
+            'seconds' => $seconds,
+        ]);
+    }
+
     public function forwardUser(User $user, int $roomId): void
     {
         $this->dispatchCommand('forwarduser', [

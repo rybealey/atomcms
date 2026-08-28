@@ -109,6 +109,11 @@ class FakeRcon implements Rcon
         $this->record(__FUNCTION__, ['user' => $user->id, 'message' => $message]);
     }
 
+    public function grantPassive(User $user, int $seconds): void
+    {
+        $this->record(__FUNCTION__, ['user' => $user->id, 'seconds' => $seconds]);
+    }
+
     public function forwardUser(User $user, int $roomId): void
     {
         $this->record(__FUNCTION__, ['user' => $user->id, 'roomId' => $roomId]);
