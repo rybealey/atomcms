@@ -10,7 +10,8 @@ use Throwable;
  * Idempotent "make Discord match the game" step for one linked user:
  * nickname = in-game name, plus the managed roles (Verified always while
  * linked, Online while the player is in-game, VIP while vip_expire is in
- * the future). Roles this bot does NOT manage are never touched.
+ * the future, Staff while rank 5+). Roles this bot does NOT manage are
+ * never touched.
  *
  * Called from the OAuth callback, the queue drainer (login/logout/VIP
  * events enqueued by the emulator), and the 10-minute reconciliation
@@ -115,6 +116,9 @@ class DiscordSyncService
             'verified' => true,
             'online' => (bool) $user->online,
             'vip' => ((int) ($user->vip_expire ?? 0)) > time(),
+            // Hotel staff (rank 5+) carry the Discord Staff role; a demotion
+            // strips it on the next queue drain or sweep.
+            'staff' => ((int) $user->rank) >= 5,
         ];
 
         $roles = $currentRoles;

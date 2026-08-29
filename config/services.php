@@ -54,6 +54,7 @@ return [
             'verified' => env('DISCORD_VERIFIED_ROLE_ID'),
             'online' => env('DISCORD_ONLINE_ROLE_ID'),
             'vip' => env('DISCORD_VIP_ROLE_ID'),
+            'staff' => env('DISCORD_STAFF_ROLE_ID'),
             'donor' => env('DISCORD_DONOR_ROLE_ID'),
             'committee' => env('DISCORD_COMMITTEE_ROLE_ID'),
         ],
