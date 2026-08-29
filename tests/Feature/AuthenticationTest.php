@@ -12,7 +12,7 @@ test('users can authenticate using the login screen', function () {
 
     expect($response->status())->toBe(302)
         ->and(auth()->check())->toBeTrue()
-        ->and(parse_url($response->headers->get('Location'), PHP_URL_PATH))->toBe('/game/nitro');
+        ->and(parse_url($response->headers->get('Location'), PHP_URL_PATH))->toBe('/user/me');
 });
 
 test('users can not authenticate with invalid password', function () {
