@@ -52,6 +52,7 @@ return [
         // integration can go live with just 'verified' and grow later.
         'roles' => [
             'verified' => env('DISCORD_VERIFIED_ROLE_ID'),
+            'unverified' => env('DISCORD_UNVERIFIED_ROLE_ID'),
             'online' => env('DISCORD_ONLINE_ROLE_ID'),
             'vip' => env('DISCORD_VIP_ROLE_ID'),
             'staff' => env('DISCORD_STAFF_ROLE_ID'),

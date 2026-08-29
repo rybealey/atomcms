@@ -9,9 +9,9 @@ use Throwable;
 /**
  * Idempotent "make Discord match the game" step for one linked user:
  * nickname = in-game name, plus the managed roles (Verified always while
- * linked, Online while the player is in-game, VIP while vip_expire is in
- * the future, Staff while rank 5+). Roles this bot does NOT manage are
- * never touched.
+ * linked - and Unverified always stripped - Online while the player is
+ * in-game, VIP while vip_expire is in the future, Staff while rank 5+).
+ * Roles this bot does NOT manage are never touched.
  *
  * Called from the OAuth callback, the queue drainer (login/logout/VIP
  * events enqueued by the emulator), and the 10-minute reconciliation
@@ -76,7 +76,8 @@ class DiscordSyncService
 
     /**
      * Strip the managed roles the bot controls when unlinking (and clear the
-     * nickname it set). Other roles and the membership itself are untouched.
+     * nickname it set), then hand back Unverified so the member re-enters the
+     * unlinked state. Other roles and the membership itself are untouched.
      */
     public function unlinkUser(User $user): void
     {
@@ -90,6 +91,14 @@ class DiscordSyncService
             if ($member !== null) {
                 $managed = array_filter(config('services.discord.roles'));
                 $kept = array_values(array_diff($member['roles'] ?? [], $managed));
+
+                // diff() above removed Unverified with the rest of the
+                // managed set, so this append can never duplicate it.
+                $unverified = config('services.discord.roles.unverified');
+
+                if ($unverified) {
+                    $kept[] = $unverified;
+                }
 
                 $this->api->updateMember($user->discord_id, [
                     'nick' => null,
@@ -114,6 +123,7 @@ class DiscordSyncService
 
         $wanted = [
             'verified' => true,
+            'unverified' => false,
             'online' => (bool) $user->online,
             'vip' => ((int) ($user->vip_expire ?? 0)) > time(),
             // Hotel staff (rank 5+) carry the Discord Staff role; a demotion
