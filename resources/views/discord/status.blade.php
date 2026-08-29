@@ -33,12 +33,23 @@
                         {{ __('Open the Discord server') }}
                     </a>
 
+                    {{-- In-page two-step confirm, NOT window.confirm(): the game
+                         client opens this page via window.open, and embedded
+                         browsers suppress native dialogs in popups (confirm()
+                         silently returns false and the submit dies). First
+                         click arms the button, second click submits; disarms
+                         after 5s. The brief cooldown swallows double-clicks. --}}
                     <form method="POST" action="{{ route('discord.unlink') }}"
-                          onsubmit="return confirm(@js(__('Disconnect your Discord account? Your Verified role and synced nickname will be removed.')));">
+                          x-data="{ armed: false, armedAt: 0 }"
+                          @submit="if (!armed || (Date.now() - armedAt) < 400) { $event.preventDefault(); armed = true; armedAt = Date.now(); setTimeout(() => { if ((Date.now() - armedAt) >= 4900) armed = false; }, 5000); }">
                         @csrf
                         <button type="submit"
-                                class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
-                            {{ __('Disconnect') }}
+                                class="rounded-lg border px-4 py-2 text-sm font-semibold transition"
+                                :class="armed
+                                    ? 'border-red-300 bg-red-50 text-red-700 dark:border-red-700 dark:bg-red-900/30 dark:text-red-300'
+                                    : 'border-gray-300 text-gray-600 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700'">
+                            <span x-show="!armed">{{ __('Disconnect') }}</span>
+                            <span x-show="armed" style="display: none;">{{ __('Confirm disconnect?') }}</span>
                         </button>
                     </form>
                 </div>
