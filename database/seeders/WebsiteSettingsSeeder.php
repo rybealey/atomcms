@@ -57,7 +57,11 @@ class WebsiteSettingsSeeder extends Seeder
             ],
             [
                 'key' => 'avatar_imager',
-                'value' => 'https://www.habbo.com/habbo-imaging/avatarimage?figure=',
+                // Relative on purpose: resolves against whichever origin serves the
+                // page, so beta and prod share this one value. Points at our own
+                // self-hosted imager instead of Habbo's. This seeder only runs on
+                // fresh installs - existing installs have this row updated by hand.
+                'value' => '/imaging/?figure=',
                 'comment' => 'The base url for the imager used to render avatars on the CMS',
             ],
             [
