@@ -42,6 +42,23 @@ return [
         'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
     ],
 
+    'discord' => [
+        'client_id' => env('DISCORD_CLIENT_ID'),
+        'client_secret' => env('DISCORD_CLIENT_SECRET'),
+        'bot_token' => env('DISCORD_BOT_TOKEN'),
+        'guild_id' => env('DISCORD_GUILD_ID'),
+        'invite_url' => env('DISCORD_INVITE_URL', 'https://discord.gg/pH5TQF84UZ'),
+        // Role ids the bot manages. Any left empty is simply skipped, so the
+        // integration can go live with just 'verified' and grow later.
+        'roles' => [
+            'verified' => env('DISCORD_VERIFIED_ROLE_ID'),
+            'online' => env('DISCORD_ONLINE_ROLE_ID'),
+            'vip' => env('DISCORD_VIP_ROLE_ID'),
+            'donor' => env('DISCORD_DONOR_ROLE_ID'),
+            'committee' => env('DISCORD_COMMITTEE_ROLE_ID'),
+        ],
+    ],
+
     'github_deploy' => [
         'repo' => env('GITHUB_DEPLOY_REPO', 'rybealey/pixelrp'),
         'workflow' => env('GITHUB_DEPLOY_WORKFLOW', 'deploy.yml'),

@@ -34,6 +34,7 @@ use App\Http\Controllers\Shop\ShopController;
 use App\Http\Controllers\Shop\ShopVoucherController;
 use App\Http\Controllers\User\AccountSettingsController;
 use App\Http\Controllers\User\BannedController;
+use App\Http\Controllers\User\DiscordController;
 use App\Http\Controllers\User\ForgotPasswordController;
 use App\Http\Controllers\User\MeController;
 use App\Http\Controllers\User\PasswordSettingsController;
@@ -118,6 +119,15 @@ Route::middleware(['maintenance', 'check.ban', 'force.staff.2fa'])->group(functi
                     Route::delete('/two-factor-authentication', [TwoFactorAuthenticationController::class, 'destroy'])->name('user.two-factor.disable');
                 });
             });
+        });
+
+        // Discord account linking - opened from the game client's Settings
+        // window in a new tab (shares the CMS session).
+        Route::prefix('discord')->group(function () {
+            Route::get('/', [DiscordController::class, 'show'])->name('discord.show');
+            Route::get('/connect', [DiscordController::class, 'connect'])->middleware('throttle:10,1')->name('discord.connect');
+            Route::get('/callback', [DiscordController::class, 'callback'])->middleware('throttle:10,1')->name('discord.callback');
+            Route::post('/unlink', [DiscordController::class, 'unlink'])->middleware('throttle:6,1')->name('discord.unlink');
         });
 
         // Drawbadge
