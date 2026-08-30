@@ -100,10 +100,19 @@ class DiscordSyncService
                     $kept[] = $unverified;
                 }
 
-                $this->api->updateMember($discordId, [
+                $response = $this->api->updateMember($discordId, [
                     'nick' => null,
                     'roles' => $kept,
                 ]);
+
+                // 403 on the guild owner's nick is expected - the bot can
+                // never rename the owner. Nick and roles travel in one PATCH,
+                // so that rejection takes the role changes down with it, and
+                // the HTTP client does not throw on 4xx, so it fails silently.
+                // Retry with roles only, exactly as syncUser() does.
+                if ($response->status() === 403) {
+                    $this->api->updateMember($discordId, ['roles' => $kept]);
+                }
             }
         } catch (Throwable $e) {
             Log::warning('Discord unlink cleanup failed.', [
