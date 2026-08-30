@@ -87,6 +87,7 @@ class PlusRconService implements Rcon
             'givepassive' => $this->sendPlusCommand('give_user_passive', [
                 $data['user_id'], $data['seconds'],
             ]),
+            'syncdiscord' => $this->sendPlusCommand('reload_user_discord', [$data['user_id']]),
             // forwarduser, executecommand, and any unknown key: PlusEMU has
             // no wire command for these, and there's no fallback state to
             // write, so a logged no-op is correct (see forwardUser()'s and
@@ -209,6 +210,13 @@ class PlusRconService implements Rcon
         $this->dispatchCommand('givepassive', [
             'user_id' => $user->id,
             'seconds' => $seconds,
+        ]);
+    }
+
+    public function syncDiscordStatus(User $user): void
+    {
+        $this->dispatchCommand('syncdiscord', [
+            'user_id' => $user->id,
         ]);
     }
 

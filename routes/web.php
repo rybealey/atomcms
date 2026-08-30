@@ -124,10 +124,10 @@ Route::middleware(['maintenance', 'check.ban', 'force.staff.2fa'])->group(functi
         // Discord account linking - opened from the game client's Settings
         // window in a new tab (shares the CMS session).
         Route::prefix('discord')->group(function () {
-            Route::get('/', [DiscordController::class, 'show'])->name('discord.show');
+            // Disconnecting happens in-game (wire 3956); the callback is the
+            // only page this flow still needs.
             Route::get('/connect', [DiscordController::class, 'connect'])->middleware('throttle:10,1')->name('discord.connect');
             Route::get('/callback', [DiscordController::class, 'callback'])->middleware('throttle:10,1')->name('discord.callback');
-            Route::post('/unlink', [DiscordController::class, 'unlink'])->middleware('throttle:6,1')->name('discord.unlink');
         });
 
         // Drawbadge

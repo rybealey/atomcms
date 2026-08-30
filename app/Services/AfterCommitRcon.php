@@ -78,6 +78,11 @@ class AfterCommitRcon implements Rcon
         $this->defer(fn () => $this->inner->alertUser($user, $message));
     }
 
+    public function syncDiscordStatus(User $user): void
+    {
+        $this->defer(fn () => $this->inner->syncDiscordStatus($user));
+    }
+
     public function grantPassive(User $user, int $seconds): void
     {
         $this->defer(fn () => $this->inner->grantPassive($user, $seconds));

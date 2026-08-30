@@ -109,6 +109,11 @@ class FakeRcon implements Rcon
         $this->record(__FUNCTION__, ['user' => $user->id, 'message' => $message]);
     }
 
+    public function syncDiscordStatus(User $user): void
+    {
+        $this->record(__FUNCTION__, ['user' => $user->id]);
+    }
+
     public function grantPassive(User $user, int $seconds): void
     {
         $this->record(__FUNCTION__, ['user' => $user->id, 'seconds' => $seconds]);

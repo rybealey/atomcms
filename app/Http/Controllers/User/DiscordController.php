@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\User;
 
+use App\Contracts\Rcon;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\Discord\DiscordApi;
@@ -12,36 +13,30 @@ use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 /**
- * Discord account linking. The game client opens these pages in a new tab;
- * they share the CMS session, so `auth` middleware covers identity. The
- * user's OAuth token is used once (identify + guilds.join) and never stored.
+ * Discord account linking. The game client opens `/discord/connect` in a
+ * popup that shares the CMS session, so `auth` middleware covers identity.
+ * The user's OAuth token is used once (identify + guilds.join) and never
+ * stored.
+ *
+ * Disconnecting happens in-game (wire 3956), not here. The callback is the
+ * only page in this flow: it reports the outcome and closes itself.
  */
 class DiscordController extends Controller
 {
     public function __construct(
         private readonly DiscordApi $api,
         private readonly DiscordSyncService $sync,
+        private readonly Rcon $rcon,
     ) {}
 
-    public function show(Request $request): View
-    {
-        return view('discord.status', [
-            'linked' => (bool) $request->user()->discord_id,
-            'linkedAt' => (int) ($request->user()->discord_linked_at ?? 0),
-            'configured' => $this->api->configured(),
-            'inviteUrl' => config('services.discord.invite_url'),
-        ]);
-    }
-
-    public function connect(Request $request): RedirectResponse
+    public function connect(Request $request): RedirectResponse|View
     {
         if (! $this->api->configured()) {
-            return redirect()->route('discord.show')
-                ->with('message', __('Discord linking is not available right now. Please try again later.'));
+            return $this->result('error', __('Discord linking is not available right now. Please try again later.'));
         }
 
         if ($request->user()->discord_id) {
-            return redirect()->route('discord.show');
+            return $this->result('success', __('Your Discord account is already connected.'));
         }
 
         $state = Str::random(40);
@@ -50,29 +45,26 @@ class DiscordController extends Controller
         return redirect()->away($this->api->authorizeUrl(route('discord.callback'), $state));
     }
 
-    public function callback(Request $request): RedirectResponse
+    public function callback(Request $request): View
     {
         $state = $request->session()->pull('discord_oauth_state');
 
         if (! $state || ! hash_equals($state, (string) $request->query('state', ''))) {
-            return redirect()->route('discord.show')
-                ->with('message', __('The Discord link attempt expired or was invalid. Please try again.'));
+            return $this->result('error', __('The Discord link attempt expired or was invalid. Please try again from the game.'));
         }
 
         $code = (string) $request->query('code', '');
 
         if ($code === '') {
             // User hit "Cancel" on the consent screen.
-            return redirect()->route('discord.show')
-                ->with('message', __('Discord linking was cancelled.'));
+            return $this->result('error', __('Discord linking was cancelled.'));
         }
 
         $token = $this->api->exchangeCode($code, route('discord.callback'));
         $identity = $token ? $this->api->identify($token['access_token']) : null;
 
         if (! $identity || empty($identity['id'])) {
-            return redirect()->route('discord.show')
-                ->with('message', __('Discord did not confirm the link. Please try again.'));
+            return $this->result('error', __('Discord did not confirm the link. Please try again from the game.'));
         }
 
         $user = $request->user();
@@ -86,8 +78,7 @@ class DiscordController extends Controller
             ->exists();
 
         if ($taken) {
-            return redirect()->route('discord.show')
-                ->with('message', __('That Discord account is already linked to a different PixelRP account.'));
+            return $this->result('error', __('That Discord account is already linked to a different PixelRP account.'));
         }
 
         $user->discord_id = $discordId;
@@ -99,23 +90,19 @@ class DiscordController extends Controller
         $this->api->joinGuild($discordId, $token['access_token']);
         $this->sync->syncUser($user->fresh());
 
-        return redirect()->route('discord.show')
-            ->with('success', __('Your Discord account is now connected.'));
+        // Best effort: push the new status straight into the open client so
+        // the Settings window updates without the player doing anything.
+        $this->rcon->syncDiscordStatus($user);
+
+        return $this->result('success', __('You can close this window. Your Settings page has already updated.'));
     }
 
-    public function unlink(Request $request): RedirectResponse
+    private function result(string $state, string $message): View
     {
-        $user = $request->user();
-
-        if ($user->discord_id) {
-            $this->sync->unlinkUser($user);
-
-            $user->discord_id = null;
-            $user->discord_linked_at = 0;
-            $user->save();
-        }
-
-        return redirect()->route('discord.show')
-            ->with('success', __('Your Discord account has been disconnected.'));
+        return view('discord.result', [
+            'state' => $state,
+            'message' => $message,
+            'autoClose' => ($state === 'success'),
+        ]);
     }
 }

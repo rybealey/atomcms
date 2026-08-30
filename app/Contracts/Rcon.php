@@ -41,6 +41,12 @@ interface Rcon
     public function alertUser(User $user, string $message): void;
 
     /**
+     * Push the user's current Discord link status into their open game
+     * client, so the Settings window updates without a manual refresh.
+     */
+    public function syncDiscordStatus(User $user): void;
+
+    /**
      * Silently grant (or extend to at least) passive status on the live
      * emulator, e.g. while a player has the payment form open.
      */

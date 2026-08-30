@@ -244,6 +244,13 @@ class RconService implements Rcon
         ]);
     }
 
+    public function syncDiscordStatus(User $user): void
+    {
+        $this->dispatchCommand('syncdiscord', [
+            'user_id' => $user->id,
+        ]);
+    }
+
     public function grantPassive(User $user, int $seconds): void
     {
         $this->dispatchCommand('givepassive', [
