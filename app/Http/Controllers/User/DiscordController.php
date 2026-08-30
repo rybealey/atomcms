@@ -36,6 +36,12 @@ class DiscordController extends Controller
         }
 
         if ($request->user()->discord_id) {
+            // Push status now - the client may still be showing a stale
+            // "unlinked" state from before this popup opened, and without
+            // this it would sit on "Waiting for Discord" until the 90s
+            // fallback even though nothing here actually changed.
+            $this->rcon->syncDiscordStatus($request->user());
+
             return $this->result('success', __('Your Discord account is already connected.'));
         }
 

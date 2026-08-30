@@ -47,6 +47,18 @@ class DiscordProcessQueue extends Command
             ->filter()
             ->unique();
 
+        // Drop any id that is currently linked to somebody: the OAuth
+        // callback links inline and enqueues nothing, so a player who
+        // disconnects and reconnects the same Discord account (or a
+        // different player who claims the freed id) inside this drain's
+        // window can already be linked again by the time this row is
+        // processed. Stripping roles from a currently-linked account would
+        // undo the link that was just made. The row is still deleted below
+        // so it never accumulates.
+        $unlinkIds = $unlinkIds->diff(
+            User::query()->whereIn('discord_id', $unlinkIds)->pluck('discord_id')
+        );
+
         foreach ($unlinkIds as $discordId) {
             $sync->unlinkById((string) $discordId);
             $synced++;

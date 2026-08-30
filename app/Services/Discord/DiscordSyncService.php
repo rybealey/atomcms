@@ -75,20 +75,6 @@ class DiscordSyncService
     }
 
     /**
-     * Strip the managed roles the bot controls when unlinking (and clear the
-     * nickname it set), then hand back Unverified so the member re-enters the
-     * unlinked state. Other roles and the membership itself are untouched.
-     */
-    public function unlinkUser(User $user): void
-    {
-        if (! $user->discord_id) {
-            return;
-        }
-
-        $this->unlinkById($user->discord_id);
-    }
-
-    /**
      * Strip the bot-managed roles and nickname from a Discord account that is
      * no longer linked. Takes a raw id because the in-game disconnect clears
      * `users.discord_id` before this ever runs - the queue row carries the id.
