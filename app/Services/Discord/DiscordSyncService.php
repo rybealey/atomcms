@@ -81,12 +81,26 @@ class DiscordSyncService
      */
     public function unlinkUser(User $user): void
     {
-        if (! $user->discord_id || ! $this->api->configured()) {
+        if (! $user->discord_id) {
+            return;
+        }
+
+        $this->unlinkById($user->discord_id);
+    }
+
+    /**
+     * Strip the bot-managed roles and nickname from a Discord account that is
+     * no longer linked. Takes a raw id because the in-game disconnect clears
+     * `users.discord_id` before this ever runs - the queue row carries the id.
+     */
+    public function unlinkById(string $discordId): void
+    {
+        if (! $this->api->configured()) {
             return;
         }
 
         try {
-            $member = $this->api->getMember($user->discord_id);
+            $member = $this->api->getMember($discordId);
 
             if ($member !== null) {
                 $managed = array_filter(config('services.discord.roles'));
@@ -100,14 +114,14 @@ class DiscordSyncService
                     $kept[] = $unverified;
                 }
 
-                $this->api->updateMember($user->discord_id, [
+                $this->api->updateMember($discordId, [
                     'nick' => null,
                     'roles' => $kept,
                 ]);
             }
         } catch (Throwable $e) {
             Log::warning('Discord unlink cleanup failed.', [
-                'user_id' => $user->id,
+                'discord_id' => $discordId,
                 'error' => $e->getMessage(),
             ]);
         }

@@ -34,12 +34,27 @@ class DiscordProcessQueue extends Command
             return self::SUCCESS;
         }
 
-        $userIds = DB::table('discord_sync_queue')
+        $rows = DB::table('discord_sync_queue')
             ->where('id', '<=', $maxId)
-            ->distinct()
-            ->pluck('user_id');
+            ->get();
 
         $synced = 0;
+
+        // Unlink rows carry their own discord_id: the emulator already
+        // cleared users.discord_id, so there is nothing left to look up.
+        $unlinkIds = $rows->where('reason', 'unlink')
+            ->pluck('discord_id')
+            ->filter()
+            ->unique();
+
+        foreach ($unlinkIds as $discordId) {
+            $sync->unlinkById((string) $discordId);
+            $synced++;
+        }
+
+        $userIds = $rows->where('reason', '!=', 'unlink')
+            ->pluck('user_id')
+            ->unique();
 
         foreach (User::query()->whereIn('id', $userIds)->whereNotNull('discord_id')->get() as $user) {
             $sync->syncUser($user);
