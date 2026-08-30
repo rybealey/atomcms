@@ -124,4 +124,15 @@ class PlusRconServiceTest extends BaseTestCase
         $this->assertSame(7331, $furniture->grants[0]['baseItemId']);
         $this->assertSame(1, $furniture->grants[0]['amount']);
     }
+
+    public function test_sync_discord_status_wire_format(): void
+    {
+        $rcon = new PlusRconService('127.0.0.1', $this->port);
+        $user = new User;
+        $user->id = 42;
+
+        $rcon->syncDiscordStatus($user);
+
+        $this->assertSame("reload_user_discord\x01".'42', $this->receiveOne());
+    }
 }
