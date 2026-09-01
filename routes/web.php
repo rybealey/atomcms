@@ -14,6 +14,8 @@ use App\Http\Controllers\Community\Staff\WebsiteTeamApplicationsController;
 use App\Http\Controllers\Community\Staff\WebsiteTeamsController;
 use App\Http\Controllers\Community\WebsiteRareValuesController;
 use App\Http\Controllers\Diamonds\DiamondCheckoutController;
+use App\Http\Controllers\Diamonds\DiamondCryptoCheckoutController;
+use App\Http\Controllers\Diamonds\DiamondReturnController;
 use App\Http\Controllers\Diamonds\DiamondStripeWebhookController;
 use App\Http\Controllers\Help\HelpCenterController;
 use App\Http\Controllers\Help\TicketController;
@@ -54,6 +56,13 @@ Route::get('/language/{locale}', LocaleController::class)->name('language.select
 // CSRF-excluded below in VerifyCsrfToken, mirroring how the PayPal webhook
 // is kept outside of session/CSRF concerns entirely (there via routes/api.php).
 Route::post('/webhooks/diamonds-stripe', DiamondStripeWebhookController::class)->name('diamonds.webhook');
+
+// Landing page for the crypto checkout tab (hosted session success/cancel URL).
+// Public, and kept outside the maintenance/ban/2FA group: Stripe redirects the
+// customer's browser here after they pay, and the confirmation shouldn't be
+// gated behind a fresh login or hidden during maintenance. Diamonds are
+// credited by the webhook above, not by this page.
+Route::get('/diamonds/return', DiamondReturnController::class)->name('diamonds.return');
 
 // Installation routes
 Route::prefix('installation')->controller(InstallationController::class)->group(function () {
@@ -233,6 +242,13 @@ Route::middleware(['maintenance', 'check.ban', 'force.staff.2fa'])->group(functi
         Route::prefix('diamonds')->group(function () {
             Route::post('/checkout-session', DiamondCheckoutController::class)
                 ->name('diamonds.checkout-session')
+                ->middleware('throttle:10,1');
+
+            // Crypto (stablecoin) purchases: hosted Checkout opened in a new
+            // tab, since crypto is redirect-based and the embedded form can't
+            // redirect out of the game iframe. See DiamondCryptoCheckoutController.
+            Route::post('/crypto-checkout-session', DiamondCryptoCheckoutController::class)
+                ->name('diamonds.crypto-checkout-session')
                 ->middleware('throttle:10,1');
         });
 
