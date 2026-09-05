@@ -261,10 +261,12 @@ Route::middleware(['maintenance', 'check.ban', 'force.staff.2fa'])->group(functi
             Route::get('/values/{value}', [WebsiteRareValuesController::class, 'value'])->name('values.value');
         });
 
-        // Client route
-        Route::prefix('game')->middleware(['findretros.redirect', 'vpn.checker'])->group(function () {
-            Route::get('/nitro', NitroController::class)->name('nitro-client');
-            Route::get('/flash', FlashController::class)->name('flash-client');
+        // Client routes. The game lives at /game itself (pixelrp); /game/nitro
+        // stays as a redirect so old bookmarks keep working.
+        Route::middleware(['findretros.redirect', 'vpn.checker'])->group(function () {
+            Route::get('/game', NitroController::class)->name('nitro-client');
+            Route::redirect('/game/nitro', '/game', 301);
+            Route::get('/game/flash', FlashController::class)->name('flash-client');
         });
 
         // Logo generator
