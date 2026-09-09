@@ -84,15 +84,17 @@ class PlayerController extends Controller
         $badges = app(BadgeRepository::class);
         $bans = Emulator::supports(Feature::BanManagement) ? app(BanRepository::class)->activeAccountBan($user) : null;
 
-        $sessions = DB::table('users_session_logs')
+        // Website sessions (Laravel's sessions table, when the database
+        // session driver is in use); the hotel's own IPs come from the user row.
+        $sessions = DB::table('sessions')
             ->where('user_id', $user->id)
-            ->orderByDesc('id')
+            ->orderByDesc('last_activity')
             ->limit(8)
-            ->get()
+            ->get(['ip_address', 'user_agent', 'last_activity'])
             ->map(fn (object $row): array => [
-                'ip' => (string) $row->ip,
-                'browser' => (string) ($row->browser ?? ''),
-                'at' => isset($row->created_at) ? strtotime((string) $row->created_at) : null,
+                'ip' => (string) ($row->ip_address ?? ''),
+                'browser' => (string) ($row->user_agent ?? ''),
+                'at' => (int) $row->last_activity,
             ])
             ->values();
 
