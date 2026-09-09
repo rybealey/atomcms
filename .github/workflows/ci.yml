@@ -103,6 +103,12 @@ jobs:
       - name: Build Dusk theme
         run: npm run build:dusk
 
+      - name: Type-check the housekeeping panel
+        run: npm run typecheck:housekeeping
+
+      - name: Build the housekeeping panel
+        run: npm run build:housekeeping
+
   tests:
     name: Pest
     runs-on: ubuntu-latest

@@ -7,6 +7,7 @@ use App\Http\Middleware\BannedMiddleware;
 use App\Http\Middleware\ConfigureRuntimeFilesystems;
 use App\Http\Middleware\EncryptCookies;
 use App\Http\Middleware\EnsureEmulatorFeature;
+use App\Http\Middleware\EnsureHousekeepingAccess;
 use App\Http\Middleware\FindRetrosMiddleware;
 use App\Http\Middleware\ForceStaffTwoFactorMiddleware;
 use App\Http\Middleware\InstallationMiddleware;
@@ -108,5 +109,6 @@ class Kernel extends HttpKernel
         'vpn.checker' => VPNCheckerMiddleware::class,
         'force.staff.2fa' => ForceStaffTwoFactorMiddleware::class,
         'emulator.feature' => EnsureEmulatorFeature::class,
+        'housekeeping.access' => EnsureHousekeepingAccess::class,
     ];
 }

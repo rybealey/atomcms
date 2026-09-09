@@ -29,7 +29,9 @@ class AdminFilamentPanelProvider extends PanelProvider
         return $panel
             ->default()
             ->id('housekeeping')
-            ->path('housekeeping')
+            // pixelrp: the React housekeeping app owns /housekeeping; Filament
+            // stays reachable underneath it for the screens not yet ported.
+            ->path('housekeeping/legacy')
             ->strictAuthorization()
             ->login()
             ->favicon(asset('favicon-32x32.png'))
