@@ -20,6 +20,7 @@ export interface Crime {
   name: string;
   description: string;
   jail_seconds: number;
+  severity: number;
   stackable: boolean;
   active: boolean;
   sort_order: number;
@@ -29,7 +30,7 @@ interface CrimeList { available: boolean; items: Crime[] }
 
 type Draft = Omit<Crime, 'id' | 'sort_order' | 'charges'>;
 
-const BLANK: Draft = { key_name: '', name: '', description: '', jail_seconds: 0, stackable: true, active: true };
+const BLANK: Draft = { key_name: '', name: '', description: '', jail_seconds: 0, severity: 1, stackable: true, active: true };
 
 // The sentence reads in minutes because that is how a duty sergeant thinks
 // about it; the column stores seconds because that is how the emulator will
@@ -40,6 +41,18 @@ function fmtJail(seconds: number): string {
   if (seconds < 60) return `${seconds}s`;
   const minutes = Math.round(seconds / 60);
   return minutes >= 60 ? `${Math.floor(minutes / 60)}h ${minutes % 60}m` : `${minutes}m`;
+}
+
+// Severity IS the wanted-star count - RpWantedView and the HUD already speak
+// 1-5 - so it reads as stars here rather than as a number that has to be
+// translated in someone's head.
+function Stars({ level, muted }: { level: number; muted?: boolean }) {
+  return (
+    <span aria-label={`Severity ${level} of 5`} title={`${level} wanted ${level === 1 ? 'star' : 'stars'}`}
+      style={{ letterSpacing: 1, color: muted ? 'var(--muted)' : 'var(--orange-600)', whiteSpace: 'nowrap' }}>
+      {'★'.repeat(level)}<span style={{ color: 'var(--muted)', opacity: 0.4 }}>{'★'.repeat(5 - level)}</span>
+    </span>
+  );
 }
 
 function Field({ label, desc, children }: { label: string; desc?: string; children: React.ReactNode }) {
@@ -84,6 +97,13 @@ function CrimeForm({ draft, setDraft, onSave, onCancel, saving, error }: {
         <input className="hk-input" type="number" min={0} max={1440} value={minutes}
           onChange={(e) => set('jail_seconds', Math.max(0, Math.min(1440, Number(e.target.value) || 0)) * 60)} />
       </Field>
+      <Field label="Severity" desc="The wanted stars this crime alone puts on a player. A player's level is the highest severity among their open charges, not the total - five speeding tickets are not a murder.">
+        <div className="hk-switchrow" style={{ gap: 12 }}>
+          <input className="hk-input" type="range" min={1} max={5} step={1} value={draft.severity}
+            style={{ flex: 1 }} onChange={(e) => set('severity', Number(e.target.value))} />
+          <Stars level={draft.severity} />
+        </div>
+      </Field>
       <Field label="Stackable" desc="Whether this can sit on one sheet more than once. Assault twice is two counts; driving unlicensed is a state, not a tally.">
         <div className="hk-switchrow">
           <Switch checked={draft.stackable} onChange={(v) => set('stackable', v)} label="Stackable" />
@@ -119,7 +139,7 @@ export default function Crimes() {
   const startEdit = (crime: Crime) => {
     setDraft({
       key_name: crime.key_name, name: crime.name, description: crime.description,
-      jail_seconds: crime.jail_seconds, stackable: crime.stackable, active: crime.active,
+      jail_seconds: crime.jail_seconds, severity: crime.severity, stackable: crime.stackable, active: crime.active,
     });
     setFormError(null);
     setEditing(crime.id);
@@ -189,6 +209,7 @@ export default function Crimes() {
                 <th>Crime</th>
                 <th>Key</th>
                 <th>Jail</th>
+                <th>Severity</th>
                 <th>Stackable</th>
                 <th>On sheets</th>
                 <th>Status</th>
@@ -204,6 +225,7 @@ export default function Crimes() {
                   </td>
                   <td><code>{crime.key_name}</code></td>
                   <td>{fmtJail(crime.jail_seconds)}</td>
+                  <td><Stars level={crime.severity} muted={!crime.active} /></td>
                   <td><StateText on={crime.stackable} onText="Yes" offText="Once only" /></td>
                   <td>{crime.charges > 0 ? fmtNumber(crime.charges) : <span className="muted">—</span>}</td>
                   <td>{crime.active ? <Pill tone="success">Chargeable</Pill> : <Pill tone="warning">Retired</Pill>}</td>

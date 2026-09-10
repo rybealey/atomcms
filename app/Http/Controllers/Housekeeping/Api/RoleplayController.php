@@ -148,6 +148,7 @@ class RoleplayController extends Controller
                 'name' => (string) $crime->name,
                 'description' => (string) $crime->description,
                 'jail_seconds' => (int) $crime->jail_seconds,
+                'severity' => (int) ($crime->severity ?? 1),
                 'stackable' => (int) $crime->stackable === 1,
                 'active' => (int) $crime->active === 1,
                 'sort_order' => (int) $crime->sort_order,
@@ -214,6 +215,8 @@ class RoleplayController extends Controller
             'description' => ['nullable', 'string', 'max:255'],
             // an hour is already a long time to sit in a cell
             'jail_seconds' => ['required', 'integer', 'min:0', 'max:86400'],
+            // the wanted-star scale the HUD and RpWantedView already speak
+            'severity' => ['required', 'integer', 'min:1', 'max:5'],
             'stackable' => ['required', 'boolean'],
             'active' => ['required', 'boolean'],
         ]);
