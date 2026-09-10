@@ -9,6 +9,7 @@ import Staff from './pages/Staff';
 import Badges from './pages/Badges';
 import Corporations from './pages/Corporations';
 import CorporationDetail from './pages/CorporationDetail';
+import Crimes from './pages/Crimes';
 import Gangs from './pages/Gangs';
 import GangDetail from './pages/GangDetail';
 import Legacy from './pages/Legacy';
@@ -30,6 +31,7 @@ export default function App() {
             <Route path="roleplay/corporations/:id" element={<CorporationDetail />} />
             <Route path="roleplay/gangs" element={<Gangs />} />
             <Route path="roleplay/gangs/:id" element={<GangDetail />} />
+            <Route path="roleplay/crimes" element={<Crimes />} />
             <Route path="bans" element={<Legacy id="bans" />} />
             <Route path="chatlogs" element={<Legacy id="chatlogs" />} />
             <Route path="articles" element={<Legacy id="articles" />} />

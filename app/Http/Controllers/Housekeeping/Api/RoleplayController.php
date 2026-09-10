@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Housekeeping\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -11,8 +12,12 @@ use Illuminate\Support\Facades\Schema;
 /**
  * Read model for the roleplay systems the emulator owns: corporations with
  * their ranks and employees, and gangs (Habbo groups flagged is_gang) with
- * their roles and members. Writes come later and must round-trip through
- * RCON so the emulator's in-memory managers stay in sync.
+ * their roles and members. Those writes must round-trip through RCON so the
+ * emulator's in-memory managers stay in sync, so they are not here yet.
+ *
+ * Crimes are the exception and DO write directly. Nothing caches them: the
+ * :charge command reads rp_crimes on every use, so an edit here is live on
+ * the next charge with no emulator involvement at all.
  */
 class RoleplayController extends Controller
 {
@@ -114,6 +119,110 @@ class RoleplayController extends Controller
             ],
             'employees' => $employees,
         ]);
+    }
+
+    /**
+     * The crime list behind :charge. `key_name` is what an officer types, so
+     * it is the one field a rename cannot be careless about - changing it
+     * changes the command, while the display name is free.
+     */
+    public function crimes(): JsonResponse
+    {
+        if (! $this->hasTable('rp_crimes')) {
+            return response()->json(['available' => false, 'items' => []]);
+        }
+
+        $counts = DB::table('rp_charges')
+            ->selectRaw('crime_id, COUNT(*) AS total')
+            ->where('dropped_at', 0)
+            ->groupBy('crime_id')
+            ->pluck('total', 'crime_id');
+
+        $items = DB::table('rp_crimes')
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get()
+            ->map(fn (object $crime): array => [
+                'id' => (int) $crime->id,
+                'key_name' => (string) $crime->key_name,
+                'name' => (string) $crime->name,
+                'description' => (string) $crime->description,
+                'jail_seconds' => (int) $crime->jail_seconds,
+                'stackable' => (int) $crime->stackable === 1,
+                'active' => (int) $crime->active === 1,
+                'sort_order' => (int) $crime->sort_order,
+                'charges' => (int) ($counts[$crime->id] ?? 0),
+            ])
+            ->values();
+
+        return response()->json(['available' => true, 'items' => $items]);
+    }
+
+    public function storeCrime(Request $request): JsonResponse
+    {
+        $data = $this->validateCrime($request);
+
+        $data['sort_order'] = (int) (DB::table('rp_crimes')->max('sort_order') ?? 0) + 1;
+        $id = DB::table('rp_crimes')->insertGetId($data);
+
+        return response()->json(['id' => $id], 201);
+    }
+
+    public function updateCrime(Request $request, int $id): JsonResponse
+    {
+        if (DB::table('rp_crimes')->where('id', $id)->doesntExist()) {
+            abort(404);
+        }
+
+        DB::table('rp_crimes')->where('id', $id)->update($this->validateCrime($request, $id));
+
+        return response()->json(['ok' => true]);
+    }
+
+    /**
+     * Retire rather than delete when the crime has history: a charge row
+     * points at this id, and a rap sheet that cannot name what it is for is
+     * worse than a crime nobody can pick any more.
+     */
+    public function destroyCrime(int $id): JsonResponse
+    {
+        if (DB::table('rp_crimes')->where('id', $id)->doesntExist()) {
+            abort(404);
+        }
+
+        if (DB::table('rp_charges')->where('crime_id', $id)->exists()) {
+            DB::table('rp_crimes')->where('id', $id)->update(['active' => 0]);
+
+            return response()->json(['ok' => true, 'retired' => true]);
+        }
+
+        DB::table('rp_crimes')->where('id', $id)->delete();
+
+        return response()->json(['ok' => true, 'retired' => false]);
+    }
+
+    /** @return array<string, mixed> */
+    private function validateCrime(Request $request, ?int $ignoreId = null): array
+    {
+        $unique = 'unique:rp_crimes,key_name' . ($ignoreId !== null ? ',' . $ignoreId : '');
+
+        $data = $request->validate([
+            // lowercase letters and digits only: it is typed into chat, where a
+            // space would end the argument and a capital would not match
+            'key_name' => ['required', 'string', 'max:24', 'regex:/^[a-z0-9]+$/', $unique],
+            'name' => ['required', 'string', 'max:64'],
+            'description' => ['nullable', 'string', 'max:255'],
+            // an hour is already a long time to sit in a cell
+            'jail_seconds' => ['required', 'integer', 'min:0', 'max:86400'],
+            'stackable' => ['required', 'boolean'],
+            'active' => ['required', 'boolean'],
+        ]);
+
+        $data['description'] = $data['description'] ?? '';
+        $data['stackable'] = $data['stackable'] ? 1 : 0;
+        $data['active'] = $data['active'] ? 1 : 0;
+
+        return $data;
     }
 
     public function gangs(): JsonResponse

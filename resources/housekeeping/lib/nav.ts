@@ -32,6 +32,7 @@ export const NAV: NavGroup[] = [
     items: [
       { id: 'corporations', label: 'Corporations', icon: 'building', to: '/roleplay/corporations', description: 'Corps, their rank ladders and employees.' },
       { id: 'gangs', label: 'Gangs', icon: 'sword', to: '/roleplay/gangs', description: 'Gangs, roles and members.' },
+      { id: 'crimes', label: 'Crimes', icon: 'shield', to: '/roleplay/crimes', description: 'What the police can charge people with.' },
     ],
   },
   {

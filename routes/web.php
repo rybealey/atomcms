@@ -139,6 +139,16 @@ Route::middleware(['maintenance', 'check.ban', 'force.staff.2fa'])->group(functi
 
                 Route::get('/roleplay/corporations', [HousekeepingRoleplayController::class, 'corporations'])->name('roleplay.corporations');
                 Route::get('/roleplay/corporations/{id}', [HousekeepingRoleplayController::class, 'corporation'])->whereNumber('id')->name('roleplay.corporation');
+                Route::get('/roleplay/crimes', [HousekeepingRoleplayController::class, 'crimes'])->name('roleplay.crimes');
+                // Crimes are the one roleplay resource housekeeping writes
+                // directly: nothing caches them, so :charge sees an edit on its
+                // next use. Behind the settings permission - editing what the
+                // police can charge people with is a hotel-configuration act.
+                Route::middleware('housekeeping.access:manage_website_settings')->group(function () {
+                    Route::post('/roleplay/crimes', [HousekeepingRoleplayController::class, 'storeCrime'])->name('roleplay.crimes.store');
+                    Route::put('/roleplay/crimes/{id}', [HousekeepingRoleplayController::class, 'updateCrime'])->whereNumber('id')->name('roleplay.crimes.update');
+                    Route::delete('/roleplay/crimes/{id}', [HousekeepingRoleplayController::class, 'destroyCrime'])->whereNumber('id')->name('roleplay.crimes.destroy');
+                });
                 Route::get('/roleplay/gangs', [HousekeepingRoleplayController::class, 'gangs'])->name('roleplay.gangs');
                 Route::get('/roleplay/gangs/{id}', [HousekeepingRoleplayController::class, 'gang'])->whereNumber('id')->name('roleplay.gang');
             });
