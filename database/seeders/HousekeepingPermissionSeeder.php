@@ -146,6 +146,11 @@ class HousekeepingPermissionSeeder extends Seeder
                 'description' => 'The minimum rank required before being able to manage command logs',
             ],
             [
+                'permission' => 'manage_furni_delete_logs',
+                'min_rank' => 7,
+                'description' => 'The minimum rank required before being able to view the furni deletion logs',
+            ],
+            [
                 'permission' => 'manage_camera_web',
                 'min_rank' => 7,
                 'description' => 'The minimum rank required before being able to manage published camera photos',

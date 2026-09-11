@@ -107,6 +107,11 @@ return [
             'label' => 'Command Log',
             'plural' => 'Command Logs',
         ],
+        'furni-delete-logs' => [
+            'navigation_label' => 'Furni Deletions',
+            'label' => 'Furni Deletion',
+            'plural' => 'Furni Deletions',
+        ],
         'word-filters' => [
             'navigation_label' => 'Manage Word Filter',
             'label' => 'Word Filter',
@@ -336,6 +341,12 @@ return [
     ],
 
     'columns' => [
+        'character' => 'Character',
+        'account' => 'Account',
+        'item_name' => 'Furni',
+        'item_id' => 'Item ID',
+        'definition_id' => 'Furni ID',
+        'deleted_at' => 'Deleted At',
         'id' => 'ID',
 		'user_id' => 'User ID',
 		'room_id' => 'Room ID',
@@ -430,6 +441,7 @@ return [
     ],
 
     'filters' => [
+        'account_username' => 'Any character on this account',
         'success' => 'Success',
         'page_target' => 'Page Target',
         'visible' => 'Visible',

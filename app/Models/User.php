@@ -419,6 +419,19 @@ class User extends Authenticatable implements FilamentUser, HasName
         return $this->belongsTo(WebsiteTeam::class, 'team_id');
     }
 
+    /**
+     * The account root this character belongs to, or null when this row IS the
+     * root. accountRoot() answers the same question and always returns a user,
+     * but it runs a query per call; this is the relation form, so a table
+     * listing many rows can eager-load the accounts in one go.
+     *
+     * @return BelongsTo<self, $this>
+     */
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'parent_id');
+    }
+
     /** @return HasMany<WebsiteStaffApplications, $this> */
     public function applications(): HasMany
     {
