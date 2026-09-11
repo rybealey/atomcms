@@ -170,7 +170,7 @@ class WebsiteSettingsSeeder extends Seeder
             ],
             [
                 'key' => 'username_regex',
-                'value' => '/^[a-zA-Z0-9_.-]+$/u',
+                'value' => '/^[a-zA-Z0-9_.-]{3,}$/u',
                 'comment' => 'The regex used to validate username input fields',
             ],
             [

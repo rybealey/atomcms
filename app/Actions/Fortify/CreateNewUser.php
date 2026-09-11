@@ -166,7 +166,10 @@ class CreateNewUser implements CreatesNewUsers
     private function validate(array $inputs): array
     {
         $rules = [
-            'username' => ['required', 'string', sprintf('regex:%s', setting('username_regex') ?: '/^[a-zA-Z0-9_.-]+$/'), 'max:25', Rule::unique('users'), new WebsiteWordfilterRule],
+            // The fallback matches the username_regex setting, three-character
+            // minimum included - it only fires if that row is ever cleared, and
+            // a laxer fallback would quietly reinstate the old rule there.
+            'username' => ['required', 'string', sprintf('regex:%s', setting('username_regex') ?: '/^[a-zA-Z0-9_.-]{3,}$/'), 'max:25', Rule::unique('users'), new WebsiteWordfilterRule],
             'mail' => ['required', 'string', 'email', 'max:255', Rule::unique('users')],
             'password' => $this->passwordRules(),
             'beta_code' => [Rule::requiredIf(setting('requires_beta_code') === '1'), 'nullable', 'string', new BetaCodeRule],
