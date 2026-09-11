@@ -26,7 +26,11 @@ class DiamondCheckoutController extends Controller
 
     public function __invoke(DiamondCheckoutFormRequest $request): JsonResponse
     {
-        $user = AuthenticatedUser::from($request);
+        $account = AuthenticatedUser::from($request);
+        // pixelrp: diamonds are per character, so the purchase belongs to the
+        // one being PLAYED, not to the row Fortify authenticated. Without
+        // this, buying while on your second character credits your first.
+        $user = $account->activeCharacter();
         $diamonds = $request->integer('diamonds');
 
         try {
@@ -38,14 +42,19 @@ class DiamondCheckoutController extends Controller
                 // Checkout always collects an email; prefilling the account's
                 // address removes the field from the form entirely. Skip
                 // invalid stored addresses - Stripe rejects them at create.
-                ...$this->customerEmail($user),
+                // The email is the ACCOUNT's - a character has none. It only
+                // prefills the form; nothing is fulfilled from it.
+                ...$this->customerEmail($account),
                 'redirect_on_completion' => 'never',
                 'line_items' => [[
                     'quantity' => 1,
                     'price_data' => [
                         'currency' => 'usd',
                         'unit_amount' => $diamonds, // 1 diamond = 1 cent
-                        'product_data' => ['name' => $diamonds . ' Diamonds'],
+                        // Named on the payment page and on the receipt, so a
+                        // purchase made on the wrong character is caught
+                        // before paying rather than disputed after.
+                        'product_data' => ['name' => $diamonds . ' Diamonds — ' . $user->username],
                     ],
                 ]],
                 // Stripe metadata values must be strings.

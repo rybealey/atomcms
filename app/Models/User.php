@@ -211,6 +211,8 @@ class User extends Authenticatable implements FilamentUser, HasName
         'referral_code',
         'extra_rank',
         'team_id',
+        'parent_id',
+        'active_character_id',
         'hidden_staff',
         'two_factor_confirmed',
         'two_factor_confirmed_at',
@@ -331,6 +333,61 @@ class User extends Authenticatable implements FilamentUser, HasName
     public function settings(): HasOne
     {
         return $this->hasOne(UserSetting::class);
+    }
+
+    /**
+     * pixelrp: one account, up to three characters.
+     *
+     * A character IS a users row; `parent_id` is what makes several of them
+     * one account, and depth is exactly one, so the root is `parent_id ?? id`
+     * and nothing walks a tree. Credentials live only on the root - this is
+     * always the row Fortify authenticated, or the one it belongs to.
+     */
+    public function accountRoot(): self
+    {
+        if ($this->parent_id === null) {
+            return $this;
+        }
+
+        return self::find($this->parent_id) ?? $this;
+    }
+
+    /** @return \Illuminate\Database\Eloquent\Collection<int, self> Every character on this account, root first. */
+    public function characters(): \Illuminate\Database\Eloquent\Collection
+    {
+        $rootId = $this->parent_id ?? $this->id;
+
+        return self::query()
+            ->where('id', $rootId)
+            ->orWhere('parent_id', $rootId)
+            ->orderByRaw('(`id` = ?) DESC, `id` ASC', [$rootId])
+            ->get();
+    }
+
+    /**
+     * Whose hotel session this account gets: the last character played.
+     *
+     * Falls back to the root whenever the stored id is missing, is not on this
+     * account, or was never set - this decides which SSO ticket gets issued,
+     * so it must never resolve to nothing and it must never resolve to
+     * somebody else.
+     */
+    public function activeCharacter(): self
+    {
+        $root = $this->accountRoot();
+        $activeId = $root->active_character_id;
+
+        if ($activeId === null || (int) $activeId === (int) $root->id) {
+            return $root;
+        }
+
+        $character = self::find($activeId);
+
+        if (! $character || (int) $character->parent_id !== (int) $root->id) {
+            return $root;
+        }
+
+        return $character;
     }
 
     public function ssoTicket(): string
