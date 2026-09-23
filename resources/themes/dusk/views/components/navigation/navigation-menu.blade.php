@@ -17,14 +17,6 @@
                         {{ __('Teams') }}
                     </x-navigation.dropdown-child>
 					
-        <x-navigation.dropdown-child :route="route('team-applications.index')">
-            {{ __('Team applications') }}
-        </x-navigation.dropdown-child>
-
-                    <x-navigation.dropdown-child :route="route('staff-applications.index')">
-                        {{ __('Staff applications') }}
-                    </x-navigation.dropdown-child>
-
                     <x-navigation.dropdown-child :route="route('values.index')">
                         {{ __('Rare values') }}
                     </x-navigation.dropdown-child>
@@ -56,11 +48,6 @@
             </a>
             --}}
 
-
-            <a href="{{ route('shop.index') }}" class="flex flex-col gap-1 items-center transition ease-in-out hover:text-[#ac93da]">
-                <img class="icon" src="{{ asset('/assets/images/dusk/store_icon.png') }}" alt="">
-                {{ __('Store') }}
-            </a>
 
             <x-navigation.dropdown icon="home_icon.png" route-group="user*" :uppercase="true">
                 {{ __('Home') }}

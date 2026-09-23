@@ -2,7 +2,6 @@
 
 namespace App\Models\Community\Teams;
 
-use App\Models\Community\Staff\WebsiteOpenPosition;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -20,7 +19,6 @@ use Illuminate\Support\Carbon;
  * @property string $staff_background
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
- * @property-read Collection<int, WebsiteOpenPosition> $openPositions
  * @property-read int|null $open_positions_count
  * @property-read Collection<int, User> $users
  * @property-read int|null $users_count
@@ -60,12 +58,6 @@ class WebsiteTeam extends Model
     public function users(): HasMany
     {
         return $this->hasMany(User::class, 'team_id', 'id');
-    }
-
-    /** @return HasMany<WebsiteOpenPosition, $this> */
-    public function openPositions(): HasMany
-    {
-        return $this->hasMany(WebsiteOpenPosition::class, 'team_id', 'id');
     }
 
     /**

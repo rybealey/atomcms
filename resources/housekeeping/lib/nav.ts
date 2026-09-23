@@ -55,21 +55,6 @@ export const NAV: NavGroup[] = [
       { id: 'ads', label: 'Ads', icon: 'image', to: '/ads', permissions: ['manage_website_ads'], legacy: 'website-ads', description: 'In-game advertisement images.' },
     ],
   },
-  {
-    label: 'Shop',
-    items: [
-      { id: 'packages', label: 'Packages', icon: 'gift', to: '/shop/packages', permissions: ['manage_shop'], legacy: 'shop/packages', description: 'Bundles players can buy in the shop.' },
-      { id: 'items', label: 'Items', icon: 'cart', to: '/shop/items', permissions: ['manage_shop'], legacy: 'shop/items', description: 'Furni, badges and currency that go into packages.' },
-      { id: 'categories', label: 'Categories', icon: 'bookmark', to: '/shop/categories', permissions: ['manage_shop'], legacy: 'shop/categories', description: 'Shop categories.' },
-    ],
-  },
-  {
-    label: 'Recruiting',
-    items: [
-      { id: 'positions', label: 'Open Positions', icon: 'briefcase', to: '/positions', permissions: ['manage_staff_applications'], legacy: 'open-positions', description: 'Roles players can apply for.' },
-      { id: 'applications', label: 'Applications', icon: 'mail', to: '/applications', permissions: ['manage_staff_applications'], legacy: 'staff-applications', description: 'Applications move through pending, approved and rejected.', count: (me) => me.counts.staff_applications },
-    ],
-  },
 ];
 
 export function visibleNav(me: Me, can: (p: string) => boolean): NavGroup[] {

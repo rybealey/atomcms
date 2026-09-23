@@ -2,7 +2,6 @@
 
 namespace App\Models\Game;
 
-use App\Models\Community\Staff\WebsiteStaffApplications;
 use App\Models\Compositions\HasBadge;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
@@ -434,7 +433,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Permission whereStaffBackground($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Permission whereStaffColor($value)
  *
- * @property-read Collection<int, WebsiteStaffApplications> $staffApplications
  * @property-read int|null $staff_applications_count
  *
  * @mixin \Eloquent
@@ -461,12 +459,6 @@ class Permission extends Model implements HasBadge
     public function users(): HasMany
     {
         return $this->hasMany(User::class, 'rank', 'id');
-    }
-
-    /** @return HasMany<WebsiteStaffApplications, $this> */
-    public function staffApplications(): HasMany
-    {
-        return $this->hasMany(WebsiteStaffApplications::class, 'rank_id');
     }
 
     public function getBadgePath(): string

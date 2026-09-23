@@ -2,28 +2,24 @@
 
 namespace App\Providers;
 
-use App\Contracts\PaypalGateway;
 use App\Contracts\Rcon;
 use App\Models\WebsiteDrawBadge;
 use App\Observers\WebsiteDrawBadgeObserver;
 use App\Services\AfterCommitRcon;
 use App\Services\HousekeepingPermissionsService;
 use App\Services\InstallationService;
-use App\Services\Payments\SrmklivePaypalGateway;
 use App\Services\PermissionsService;
 use App\Services\PlusRconService;
 use App\Services\RconService;
 use App\Services\SettingsService;
 use App\Services\ViteService;
 use Filament\Tables\Table;
-use GuzzleHttp\Client as HttpClient;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Vite;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use Livewire\Blaze\Blaze;
-use Srmklive\PayPal\Services\PayPal as PayPalClient;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -32,8 +28,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->bind(PaypalGateway::class, SrmklivePaypalGateway::class);
-
         $this->app->bind(
             Vite::class,
             ViteService::class,
@@ -82,20 +76,6 @@ class AppServiceProvider extends ServiceProvider
             RconService::class,
             fn () => new RconService,
         );
-
-        // Resolve the PayPal client pre-authenticated so consumers can inject
-        // it and tests can swap it for a fake.
-        $this->app->bind(PayPalClient::class, function (): PayPalClient {
-            $client = new PayPalClient(config('habbo.paypal'));
-            $client->setClient(new HttpClient([
-                'connect_timeout' => 3,
-                'timeout' => 10,
-                'verify' => true,
-            ]));
-            $client->getAccessToken();
-
-            return $client;
-        });
     }
 
     /**

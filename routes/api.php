@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\Api\HotelApiController;
 use App\Http\Controllers\Api\NewsImageController;
-use App\Http\Controllers\Shop\PaypalWebhookController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -23,4 +22,3 @@ Route::get('/online-count', [HotelApiController::class, 'onlineUserCount'])->nam
 Route::get('/deploy-status', [HotelApiController::class, 'deployStatus'])->name('api.deploy-status')->middleware('throttle:60,1');
 // pixelrp: featured-image library for the phone's News app
 Route::get('/news/images', NewsImageController::class)->name('api.news-images')->middleware('throttle:60,1');
-Route::post('/paypal/webhook', PaypalWebhookController::class)->name('paypal.webhook');

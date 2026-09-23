@@ -12,10 +12,6 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        $schedule->command('paypal:reconcile')
-            ->everyFiveMinutes()
-            ->withoutOverlapping();
-
         // Discord linking: drain the emulator's event queue every minute,
         // and run a full reconciliation sweep as a drift backstop.
         $schedule->command('discord:process')

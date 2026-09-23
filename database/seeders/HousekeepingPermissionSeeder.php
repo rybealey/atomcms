@@ -106,11 +106,6 @@ class HousekeepingPermissionSeeder extends Seeder
                 'description' => 'The minimum rank required before being able to view activity logs',
             ],
             [
-                'permission' => 'manage_staff_applications',
-                'min_rank' => 7,
-                'description' => 'The minimum rank required before being able to manage staff applications',
-            ],
-            [
                 'permission' => 'delete_website_settings',
                 'min_rank' => 7,
                 'description' => 'The minimum rank required before being able to delete website settings',
@@ -174,11 +169,6 @@ class HousekeepingPermissionSeeder extends Seeder
                 'permission' => 'manage_website_ads',
                 'min_rank' => 6,
                 'description' => 'The minimum rank required before being able to manage website advertisements',
-            ],
-            [
-                'permission' => 'manage_shop',
-                'min_rank' => 7,
-                'description' => 'The minimum rank required before being able to manage shop packages, items and categories',
             ],
         ];
 

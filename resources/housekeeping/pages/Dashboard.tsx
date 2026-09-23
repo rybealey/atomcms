@@ -8,7 +8,7 @@ import { Avatar, Button, Card, ErrorBox, Icon, Pill, Skeleton, StateText, Switch
 import { IconName } from '@hk/lib/icons';
 
 interface DashboardData {
-  stats: { online: number; total: number; registrations_today: number; registrations_week_avg: number; registrations_spark: number[]; active_bans: number | null; pending_applications: number; pending_badges: number };
+  stats: { online: number; total: number; registrations_today: number; registrations_week_avg: number; registrations_spark: number[]; active_bans: number | null; pending_badges: number };
   hotel: { maintenance_enabled: boolean; disable_registration: boolean; requires_beta_code: boolean; min_maintenance_login_rank: number; emulator_up: boolean };
   attention: { title: string; sub: string; tone: 'warning' | 'info' | 'success'; to: string }[];
   activity: { id: number; who: string; look: string | null; description: string; event: string; subject: string | null; properties: Record<string, unknown> | null; at: number | null }[];
@@ -101,7 +101,7 @@ export default function Dashboard() {
             <Stat label="Players Online" value={fmtNumber(data.stats.online)} delta={`${fmtNumber(data.stats.total)} accounts in total`} icon="users" to="/players?filter=online" />
             <Stat label="Registrations Today" value={fmtNumber(data.stats.registrations_today)} delta={`7-day average ${data.stats.registrations_week_avg}`} icon="user-plus" to="/players?filter=new" sparkline={data.stats.registrations_spark} />
             {data.stats.active_bans !== null ? <Stat label="Active Bans" value={fmtNumber(data.stats.active_bans)} delta="Across accounts, IPs and machines" icon="lock" to="/bans" /> : null}
-            <Stat label="Waiting On Staff" value={fmtNumber(data.stats.pending_applications + data.stats.pending_badges)} delta={`${data.stats.pending_applications} ${plural(data.stats.pending_applications, 'application')} · ${data.stats.pending_badges} drawn ${plural(data.stats.pending_badges, 'badge')}`} icon="flag" to="/applications" />
+            <Stat label="Waiting On Staff" value={fmtNumber(data.stats.pending_badges)} delta={`${data.stats.pending_badges} drawn ${plural(data.stats.pending_badges, 'badge')} to approve`} icon="flag" to="/badges?tab=requests" />
           </>
         )}
       </div>

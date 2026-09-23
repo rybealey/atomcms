@@ -1,7 +1,5 @@
 <?php
 
-use App\Models\Shop\WebsiteShopItem;
-use App\Models\Shop\WebsiteShopPackage;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -13,8 +11,8 @@ return new class extends Migration
         Schema::create('website_shop_package_items', function (Blueprint $table) {
             $table->id();
 
-            $table->foreignIdFor(WebsiteShopPackage::class)->constrained()->cascadeOnDelete();
-            $table->foreignIdFor(WebsiteShopItem::class)->constrained()->cascadeOnDelete();
+            $table->foreignId('website_shop_package_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('website_shop_item_id')->constrained()->cascadeOnDelete();
             $table->unsignedInteger('quantity')->default(1);
 
             $table->timestamps();

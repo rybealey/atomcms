@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\Shop\WebsiteShopCategory;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -12,7 +11,7 @@ return new class extends Migration
         Schema::create('website_shop_packages', function (Blueprint $table) {
             $table->id();
 
-            $table->foreignIdFor(WebsiteShopCategory::class)->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('website_shop_category_id')->nullable()->constrained()->nullOnDelete();
             $table->unsignedInteger('sort_order')->default(0);
 
             $table->string('name');

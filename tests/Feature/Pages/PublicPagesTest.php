@@ -41,8 +41,6 @@ test('authenticated community pages render', function (string $route) {
     'photos' => 'photos.index',
     'staff' => 'staff.index',
     'teams' => 'teams.index',
-    'staff applications' => 'staff-applications.index',
-    'team applications' => 'team-applications.index',
     'help center' => 'help-center.index',
     'ticket create' => 'help-center.ticket.create',
 ]);
