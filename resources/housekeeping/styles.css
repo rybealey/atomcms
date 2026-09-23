@@ -13,7 +13,9 @@
   --success: #3fbf5a; --warning: #f5c542; --danger: #e03131; --info: #3f8fbf;
   --grad-logo: linear-gradient(180deg, var(--orange-300) 0%, var(--pink-300) 22%, var(--pink-500) 48%, var(--magenta-600) 72%, var(--plum-800) 100%);
   --grad-sunset: linear-gradient(105deg, var(--orange-500) 0%, var(--orange-400) 30%, var(--mauve-400) 70%, var(--mauve-500) 100%);
-  --grad-cta: linear-gradient(180deg, var(--pink-400) 0%, var(--magenta-600) 100%);
+  /* Carries white text (primary buttons, brand dialog heads), so it starts at
+     magenta-600: from pink-400 the top of every button was 3.2:1. */
+  --grad-cta: linear-gradient(180deg, var(--magenta-600) 0%, var(--magenta-700) 100%);
   --font-display: 'Press Start 2P', monospace;
   --font-pixel: 'Silkscreen', monospace;
   --font-body: 'Barlow', system-ui, sans-serif;
@@ -37,18 +39,28 @@ body { background: #d9c7b8; }
 .hk {
   --bg: var(--cream); --card: #fff; --sunken: var(--orange-100); --line: var(--ink); --line-soft: #ead3b6;
   --fg: var(--ink); --muted: var(--mauve-700); --side: #fff; --hover: var(--orange-100); --field: #fff; --accent: var(--orange-500);
+  /* Colours used AS TEXT, each at least 4.5:1 on --bg, --card and --hover in
+     this theme (the focus ring 3:1). The raw palette (--success, --orange-500
+     ...) is for fills; as text on cream most of it fails. */
+  --link: var(--orange-700); --link-hover: var(--plum-900); --focus: var(--orange-700);
+  --success-fg: #1f7a37; --warning-fg: #7a5200; --danger-fg: #b3261e;
   font-family: var(--font-body); color: var(--fg); font-size: 15px; line-height: 1.5; min-height: 100vh; background: var(--bg);
 }
 .hk[data-theme="dark"] {
   --shadow-pixel: 4px 4px 0 #7a5566; --shadow-pixel-sm: 2px 2px 0 #7a5566;
   --bg: #160812; --card: #24101f; --sunken: #2f1628; --line: #7a5566; --line-soft: #3a1f30;
   --fg: var(--cream); --muted: var(--mauve-300); --side: #1a0a14; --hover: #2f1628; --field: #1a0a14; --accent: var(--orange-400);
+  --link: var(--orange-300); --link-hover: var(--orange-200); --focus: var(--orange-400);
+  --success-fg: var(--success); --warning-fg: var(--warning); --danger-fg: #ff6b6b;
 }
 .hk[data-theme="dark"] .ico { filter: invert(.92); }
-.hk a { color: var(--orange-600); }
-.hk a:hover { color: var(--orange-700); }
-.hk[data-theme="dark"] a { color: var(--orange-300); }
-.hk *:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.hk *:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+/* :where() takes .hk out of the specificity count. As `.hk a` this rule
+   outranked every component that renders as a link - buttons, nav items, rows,
+   stat cards - and painted them all link-orange over their own colours, which
+   is how "Find Player" came out orange on pink at 1.3:1. Now any class wins. */
+:where(.hk) a { color: var(--link); }
+:where(.hk) a:hover { color: var(--link-hover); }
 .hk ::placeholder { color: var(--muted); opacity: 1; }
 .hk button { font-family: inherit; }
 .hk code, .hk .mono { font-family: var(--font-mono); font-size: 12px; }
@@ -122,9 +134,9 @@ body { background: #d9c7b8; }
 
 /* Pills, chips, avatars */
 .hk-pill { display: inline-block; font-weight: 600; font-size: 12px; line-height: 1.4; padding: 2px 8px; border: 2px solid var(--ink); box-shadow: var(--shadow-pixel-sm); color: #fff; background: var(--info); white-space: nowrap; }
-.hk-pill--success { background: var(--success); } .hk-pill--warning { background: var(--warning); color: var(--ink); }
-.hk-pill--danger { background: var(--danger); } .hk-pill--info { background: var(--info); } .hk-pill--ink { background: var(--ink); color: var(--cream); }
-.hk-pill--orange { background: var(--orange-500); }
+.hk-pill--success { background: var(--success); color: var(--ink); } .hk-pill--warning { background: var(--warning); color: var(--ink); }
+.hk-pill--danger { background: var(--danger); } .hk-pill--info { background: var(--info); color: var(--ink); } .hk-pill--ink { background: var(--ink); color: var(--cream); }
+.hk-pill--orange { background: var(--orange-500); color: var(--ink); }
 .hk-rank { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; border: 2px solid var(--line); padding: 2px 8px; background: var(--sunken); color: var(--fg); white-space: nowrap; }
 .hk-rank small { font-weight: 600; font-size: 11px; }
 .hk-rank--staff { background: var(--orange-300); color: var(--ink); }
@@ -163,8 +175,7 @@ body { background: #d9c7b8; }
 .hk-iconbtn--plain { border-color: transparent; background: transparent; }
 .hk-iconbtn--plain:hover { border-color: var(--line); background: transparent; }
 .hk-iconbtn--sm { width: 36px; height: 36px; }
-.hk-linkbtn { all: unset; cursor: pointer; text-decoration: underline; color: var(--orange-600); font-size: 14px; padding: 8px; }
-.hk[data-theme="dark"] .hk-linkbtn { color: var(--orange-300); }
+.hk-linkbtn { all: unset; cursor: pointer; text-decoration: underline; color: var(--link); font-size: 14px; padding: 8px; }
 
 /* Inputs */
 .hk-search { display: flex; align-items: center; gap: 8px; border: 2px solid var(--line); background: var(--field); padding: 0 10px; height: 40px; box-sizing: border-box; box-shadow: var(--bevel-sunken); }
@@ -205,7 +216,7 @@ body { background: #d9c7b8; }
 .hk-switch:disabled { opacity: .45; cursor: not-allowed; }
 .hk-switchrow { display: flex; align-items: center; gap: 10px; min-height: 44px; }
 .hk-state { font-weight: 600; font-size: 13px; color: var(--muted); }
-.hk-state--on { color: var(--success); } .hk-state--danger { color: var(--danger); }
+.hk-state--on { color: var(--success-fg); } .hk-state--danger { color: var(--danger-fg); }
 
 /* Tables */
 .hk-tablewrap { overflow-x: auto; }
@@ -272,7 +283,7 @@ body { background: #d9c7b8; }
 .hk-field__tags { display: flex; gap: 8px; align-items: center; margin-top: 6px; flex-wrap: wrap; }
 .hk-field__tags code { font-size: 11px; color: var(--muted); }
 .hk-tag-danger { font-weight: 600; font-size: 11px; color: var(--danger); }
-.hk-tag-unsaved { font-weight: 600; font-size: 11px; color: var(--orange-600); }
+.hk-tag-unsaved { font-weight: 600; font-size: 11px; color: var(--link); }
 .hk-field__ctl { flex: 0 1 420px; min-width: 260px; display: flex; flex-direction: column; gap: 6px; align-items: stretch; }
 .hk-field__ctl--auto { flex: 0 0 auto; min-width: 0; align-items: flex-end; }
 .hk-hero { border: 2px solid var(--line); background: var(--card); box-shadow: var(--shadow-pixel); padding: 20px; display: flex; flex-wrap: wrap; gap: 20px; align-items: center; transition: background var(--anim-med); }
@@ -298,7 +309,7 @@ body { background: #d9c7b8; }
 .hk-matrix td { padding: 0; height: 52px; }
 .hk-cell { all: unset; cursor: pointer; width: 100%; height: 52px; display: grid; place-items: center; box-sizing: border-box; }
 .hk-cell span { width: 22px; height: 22px; border: 2px solid var(--line); background: var(--sunken); box-shadow: var(--bevel-sunken); display: grid; place-items: center; font-weight: 700; font-size: 13px; color: var(--muted); transition: background var(--anim-fast); }
-.hk-cell--on span { background: var(--success); color: #fff; box-shadow: var(--bevel-raised); }
+.hk-cell--on span { background: var(--success); color: var(--ink); box-shadow: var(--bevel-raised); }
 .hk-cell--start span { background: var(--accent); color: var(--ink); }
 .hk-cell:disabled { cursor: default; }
 

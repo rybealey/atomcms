@@ -49,7 +49,7 @@ function fmtJail(seconds: number): string {
 function Stars({ level, muted }: { level: number; muted?: boolean }) {
   return (
     <span aria-label={`Severity ${level} of 5`} title={`${level} wanted ${level === 1 ? 'star' : 'stars'}`}
-      style={{ letterSpacing: 1, color: muted ? 'var(--muted)' : 'var(--orange-600)', whiteSpace: 'nowrap' }}>
+      style={{ letterSpacing: 1, color: muted ? 'var(--muted)' : 'var(--link)', whiteSpace: 'nowrap' }}>
       {'★'.repeat(level)}<span style={{ color: 'var(--muted)', opacity: 0.4 }}>{'★'.repeat(5 - level)}</span>
     </span>
   );
