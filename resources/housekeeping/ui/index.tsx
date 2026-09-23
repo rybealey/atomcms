@@ -53,8 +53,11 @@ export function Switch({ checked, onChange, disabled, label }: { checked: boolea
   return <button type="button" role="switch" aria-checked={checked} aria-label={label} className="hk-switch" disabled={disabled} onClick={() => onChange(!checked)} />;
 }
 
-export function StateText({ on, onText = 'On', offText = 'Off', danger }: { on: boolean; onText?: string; offText?: string; danger?: boolean }) {
-  return <span className={`hk-state ${on ? (danger ? 'hk-state--danger' : 'hk-state--on') : ''}`}>{on ? onText : offText}</span>;
+// `danger` paints the ON state red (a switch that is dangerous to leave on);
+// `offDanger` paints the OFF state red (an answer that is a flat no).
+export function StateText({ on, onText = 'On', offText = 'Off', danger, offDanger }: { on: boolean; onText?: string; offText?: string; danger?: boolean; offDanger?: boolean }) {
+  const tone = on ? (danger ? 'hk-state--danger' : 'hk-state--on') : (offDanger ? 'hk-state--danger' : '');
+  return <span className={`hk-state ${tone}`}>{on ? onText : offText}</span>;
 }
 
 /* ---------- Pills & chips ---------- */

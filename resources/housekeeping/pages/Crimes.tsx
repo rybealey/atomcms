@@ -22,6 +22,8 @@ export interface Crime {
   jail_seconds: number;
   severity: number;
   stackable: boolean;
+  ticketable: boolean;
+  ticket_amount: number;
   active: boolean;
   sort_order: number;
   charges: number;
@@ -30,7 +32,10 @@ interface CrimeList { available: boolean; items: Crime[] }
 
 type Draft = Omit<Crime, 'id' | 'sort_order' | 'charges'>;
 
-const BLANK: Draft = { key_name: '', name: '', description: '', jail_seconds: 0, severity: 1, stackable: true, active: true };
+const BLANK: Draft = { key_name: '', name: '', description: '', jail_seconds: 0, severity: 1, stackable: true, ticketable: false, ticket_amount: 0, active: true };
+
+// Whole dollars, the hotel's currency.
+const fmtMoney = (amount: number): string => `$${fmtNumber(amount)}`;
 
 // The sentence reads in minutes because that is how a duty sergeant thinks
 // about it; the column stores seconds because that is how the emulator will
@@ -110,6 +115,21 @@ function CrimeForm({ draft, setDraft, onSave, onCancel, saving, error }: {
           <StateText on={draft.stackable} onText="Two counts allowed" offText="Once only" />
         </div>
       </Field>
+      <Field label="Ticketable" desc="Whether the player can pay a ticket instead of serving the jail time. A crime with no jail time can still carry a fine.">
+        <div className="hk-switchrow">
+          <Switch checked={draft.ticketable} onChange={(v) => setDraft({ ...draft, ticketable: v, ticket_amount: v ? (draft.ticket_amount || 100) : draft.ticket_amount })} label="Ticketable" />
+          <StateText on={draft.ticketable} onText="Can pay a ticket" offText="Jail time only" />
+        </div>
+      </Field>
+      {draft.ticketable ? (
+        <Field label="Ticket" desc="What the player pays to settle this charge instead of serving time, in dollars.">
+          <div className="hk-switchrow" style={{ gap: 8 }}>
+            <span aria-hidden="true" style={{ fontWeight: 600 }}>$</span>
+            <input className="hk-input" type="number" min={1} max={100000} step={1} value={draft.ticket_amount} aria-label="Ticket amount in dollars"
+              onChange={(e) => set('ticket_amount', Math.max(0, Math.min(100000, Math.floor(Number(e.target.value) || 0))))} />
+          </div>
+        </Field>
+      ) : null}
       <Field label="Chargeable" desc="Turning this off retires the crime: existing sheets still read, but nobody can charge it again.">
         <div className="hk-switchrow">
           <Switch checked={draft.active} onChange={(v) => set('active', v)} label="Chargeable" />
@@ -117,7 +137,7 @@ function CrimeForm({ draft, setDraft, onSave, onCancel, saving, error }: {
         </div>
       </Field>
       <div style={{ display: 'flex', gap: 8, padding: 16 }}>
-        <Button onClick={onSave} disabled={saving || !draft.name.trim() || !draft.key_name.trim()}>
+        <Button onClick={onSave} disabled={saving || !draft.name.trim() || !draft.key_name.trim() || (draft.ticketable && draft.ticket_amount < 1)}>
           {saving ? 'Saving…' : 'Save'}
         </Button>
         <Button variant="secondary" onClick={onCancel} disabled={saving}>Cancel</Button>
@@ -139,7 +159,8 @@ export default function Crimes() {
   const startEdit = (crime: Crime) => {
     setDraft({
       key_name: crime.key_name, name: crime.name, description: crime.description,
-      jail_seconds: crime.jail_seconds, severity: crime.severity, stackable: crime.stackable, active: crime.active,
+      jail_seconds: crime.jail_seconds, severity: crime.severity, stackable: crime.stackable,
+      ticketable: crime.ticketable, ticket_amount: crime.ticket_amount, active: crime.active,
     });
     setFormError(null);
     setEditing(crime.id);
@@ -203,7 +224,7 @@ export default function Crimes() {
           action={<Button onClick={startNew}>New crime</Button>} />
       ) : (
         <div className="hk-card hk-tablewrap">
-          <table className="hk-table" style={{ minWidth: 720 }}>
+          <table className="hk-table" style={{ minWidth: 800 }}>
             <thead>
               <tr>
                 <th>Crime</th>
@@ -211,6 +232,7 @@ export default function Crimes() {
                 <th>Jail</th>
                 <th>Severity</th>
                 <th>Stackable</th>
+                <th>Ticket</th>
                 <th>On sheets</th>
                 <th>Status</th>
                 <th />
@@ -226,7 +248,8 @@ export default function Crimes() {
                   <td><code>{crime.key_name}</code></td>
                   <td>{fmtJail(crime.jail_seconds)}</td>
                   <td><Stars level={crime.severity} muted={!crime.active} /></td>
-                  <td><StateText on={crime.stackable} onText="Yes" offText="Once only" /></td>
+                  <td><StateText on={crime.stackable} onText="Yes" offText="No" offDanger /></td>
+                  <td>{crime.ticketable ? fmtMoney(crime.ticket_amount) : <span className="muted">Jail only</span>}</td>
                   <td>{crime.charges > 0 ? fmtNumber(crime.charges) : <span className="muted">—</span>}</td>
                   <td>{crime.active ? <Pill tone="success">Chargeable</Pill> : <Pill tone="warning">Retired</Pill>}</td>
                   <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
