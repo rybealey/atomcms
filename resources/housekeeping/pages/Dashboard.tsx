@@ -133,7 +133,7 @@ export default function Dashboard() {
             title="Hotel Status"
             action={
               data ? (
-                <span className="hk-status" style={{ fontSize: 13, fontWeight: 600, color: data.hotel.emulator_up ? 'var(--success)' : 'var(--danger)' }}>
+                <span className="hk-status" style={{ fontSize: 13, fontWeight: 600, color: data.hotel.emulator_up ? 'var(--success-fg)' : 'var(--danger-fg)' }}>
                   <span className={`hk-dot ${data.hotel.emulator_up ? 'hk-dot--on hk-dot--blink' : 'hk-dot--danger'}`} style={{ width: 8, height: 8 }} />
                   {data.hotel.emulator_up ? 'Emulator up' : 'Emulator unreachable'}
                 </span>

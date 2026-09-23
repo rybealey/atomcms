@@ -149,11 +149,11 @@ export default function PlayerDetail() {
               </div>
               <div className="hk-kv">
                 <span>Currently banned</span>
-                <strong style={{ color: p.ban ? 'var(--danger)' : undefined }}>{p.ban ? 'Yes' : 'No'}</strong>
+                <strong style={{ color: p.ban ? 'var(--danger-fg)' : undefined }}>{p.ban ? 'Yes' : 'No'}</strong>
               </div>
               <div className="hk-kv">
                 <span>Two-factor</span>
-                <span style={{ color: p.two_factor ? 'var(--success)' : 'var(--warning)', fontWeight: 600 }}>{p.two_factor ? 'Enabled' : 'Not set up'}</span>
+                <span style={{ color: p.two_factor ? 'var(--success-fg)' : 'var(--warning-fg)', fontWeight: 600 }}>{p.two_factor ? 'Enabled' : 'Not set up'}</span>
               </div>
               <div className="hk-kv">
                 <span>Home room</span>
@@ -263,7 +263,7 @@ export default function PlayerDetail() {
           </Card>
           {data.can.delete ? (
             <div style={{ border: '2px solid var(--danger)', background: 'var(--card)' }}>
-              <h2 style={{ fontWeight: 600, fontSize: 14, margin: 0, padding: '12px 16px', borderBottom: '2px solid var(--danger)', color: 'var(--danger)' }}>Danger Zone</h2>
+              <h2 style={{ fontWeight: 600, fontSize: 14, margin: 0, padding: '12px 16px', borderBottom: '2px solid var(--danger)', color: 'var(--danger-fg)' }}>Danger Zone</h2>
               <div className="hk-card__body" style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap', fontSize: 14 }}>
                 <span style={{ flex: 1, minWidth: 220 }}>
                   <strong>Delete this player</strong>
