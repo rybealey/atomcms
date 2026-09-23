@@ -42,14 +42,6 @@
                     {{ __('Teams') }}
                 </x-navigation.dropdown-child>
                 
-                <x-navigation.dropdown-child :route="route('team-applications.index')">
-                    {{ __('Team applications') }}
-                </x-navigation.dropdown-child>
-
-                <x-navigation.dropdown-child :route="route('staff-applications.index')">
-                    {{ __('Staff applications') }}
-                </x-navigation.dropdown-child>
-
                 <x-navigation.dropdown-child :route="route('photos.index')">
                     {{ __('Photos') }}
                 </x-navigation.dropdown-child>
@@ -68,11 +60,6 @@
             {{ __('Rare values') }}
         </a>
 
-        <a data-turbolinks="false" href="{{ route('shop.index') }}"
-           class="nav-item dark:text-gray-200 {{ request()->routeIs('shop.*') ? 'md:border-b-4! md:border-b-[#d62a86]!' : '' }}">
-            <i class="navigation-icon mr-1 hidden lg:inline-flex shop"></i>
-            {{ __('Shop') }}
-        </a>
     @endauth
 
     <x-navigation.dropdown icon="rules" route-group="help-center*" :uppercase="true">

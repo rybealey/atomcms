@@ -49,28 +49,5 @@
                 </p>
             </div>
         </x-content.content-card>
-
-        <x-content.content-card icon="chat-icon" classes="borderborder-gray-900">
-            <x-slot:title>
-                {{ __('Apply for staff') }}
-            </x-slot:title>
-
-            <x-slot:under-title>
-                {{ __('How to join the staff team', ['hotel' => setting('hotel_name')]) }}
-            </x-slot:under-title>
-
-            <div class="px-2 text-sm space-y-4 text-gray-200">
-                <p>
-                    {{ __('Every now and then staff applications may open up. Once they do we always make sure to post a news article explaining the process - So make sure you keep an eye out for those in you are interested in joining the :hotel staff team.', ['hotel' => setting('hotel_name')]) }}
-                </p>
-
-                <p>
-                    {!! __(
-                        'You can occasionally also look at the :startTag Staff application page :endTag which will show you all of our current open positions.',
-                        ['startTag' => '<a href="/community/staff-applications" class="underline">', 'endTag' => '</a>'],
-                    ) !!}
-                </p>
-            </div>
-        </x-content.content-card>
     </div>
 </x-app-layout>

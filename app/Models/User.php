@@ -6,7 +6,6 @@ use App\Emulator\Contracts\CurrencyRepository;
 use App\Enums\CurrencyTypes;
 use App\Models\Articles\WebsiteArticle;
 use App\Models\Articles\WebsiteArticleComment;
-use App\Models\Community\Staff\WebsiteStaffApplications;
 use App\Models\Community\Staff\WebsiteTeam;
 use App\Models\Compositions\HasHome;
 use App\Models\Game\Furniture\Item;
@@ -20,8 +19,6 @@ use App\Models\Game\Room;
 use App\Models\Help\WebsiteHelpCenterTicket;
 use App\Models\Miscellaneous\CameraWeb;
 use App\Models\Miscellaneous\WebsiteBetaCode;
-use App\Models\Shop\WebsitePaypalTransaction;
-use App\Models\Shop\WebsiteUsedShopVoucher;
 use App\Models\User\Ban;
 use App\Models\User\ClaimedReferralLog;
 use App\Models\User\Referral;
@@ -86,7 +83,6 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property int|null $team_id
  * @property-read \Illuminate\Database\Eloquent\Collection<int, Activity> $activities
  * @property-read int|null $activities_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, WebsiteStaffApplications> $applications
  * @property-read int|null $applications_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, WebsiteArticleComment> $articleComments
  * @property-read int|null $article_comments_count
@@ -125,9 +121,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property-read int|null $tickets_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, PersonalAccessToken> $tokens
  * @property-read int|null $tokens_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, WebsitePaypalTransaction> $transactions
  * @property-read int|null $transactions_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, WebsiteUsedShopVoucher> $usedShopVouchers
  * @property-read int|null $used_shop_vouchers_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, Referral> $userReferrals
  * @property-read int|null $user_referrals_count
@@ -432,12 +426,6 @@ class User extends Authenticatable implements FilamentUser, HasName
         return $this->belongsTo(self::class, 'parent_id');
     }
 
-    /** @return HasMany<WebsiteStaffApplications, $this> */
-    public function applications(): HasMany
-    {
-        return $this->hasMany(WebsiteStaffApplications::class, 'user_id');
-    }
-
     /** @return HasOne<UserSubscription, $this> */
     public function hcSubscription(): HasOne
     {
@@ -448,20 +436,6 @@ class User extends Authenticatable implements FilamentUser, HasName
     public function articleComments(): HasMany
     {
         return $this->hasMany(WebsiteArticleComment::class);
-    }
-
-    /**
-     * @return HasMany<WebsitePaypalTransaction, $this>
-     */
-    public function transactions(): HasMany
-    {
-        return $this->hasMany(WebsitePaypalTransaction::class);
-    }
-
-    /** @return HasMany<WebsiteUsedShopVoucher, $this> */
-    public function usedShopVouchers(): HasMany
-    {
-        return $this->hasMany(WebsiteUsedShopVoucher::class);
     }
 
     /** @return HasMany<Item, $this> */

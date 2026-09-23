@@ -6,7 +6,6 @@ use App\Contracts\Rcon;
 use App\Emulator\Data\Feature;
 use App\Emulator\Emulator;
 use App\Http\Controllers\Controller;
-use App\Models\Community\Staff\WebsiteStaffApplications;
 use App\Models\User;
 use App\Models\WebsiteDrawBadge;
 use App\Support\Housekeeping\BanScope;
@@ -32,20 +31,10 @@ class DashboardController extends Controller
                 ->count();
         }
 
-        $pendingApplications = WebsiteStaffApplications::query()->where('status', 'pending')->count();
         $pendingBadges = WebsiteDrawBadge::query()->where('published', 0)->count();
         $expiringBans = $bans ? BanScope::expiringWithin(86400) : 0;
 
         $attention = [];
-        if ($pendingApplications > 0) {
-            $oldestAt = WebsiteStaffApplications::query()->where('status', 'pending')->min('created_at');
-            $attention[] = [
-                'title' => sprintf('%d staff application%s waiting', $pendingApplications, $pendingApplications === 1 ? '' : 's'),
-                'sub' => is_string($oldestAt) ? 'Oldest from ' . Carbon::parse($oldestAt)->diffForHumans() : '',
-                'tone' => 'warning',
-                'to' => '/applications',
-            ];
-        }
         if ($pendingBadges > 0) {
             $attention[] = [
                 'title' => sprintf('%d drawn badge%s to approve', $pendingBadges, $pendingBadges === 1 ? '' : 's'),
@@ -92,7 +81,6 @@ class DashboardController extends Controller
                 'registrations_week_avg' => (int) round(array_sum(array_slice($registrations, 0, 7)) / 7),
                 'registrations_spark' => $registrations,
                 'active_bans' => $bans ? BanScope::activeCount() : null,
-                'pending_applications' => $pendingApplications,
                 'pending_badges' => $pendingBadges,
             ],
             'hotel' => [

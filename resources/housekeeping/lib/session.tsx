@@ -8,7 +8,7 @@ export interface Me {
   permissions: Record<string, boolean>;
   ranks: Rank[];
   config: { hotel_name: string; imager: string; badges_path: string; emulator: string; features: string[]; legacy_url: string; min_staff_rank: number };
-  counts: { staff_applications: number; draw_badges: number };
+  counts: { draw_badges: number };
 }
 
 export interface ConfirmSpec { title: string; body: string; impacts?: string[]; cta: string; tone?: 'danger' | 'brand' }

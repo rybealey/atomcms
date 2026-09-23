@@ -8,9 +8,7 @@ use App\Http\Controllers\Client\FlashController;
 use App\Http\Controllers\Client\NitroController;
 use App\Http\Controllers\Community\LeaderboardController;
 use App\Http\Controllers\Community\PhotosController;
-use App\Http\Controllers\Community\Staff\StaffApplicationsController;
 use App\Http\Controllers\Community\Staff\StaffController;
-use App\Http\Controllers\Community\Staff\WebsiteTeamApplicationsController;
 use App\Http\Controllers\Community\Staff\WebsiteTeamsController;
 use App\Http\Controllers\Community\WebsiteRareValuesController;
 use App\Http\Controllers\Diamonds\DiamondCheckoutController;
@@ -39,9 +37,6 @@ use App\Http\Controllers\Miscellaneous\InstallationController;
 use App\Http\Controllers\Miscellaneous\LocaleController;
 use App\Http\Controllers\Miscellaneous\LogoGeneratorController;
 use App\Http\Controllers\Miscellaneous\MaintenanceController;
-use App\Http\Controllers\Shop\PaypalController;
-use App\Http\Controllers\Shop\ShopController;
-use App\Http\Controllers\Shop\ShopVoucherController;
 use App\Http\Controllers\User\AccountSettingsController;
 use App\Http\Controllers\User\BannedController;
 use App\Http\Controllers\User\DiscordController;
@@ -58,11 +53,9 @@ use Laravel\Fortify\Http\Controllers\RegisteredUserController;
 // Language route
 Route::get('/language/{locale}', LocaleController::class)->name('language.select');
 
-// Diamonds store webhook - standalone from the CMS shop system. Public and
-// signature-verified rather than session-authenticated, so it is registered
-// outside every route group (maintenance/ban/2FA and auth alike) and
-// CSRF-excluded below in VerifyCsrfToken, mirroring how the PayPal webhook
-// is kept outside of session/CSRF concerns entirely (there via routes/api.php).
+// Diamonds store webhook. Public and signature-verified rather than
+// session-authenticated, so it is registered outside every route group
+// (maintenance/ban/2FA and auth alike) and CSRF-excluded in VerifyCsrfToken.
 Route::post('/webhooks/diamonds-stripe', DiamondStripeWebhookController::class)->name('diamonds.webhook');
 
 // Landing page for the crypto checkout tab (hosted session success/cancel URL).
@@ -233,14 +226,6 @@ Route::middleware(['maintenance', 'check.ban', 'force.staff.2fa'])->group(functi
             Route::get('/staff', StaffController::class)->name('staff.index');
             Route::get('/teams', WebsiteTeamsController::class)->name('teams.index');
 
-            Route::get('/staff-applications', [StaffApplicationsController::class, 'index'])->name('staff-applications.index');
-            Route::get('/staff-applications/{position}', [StaffApplicationsController::class, 'show'])->name('staff-applications.show');
-            Route::post('/staff-applications/{position}', [StaffApplicationsController::class, 'store'])->name('staff-applications.store');
-
-            Route::get('/team-applications', [WebsiteTeamApplicationsController::class, 'index'])->name('team-applications.index');
-            Route::get('/team-applications/{position}', [WebsiteTeamApplicationsController::class, 'show'])->name('team-applications.show');
-            Route::post('/team-applications/{position}', [WebsiteTeamApplicationsController::class, 'store'])->name('team-applications.store');
-
             Route::post('/article/{article:slug}/comment', [WebsiteArticleCommentsController::class, 'store'])->name('article.comment.store');
             Route::delete('/article/{comment}/comment', [WebsiteArticleCommentsController::class, 'destroy'])->name('article.comment.destroy');
             Route::post('/article/{article:slug}/toggle-reaction', [ArticleController::class, 'toggleReaction'])
@@ -250,14 +235,6 @@ Route::middleware(['maintenance', 'check.ban', 'force.staff.2fa'])->group(functi
 
         // Leaderboard routes
         Route::get('/leaderboard', LeaderboardController::class)->name('leaderboard.index');
-
-        // Shop routes
-        Route::prefix('shop')->group(function () {
-            Route::get('/{category:slug?}', ShopController::class)->name('shop.index');
-
-            Route::post('/purchase-package/{package}', [ShopController::class, 'purchasePackage'])->name('shop.buy-package')->middleware('throttle:10,1');
-            Route::post('/voucher', ShopVoucherController::class)->name('shop.use-voucher');
-        });
 
         // Help center
         Route::prefix('help-center')->as('help-center.')->withoutMiddleware('check.ban')->group(function () {
@@ -285,15 +262,7 @@ Route::middleware(['maintenance', 'check.ban', 'force.staff.2fa'])->group(functi
             Route::get('/rules', WebsiteRulesController::class)->name('rules.index')->withoutMiddleware('auth');
         });
 
-        // Paypal routes
-        Route::controller(PaypalController::class)->prefix('paypal')->group(function () {
-            Route::post('/process-transaction', 'process')->name('paypal.process-transaction')->middleware('throttle:10,1');
-            Route::get('/successful-transaction', 'successful')->name('paypal.successful-transaction');
-            Route::get('/cancelled-transaction', 'cancelled')->name('paypal.cancelled-transaction');
-        });
-
-        // Diamonds store routes - standalone Stripe purchase flow, separate
-        // from the website_balance shop system above.
+        // Diamonds store routes - the standalone Stripe purchase flow.
         Route::prefix('diamonds')->group(function () {
             Route::post('/checkout-session', DiamondCheckoutController::class)
                 ->name('diamonds.checkout-session')

@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Housekeeping\Api;
 use App\Emulator\Data\Feature;
 use App\Emulator\Emulator;
 use App\Http\Controllers\Controller;
-use App\Models\Community\Staff\WebsiteStaffApplications;
 use App\Models\User;
 use App\Models\WebsiteDrawBadge;
 use App\Models\WebsiteHousekeepingPermission;
@@ -61,7 +60,6 @@ class MeController extends Controller
                 'min_staff_rank' => (int) setting('min_staff_rank', 4),
             ],
             'counts' => [
-                'staff_applications' => WebsiteStaffApplications::query()->where('status', 'pending')->count(),
                 'draw_badges' => WebsiteDrawBadge::query()->where('published', 0)->count(),
             ],
         ]);
