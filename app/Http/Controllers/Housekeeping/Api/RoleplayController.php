@@ -150,6 +150,9 @@ class RoleplayController extends Controller
                 'jail_seconds' => (int) $crime->jail_seconds,
                 'severity' => (int) ($crime->severity ?? 1),
                 'stackable' => (int) $crime->stackable === 1,
+                // ?? 0: a database that has not run 159_CrimeTickets yet
+                'ticketable' => (int) ($crime->ticketable ?? 0) === 1,
+                'ticket_amount' => (int) ($crime->ticket_amount ?? 0),
                 'active' => (int) $crime->active === 1,
                 'sort_order' => (int) $crime->sort_order,
                 'charges' => (int) ($counts[$crime->id] ?? 0),
@@ -218,11 +221,19 @@ class RoleplayController extends Controller
             // the wanted-star scale the HUD and RpWantedView already speak
             'severity' => ['required', 'integer', 'min:1', 'max:5'],
             'stackable' => ['required', 'boolean'],
+            // whether the player may pay a fine instead of serving jail_seconds
+            'ticketable' => ['required', 'boolean'],
+            // whole dollars, the hotel's currency. Only asked for - and only
+            // kept - when the crime is ticketable, so a ticketable crime can
+            // never be priced at nothing.
+            'ticket_amount' => ['exclude_unless:ticketable,true', 'required', 'integer', 'min:1', 'max:100000'],
             'active' => ['required', 'boolean'],
         ]);
 
         $data['description'] = $data['description'] ?? '';
         $data['stackable'] = $data['stackable'] ? 1 : 0;
+        $data['ticketable'] = $data['ticketable'] ? 1 : 0;
+        $data['ticket_amount'] = $data['ticketable'] === 1 ? (int) $data['ticket_amount'] : 0;
         $data['active'] = $data['active'] ? 1 : 0;
 
         return $data;
