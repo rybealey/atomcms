@@ -13,6 +13,8 @@ class UserApiService
         return User::query()
             ->select(['username', 'motto', 'look'])
             ->where('username', $username)
+            // pixelrp: the hotel's own accounts (PixelRP) are never looked up.
+            ->where('rp_system_account', 0)
             ->first();
     }
 

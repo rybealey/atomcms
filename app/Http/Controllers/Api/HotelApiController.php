@@ -47,6 +47,8 @@ class HotelApiController extends Controller
 
         // Escape LIKE wildcards so user input cannot widen the prefix match.
         $users = User::where('username', 'like', addcslashes($query, '\\%_') . '%')
+            // pixelrp: the hotel's own accounts (PixelRP) are never found.
+            ->where('rp_system_account', 0)
             ->limit(8)
             ->get(['username', 'look']);
 

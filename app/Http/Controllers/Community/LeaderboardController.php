@@ -7,6 +7,7 @@ use App\Emulator\Contracts\PlayerStatsRepository;
 use App\Emulator\Data\Stat;
 use App\Enums\CurrencyTypes;
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use App\Services\Community\StaffService;
 use Illuminate\View\View;
 
@@ -19,7 +20,11 @@ class LeaderboardController extends Controller
         PlayerStatsRepository $stats,
         StaffService $staffService,
     ): View {
-        $staffIds = $staffService->fetchEmployeeIds();
+        // pixelrp: the hotel's own accounts (PixelRP) are never ranked either.
+        $staffIds = array_merge(
+            $staffService->fetchEmployeeIds(),
+            User::where('rp_system_account', 1)->pluck('id')->map(fn (mixed $id): int => (int) $id)->all(),
+        );
 
         return view('leaderboard', [
             'credits' => $currencies->topBy(CurrencyTypes::Credits, self::SIZE, $staffIds),
