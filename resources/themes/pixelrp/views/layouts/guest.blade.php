@@ -14,8 +14,6 @@
 
     {{-- Pixel type. Substitutes picked by the design system: Press Start 2P for
          display, Silkscreen for HUD labels, Barlow for body copy. --}}
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Silkscreen:wght@400;700&family=Barlow:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
 
