@@ -78,3 +78,50 @@ it('still syncs ordinary rows for linked users', function () {
 
     expect(DB::table('discord_sync_queue')->count())->toBe(0);
 });
+
+it('handles at most one batch of the oldest rows per run', function () {
+    $api = Mockery::mock(DiscordApi::class);
+    $api->shouldReceive('configured')->andReturnTrue();
+    app()->instance(DiscordApi::class, $api);
+
+    $sync = Mockery::mock(DiscordSyncService::class);
+    $sync->shouldNotReceive('syncUser');
+    $sync->shouldNotReceive('unlinkById');
+    app()->instance(DiscordSyncService::class, $sync);
+
+    // user_id 0 is nobody, so there is nothing to sync - only rows to clear.
+    DB::table('discord_sync_queue')->insert(array_map(fn () => [
+        'user_id' => 0,
+        'discord_id' => null,
+        'reason' => 'login',
+        'created_at' => time(),
+    ], range(1, 501)));
+    $newest = (int) DB::table('discord_sync_queue')->max('id');
+
+    $this->artisan('discord:process')->assertSuccessful();
+
+    expect(DB::table('discord_sync_queue')->count())->toBe(1);
+    expect((int) DB::table('discord_sync_queue')->value('id'))->toBe($newest);
+});
+
+it('drops day-old rows while Discord is not configured, but keeps recent and unlink rows', function () {
+    $api = Mockery::mock(DiscordApi::class);
+    $api->shouldReceive('configured')->andReturnFalse();
+    app()->instance(DiscordApi::class, $api);
+
+    $sync = Mockery::mock(DiscordSyncService::class);
+    $sync->shouldNotReceive('syncUser');
+    $sync->shouldNotReceive('unlinkById');
+    app()->instance(DiscordSyncService::class, $sync);
+
+    $twoDaysAgo = time() - 2 * 86400;
+    DB::table('discord_sync_queue')->insert([
+        ['user_id' => 1, 'discord_id' => null, 'reason' => 'login', 'created_at' => $twoDaysAgo],
+        ['user_id' => 1, 'discord_id' => '99887766554433221', 'reason' => 'unlink', 'created_at' => $twoDaysAgo],
+        ['user_id' => 2, 'discord_id' => null, 'reason' => 'logout', 'created_at' => time()],
+    ]);
+
+    $this->artisan('discord:process')->assertSuccessful();
+
+    expect(DB::table('discord_sync_queue')->orderBy('id')->pluck('reason')->all())->toBe(['unlink', 'logout']);
+});

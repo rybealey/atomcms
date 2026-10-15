@@ -14,9 +14,12 @@ class Kernel extends ConsoleKernel
     {
         // Discord linking: drain the emulator's event queue every minute,
         // and run a full reconciliation sweep as a drift backstop.
+        // The overlap lock expires after 10 minutes, not the default 24
+        // hours: a run that gets killed never releases it, and the lock
+        // outlives restarts, so it would block the drain for a day.
         $schedule->command('discord:process')
             ->everyMinute()
-            ->withoutOverlapping();
+            ->withoutOverlapping(10);
 
         $schedule->command('discord:sweep')
             ->everyTenMinutes()
