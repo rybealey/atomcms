@@ -3,13 +3,14 @@
 namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
+use App\Support\AssetPass;
 use App\Support\AuthenticatedUser;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
+use Illuminate\Http\Response;
 
 class NitroController extends Controller
 {
-    public function __invoke(Request $request): View
+    public function __invoke(Request $request): Response
     {
         $user = AuthenticatedUser::from($request);
 
@@ -23,8 +24,17 @@ class NitroController extends Controller
         // active_character_id and reloads, and the next ticket is that
         // character's. activeCharacter() falls back to the root rather than
         // ever resolving to nothing, because this is the login path.
-        return view('client.nitro', [
+        //
+        // The asset pass rides on this response, so it is set before the
+        // client iframe asks for its first file (AssetPass).
+        $response = response()->view('client.nitro', [
             'sso' => $user->activeCharacter()->ssoTicket(),
         ]);
+
+        foreach (AssetPass::issue($user, $request) as $cookie) {
+            $response->withCookie($cookie);
+        }
+
+        return $response;
     }
 }

@@ -72,4 +72,14 @@ return [
         // falls back to raw.githubusercontent.com when absent.
         'changelog_path' => env('DEPLOY_CHANGELOG_PATH'),
     ],
+
+    // pixelrp: the asset pass (App\Support\AssetPass). The same secret is
+    // rendered into the web container's nginx, which checks every
+    // /nitro-assets/ request against it. Unset means no pass is ever issued -
+    // and nginx then turns every game file away - so compose.prod.yaml
+    // refuses to start without it.
+    'asset_pass' => [
+        'secret' => env('ASSET_PASS_SECRET'),
+        'ttl' => (int) env('ASSET_PASS_TTL', 86400),
+    ],
 ];

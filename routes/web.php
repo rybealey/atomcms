@@ -4,6 +4,7 @@ use App\Actions\Fortify\Controllers\TwoFactorAuthenticatedSessionController;
 use App\Http\Controllers\Articles\ArticleController;
 use App\Http\Controllers\Articles\WebsiteArticleCommentsController;
 use App\Http\Controllers\Badge\BadgeController;
+use App\Http\Controllers\Client\AssetPassController;
 use App\Http\Controllers\Client\FlashController;
 use App\Http\Controllers\Client\NitroController;
 use App\Http\Controllers\Community\LeaderboardController;
@@ -289,6 +290,8 @@ Route::middleware(['maintenance', 'check.ban', 'force.staff.2fa'])->group(functi
         // stays as a redirect so old bookmarks keep working.
         Route::middleware(['findretros.redirect', 'vpn.checker'])->group(function () {
             Route::get('/game', NitroController::class)->name('nitro-client');
+            Route::get('/game/asset-pass', AssetPassController::class)->name('nitro-client.asset-pass')
+                ->withoutMiddleware('findretros.redirect')->middleware('throttle:30,1');
             Route::redirect('/game/nitro', '/game', 301);
             Route::get('/game/flash', FlashController::class)->name('flash-client');
         });
