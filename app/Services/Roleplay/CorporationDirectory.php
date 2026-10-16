@@ -2,8 +2,14 @@
 
 namespace App\Services\Roleplay;
 
+use App\Data\Roleplay\Corporation;
+use App\Data\Roleplay\CorporationRank;
+use App\Data\Roleplay\Employee;
+use App\Data\Roleplay\Employment;
+use App\Data\Roleplay\HqRoom;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use stdClass;
 
 /**
  * Read model for the city's corporations: rp_corporations, their ranks and
@@ -21,12 +27,12 @@ class CorporationDirectory
      * Every visible corporation with its headcount, who is on shift and its
      * positions, highest rank first.
      *
-     * @return Collection<int, object>
+     * @return Collection<int, Corporation>
      */
     public function all(): Collection
     {
         if (! $this->available()) {
-            return collect();
+            return new Collection;
         }
 
         $counts = DB::table('rp_corporation_employees')
@@ -46,10 +52,10 @@ class CorporationDirectory
             $query->where('hidden', 0);
         }
 
-        return $query->get()->map(function (object $corp) use ($counts, $ranks): object {
+        return $query->get()->map(function (stdClass $corp) use ($counts, $ranks): Corporation {
             $count = $counts->get($corp->id);
-            /** @var Collection<int, object> $corpRanks */
-            $corpRanks = $ranks->get($corp->id, collect());
+            /** @var Collection<int, stdClass> $corpRanks */
+            $corpRanks = $ranks->get($corp->id, new Collection);
 
             return $this->shape($corp, $corpRanks, $count !== null ? (int) $count->total : 0, $count !== null ? (int) $count->on_duty : 0);
         })->values();
@@ -59,7 +65,7 @@ class CorporationDirectory
      * One corporation with its ranks, each rank's employees, who is on shift
      * and the HQ rooms the ranks unlock.
      */
-    public function find(int $id): ?object
+    public function find(int $id): ?Corporation
     {
         if (! $this->available()) {
             return null;
@@ -80,32 +86,32 @@ class CorporationDirectory
             ->orderByDesc('e.on_duty')
             ->orderBy('u.username')
             ->get()
-            ->map(fn (object $row): object => (object) [
-                'id' => (int) $row->id,
-                'username' => (string) $row->username,
-                'look' => (string) $row->look,
-                'online' => (string) $row->online === '1',
-                'rank_id' => (int) $row->rank_id,
-                'tier' => (int) $row->tier,
-                'on_duty' => (int) $row->on_duty === 1,
-                'hired_at' => (int) $row->hired_at,
-                'shift_seconds' => (int) $row->shift_seconds,
-            ]);
+            ->map(fn (stdClass $row): Employee => new Employee(
+                id: (int) $row->id,
+                username: (string) $row->username,
+                look: (string) $row->look,
+                online: (string) $row->online === '1',
+                rank_id: (int) $row->rank_id,
+                tier: (int) $row->tier,
+                on_duty: (int) $row->on_duty === 1,
+                hired_at: (int) $row->hired_at,
+                shift_seconds: (int) $row->shift_seconds,
+            ));
 
         $byRank = $employees->groupBy('rank_id');
         $ranksById = $ranks->keyBy('id');
+        $onDuty = $employees->filter(fn (Employee $employee): bool => $employee->on_duty);
 
-        $shaped = $this->shape($corp, $ranks, $employees->count(), $employees->where('on_duty', true)->count());
-        $shaped->ranks = $shaped->ranks->map(function (object $rank) use ($byRank): object {
-            /** @var Collection<int, object> $staff */
-            $staff = $byRank->get($rank->id, collect());
+        $corporation = $this->shape($corp, $ranks, $employees->count(), $onDuty->count());
+
+        foreach ($corporation->ranks as $rank) {
+            /** @var Collection<int, Employee> $staff */
+            $staff = $byRank->get($rank->id, new Collection);
             $rank->employees = $staff->values();
             $rank->count = $staff->count();
+        }
 
-            return $rank;
-        });
-
-        $shaped->on_shift = $employees->where('on_duty', true)->map(function (object $employee) use ($ranksById): object {
+        $corporation->on_shift = $onDuty->map(function (Employee $employee) use ($ranksById): Employee {
             $rank = $ranksById->get($employee->rank_id);
             $employee->rank_name = $rank !== null ? (string) $rank->name : '';
 
@@ -113,28 +119,33 @@ class CorporationDirectory
         })->values();
 
         $top = $ranks->first();
-        $shaped->head = $top !== null ? ($byRank->get($top->id, collect())->first()) : null;
-        $shaped->head_rank = $top !== null ? (string) $top->name : '';
 
-        $shaped->hq_rooms = RoleplaySchema::has('rp_hq_room_ranks')
-            ? DB::table('rp_hq_room_ranks as h')
+        if ($top !== null) {
+            /** @var Collection<int, Employee> $topStaff */
+            $topStaff = $byRank->get($top->id, new Collection);
+            $corporation->head = $topStaff->first();
+            $corporation->head_rank = (string) $top->name;
+        }
+
+        if (RoleplaySchema::has('rp_hq_room_ranks')) {
+            $corporation->hq_rooms = DB::table('rp_hq_room_ranks as h')
                 ->join('rooms as r', 'r.id', '=', 'h.room_id')
                 ->whereIn('h.rank_id', $ranks->pluck('id')->all())
                 ->distinct()
                 ->orderBy('r.id')
                 ->get(['r.id', 'r.name'])
-                ->map(fn (object $room): object => (object) ['id' => (int) $room->id, 'name' => (string) $room->name])
-                ->values()
-            : collect();
+                ->map(fn (stdClass $room): HqRoom => new HqRoom((int) $room->id, (string) $room->name))
+                ->values();
+        }
 
-        return $shaped;
+        return $corporation;
     }
 
     /**
      * Where this player works: the corporation, their rank, the next rank up
      * and how far along the current rank's tiers they are.
      */
-    public function employment(int $userId): ?object
+    public function employment(int $userId): ?Employment
     {
         if (! $this->available()) {
             return null;
@@ -159,46 +170,46 @@ class CorporationDirectory
 
         $tiers = max(1, (int) ($row->tiers ?? 1));
 
-        return (object) [
-            'corporation_id' => (int) $row->id,
-            'corporation' => (string) $row->name,
-            'badge' => (string) ($row->badge ?? ''),
-            'service_type' => (string) ($row->service_type ?? ''),
-            'rank' => (string) ($row->rank_name ?? __('Employee')),
-            'pay' => (int) ($row->pay ?? 0),
-            'tier' => min($tiers, max(1, (int) $row->tier)),
-            'tiers' => $tiers,
-            'next_rank' => $next !== null ? (string) $next->name : null,
-            'on_duty' => (int) $row->on_duty === 1,
-            'shift_seconds' => (int) $row->shift_seconds,
-            'hired_at' => (int) $row->hired_at,
-        ];
+        return new Employment(
+            corporation_id: (int) $row->id,
+            corporation: (string) $row->name,
+            badge: (string) ($row->badge ?? ''),
+            service_type: (string) ($row->service_type ?? ''),
+            rank: (string) ($row->rank_name ?? __('Employee')),
+            pay: (int) ($row->pay ?? 0),
+            tier: min($tiers, max(1, (int) $row->tier)),
+            tiers: $tiers,
+            next_rank: $next !== null ? (string) $next->name : null,
+            on_duty: (int) $row->on_duty === 1,
+            shift_seconds: (int) $row->shift_seconds,
+            hired_at: (int) $row->hired_at,
+        );
     }
 
-    /** @param  Collection<int, object>  $ranks */
-    private function shape(object $corp, Collection $ranks, int $employees, int $onDuty): object
+    /** @param  Collection<int, stdClass>  $ranks */
+    private function shape(stdClass $corp, Collection $ranks, int $employees, int $onDuty): Corporation
     {
-        $pays = $ranks->pluck('pay')->map(fn (mixed $pay): int => (int) $pay);
+        $pays = $ranks->map(fn (stdClass $rank): int => (int) $rank->pay);
 
-        return (object) [
-            'id' => (int) $corp->id,
-            'name' => (string) $corp->name,
-            'acronym' => (string) ($corp->acronym ?? ''),
-            'description' => (string) $corp->description,
-            'badge' => (string) $corp->badge,
-            'service_type' => (string) ($corp->service_type ?? ''),
-            'employees' => $employees,
-            'on_duty' => $onDuty,
-            'positions' => $ranks->count(),
-            'starting_pay' => $pays->isNotEmpty() ? (int) $pays->min() : 0,
-            'top_pay' => $pays->isNotEmpty() ? (int) $pays->max() : 0,
-            'ranks' => $ranks->map(fn (object $rank): object => (object) [
-                'id' => (int) $rank->id,
-                'order' => (int) $rank->rank_order,
-                'name' => (string) $rank->name,
-                'pay' => (int) $rank->pay,
-                'tiers' => (int) $rank->tiers,
-            ])->values(),
-        ];
+        return new Corporation(
+            id: (int) $corp->id,
+            name: (string) $corp->name,
+            acronym: (string) ($corp->acronym ?? ''),
+            description: (string) $corp->description,
+            badge: (string) $corp->badge,
+            service_type: (string) ($corp->service_type ?? ''),
+            employees: $employees,
+            on_duty: $onDuty,
+            positions: $ranks->count(),
+            starting_pay: $pays->isNotEmpty() ? (int) $pays->min() : 0,
+            top_pay: $pays->isNotEmpty() ? (int) $pays->max() : 0,
+            ranks: $ranks->map(fn (stdClass $rank): CorporationRank => new CorporationRank(
+                id: (int) $rank->id,
+                order: (int) $rank->rank_order,
+                name: (string) $rank->name,
+                pay: (int) $rank->pay,
+                tiers: (int) $rank->tiers,
+            ))->values(),
+        );
     }
 }

@@ -45,8 +45,8 @@ class SessionService
         }
 
         $agent = tap(new Agent, fn (Agent $agent) => $agent->setUserAgent($userAgent));
-        $browser = $agent->browser() ?: __('Browser');
-        $platform = $agent->platform() ?: __('unknown device');
+        $browser = is_string($agent->browser()) && $agent->browser() !== '' ? $agent->browser() : __('Browser');
+        $platform = is_string($agent->platform()) && $agent->platform() !== '' ? $agent->platform() : __('unknown device');
 
         return __(':browser on :platform', ['browser' => $browser, 'platform' => $platform]);
     }

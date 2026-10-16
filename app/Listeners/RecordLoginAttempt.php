@@ -34,7 +34,7 @@ class RecordLoginAttempt
         try {
             WebsiteLoginLog::query()->create([
                 'user_id' => $user?->id,
-                'username' => mb_substr((string) ($user?->username ?? ($credentials['username'] ?? '')), 0, 64),
+                'username' => mb_substr($user !== null ? (string) $user->username : (string) ($credentials['username'] ?? ''), 0, 64),
                 'ip_address' => $this->request->ip(),
                 'user_agent' => mb_substr((string) $this->request->userAgent(), 0, 512),
                 'succeeded' => $event instanceof Login,

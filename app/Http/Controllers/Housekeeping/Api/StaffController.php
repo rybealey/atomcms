@@ -58,7 +58,7 @@ class StaffController extends Controller
      */
     private function permissions(): array
     {
-        return WebsiteHousekeepingPermission::query()
+        return array_values(WebsiteHousekeepingPermission::query()
             ->orderBy('permission')
             ->get()
             ->map(fn (WebsiteHousekeepingPermission $row): array => [
@@ -66,7 +66,6 @@ class StaffController extends Controller
                 'min_rank' => (int) $row->min_rank,
                 'description' => (string) $row->description,
             ])
-            ->values()
-            ->all();
+                        ->all());
     }
 }

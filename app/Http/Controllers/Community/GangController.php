@@ -20,12 +20,16 @@ class GangController extends Controller
         $mine = $gangs->membership($character->id);
         $leader = $standings->first();
 
-        return view('gangs.index', [
+        // The pixelrp theme's view: larastan only resolves the default theme's.
+        /** @var view-string $template */
+        $template = 'gangs.index';
+
+        return view($template, [
             'gangs' => $standings,
             'territories' => $gangs->territories(),
             'mine' => $mine,
             // how far your gang is behind the top spot, in blocks
-            'gapToFirst' => $mine !== null && $leader !== null ? max(0, (int) $leader->turf - (int) $mine->turf) : null,
+            'gapToFirst' => $mine !== null && $leader !== null ? max(0, $leader->turf - $mine->turf) : null,
         ]);
     }
 }

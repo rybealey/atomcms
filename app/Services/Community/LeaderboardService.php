@@ -2,6 +2,8 @@
 
 namespace App\Services\Community;
 
+use App\Data\Community\LeaderboardCategory;
+use App\Data\Community\LeaderboardStanding;
 use App\Emulator\Contracts\CurrencyRepository;
 use App\Emulator\Contracts\PlayerStatsRepository;
 use App\Emulator\Data\LeaderboardEntry;
@@ -11,6 +13,7 @@ use App\Models\User;
 use App\Services\Roleplay\RoleplaySchema;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use stdClass;
 
 /**
  * The city's top 10 in every category, and where one player stands.
@@ -34,13 +37,13 @@ class LeaderboardService
      * Every category, grouped, each with its top entries and the player's own
      * rank and value.
      *
-     * @return Collection<int, object{id: string, group: string, label: string, title: string, unit: string, entries: Collection<int, LeaderboardEntry>, me: object{rank: int, value: int}}>
+     * @return Collection<int, LeaderboardCategory>
      */
     public function categories(User $me): Collection
     {
         $exclude = $this->excludedIds();
 
-        $categories = collect([
+        $categories = [
             $this->currency('cash', __('Wealth'), __('Cash'), __('Most cash on hand'), CurrencyTypes::Credits, $me, $exclude, 'dollars'),
             $this->deposits($me, $exclude),
             $this->currency('diamonds', __('Wealth'), __('Diamonds'), __('Most Diamonds'), CurrencyTypes::Diamonds, $me, $exclude, ''),
@@ -49,13 +52,13 @@ class LeaderboardService
             $this->gym('strength', __('Strength'), __('Strongest in the gym'), 'strength_level', $me, $exclude),
             $this->gym('stamina', __('Stamina'), __('Most stamina'), 'stamina_level', $me, $exclude),
             $this->online($me, $exclude),
-        ]);
+        ];
 
-        return $categories->filter()->values();
+        return (new Collection($categories))->filter()->values();
     }
 
     /** @param  array<int, int>  $exclude */
-    private function currency(string $id, string $group, string $label, string $title, CurrencyTypes $type, User $me, array $exclude, string $unit): object
+    private function currency(string $id, string $group, string $label, string $title, CurrencyTypes $type, User $me, array $exclude, string $unit): LeaderboardCategory
     {
         return $this->category($id, $group, $label, $title, $unit,
             $this->currencies->topBy($type, self::SIZE, $exclude),
@@ -65,29 +68,36 @@ class LeaderboardService
     }
 
     /** @param  array<int, int>  $exclude */
-    private function deposits(User $me, array $exclude): ?object
+    private function deposits(User $me, array $exclude): ?LeaderboardCategory
     {
         if (! RoleplaySchema::has('rp_bank_accounts')) {
             return null;
         }
 
-        $value = DB::raw('(current_balance + savings_balance)');
-
         $rows = DB::table('rp_bank_accounts')
             ->whereNotIn('user_id', $exclude)
-            ->orderByDesc($value)
+            ->selectRaw('user_id, (current_balance + savings_balance) AS total')
+            ->orderByRaw('(current_balance + savings_balance) DESC')
             ->limit(self::SIZE)
-            ->get(['user_id', DB::raw('(current_balance + savings_balance) AS total')]);
+            ->get();
 
-        $mine = (int) (DB::table('rp_bank_accounts')->where('user_id', $me->id)->value(DB::raw('(current_balance + savings_balance)')) ?? 0);
-        $rank = DB::table('rp_bank_accounts')->whereNotIn('user_id', $exclude)->where($value, '>', $mine)->count() + 1;
+        $own = DB::table('rp_bank_accounts')
+            ->where('user_id', $me->id)
+            ->selectRaw('(current_balance + savings_balance) AS total')
+            ->first();
+        $mine = $own !== null ? (int) $own->total : 0;
+
+        $rank = DB::table('rp_bank_accounts')
+            ->whereNotIn('user_id', $exclude)
+            ->whereRaw('(current_balance + savings_balance) > ?', [$mine])
+            ->count() + 1;
 
         return $this->category('deposits', __('Wealth'), __('Deposits'), __('Largest bank deposits'), 'dollars',
             $this->entries($rows, 'user_id', 'total'), $rank, $mine);
     }
 
     /** @param  array<int, int>  $exclude */
-    private function arrests(User $me, array $exclude): ?object
+    private function arrests(User $me, array $exclude): ?LeaderboardCategory
     {
         if (! RoleplaySchema::has('rp_charges')) {
             return null;
@@ -103,21 +113,21 @@ class LeaderboardService
             ->get();
 
         $mine = DB::table('rp_charges')->where('officer_id', $me->id)->count();
-        $rank = DB::table('rp_charges')
+
+        $ahead = DB::table('rp_charges')
             ->selectRaw('officer_id')
             ->whereNotIn('officer_id', $exclude)
             ->where('officer_id', '>', 0)
             ->groupBy('officer_id')
-            ->havingRaw('COUNT(*) > ?', [$mine])
-            ->get()
-            ->count() + 1;
+            ->havingRaw('COUNT(*) > ?', [$mine]);
+        $rank = DB::query()->fromSub($ahead, 'ahead')->count() + 1;
 
         return $this->category('arrests', __('Roleplay'), __('Arrests'), __('Most charges filed'), '',
             $this->entries($rows, 'officer_id', 'total'), $rank, $mine);
     }
 
     /** @param  array<int, int>  $exclude */
-    private function shifts(User $me, array $exclude): ?object
+    private function shifts(User $me, array $exclude): ?LeaderboardCategory
     {
         if (! RoleplaySchema::has('rp_corporation_employees')) {
             return null;
@@ -138,7 +148,7 @@ class LeaderboardService
     }
 
     /** @param  array<int, int>  $exclude */
-    private function gym(string $id, string $label, string $title, string $column, User $me, array $exclude): ?object
+    private function gym(string $id, string $label, string $title, string $column, User $me, array $exclude): ?LeaderboardCategory
     {
         if (! RoleplaySchema::hasColumn('user_rp_stats', $column)) {
             return null;
@@ -159,7 +169,7 @@ class LeaderboardService
     }
 
     /** @param  array<int, int>  $exclude */
-    private function online(User $me, array $exclude): object
+    private function online(User $me, array $exclude): LeaderboardCategory
     {
         $entries = $this->stats->topBy(Stat::OnlineTime, self::SIZE, $exclude)
             ->map(fn (LeaderboardEntry $entry): LeaderboardEntry => new LeaderboardEntry($entry->user, intdiv($entry->value, 3600)));
@@ -171,23 +181,15 @@ class LeaderboardService
     /**
      * @param  Collection<int, LeaderboardEntry>  $entries
      */
-    private function category(string $id, string $group, string $label, string $title, string $unit, Collection $entries, int $rank, int $value): object
+    private function category(string $id, string $group, string $label, string $title, string $unit, Collection $entries, int $rank, int $value): LeaderboardCategory
     {
-        return (object) [
-            'id' => $id,
-            'group' => $group,
-            'label' => $label,
-            'title' => $title,
-            'unit' => $unit,
-            'entries' => $entries->values(),
-            'me' => (object) ['rank' => $rank, 'value' => $value],
-        ];
+        return new LeaderboardCategory($id, $group, $label, $title, $unit, $entries->values(), new LeaderboardStanding($rank, $value));
     }
 
     /**
      * Rows of (user id, value) into entries, dropping ids that are no longer users.
      *
-     * @param  Collection<int, object>  $rows
+     * @param  Collection<int, stdClass>  $rows
      *
      * @return Collection<int, LeaderboardEntry>
      */
@@ -196,7 +198,7 @@ class LeaderboardService
         $users = User::whereKey($rows->pluck($idColumn)->all())->get(['id', 'username', 'look'])->keyBy('id');
 
         return $rows
-            ->map(function (object $row) use ($users, $idColumn, $valueColumn): ?LeaderboardEntry {
+            ->map(function (stdClass $row) use ($users, $idColumn, $valueColumn): ?LeaderboardEntry {
                 $user = $users->get($row->{$idColumn});
 
                 return $user === null ? null : new LeaderboardEntry($user, (int) $row->{$valueColumn});

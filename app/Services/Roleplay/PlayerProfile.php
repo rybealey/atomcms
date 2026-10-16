@@ -2,9 +2,13 @@
 
 namespace App\Services\Roleplay;
 
+use App\Data\Roleplay\Friend;
+use App\Data\Roleplay\PlayerStats;
+use App\Data\Roleplay\Wallet;
 use App\Models\User;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use stdClass;
 
 /**
  * What the home page knows about one character: wallet, stats and who of
@@ -36,27 +40,22 @@ class PlayerProfile
         return __('Citizen');
     }
 
-    /** @return object{cash: int, deposits: int, diamonds: int, has_bank: bool} */
-    public function wallet(User $user): object
+    public function wallet(User $user): Wallet
     {
         $bank = RoleplaySchema::has('rp_bank_accounts')
             ? DB::table('rp_bank_accounts')->where('user_id', $user->id)->first(['current_balance', 'savings_balance'])
             : null;
 
-        return (object) [
-            'cash' => (int) $user->credits,
-            'deposits' => $bank !== null ? (int) $bank->current_balance + (int) $bank->savings_balance : 0,
-            'diamonds' => $user->currency('diamonds'),
-            'has_bank' => $bank !== null,
-        ];
+        return new Wallet(
+            cash: (int) $user->credits,
+            deposits: $bank !== null ? (int) $bank->current_balance + (int) $bank->savings_balance : 0,
+            diamonds: $user->currency('diamonds'),
+            has_bank: $bank !== null,
+        );
     }
 
-    /**
-     * The numbers the city keeps on a character.
-     *
-     * @return object{online_hours: int, shift_hours: int, open_charges: int, jailed: int, health: int, health_max: int, energy: int, energy_max: int, strength: int, stamina: int}
-     */
-    public function stats(User $user): object
+    /** The numbers the city keeps on a character. */
+    public function stats(User $user): PlayerStats
     {
         $online = RoleplaySchema::has('user_statistics')
             ? (int) (DB::table('user_statistics')->where('id', $user->id)->value('OnlineTime') ?? 0)
@@ -78,49 +77,51 @@ class PlayerProfile
             ? DB::table('user_rp_stats')->where('user_id', $user->id)->first()
             : null;
 
-        return (object) [
-            'online_hours' => intdiv($online, 3600),
-            'shift_hours' => intdiv($shift, 3600),
-            'open_charges' => $charges,
-            'jailed' => $jailed,
-            'health' => (int) ($rp->health ?? 100),
-            'health_max' => max(1, (int) ($rp->health_max ?? 100)),
-            'energy' => (int) ($rp->energy ?? 100),
-            'energy_max' => max(1, (int) ($rp->energy_max ?? 100)),
-            'strength' => (int) ($rp->strength_level ?? 0),
-            'stamina' => (int) ($rp->stamina_level ?? 0),
-        ];
+        return new PlayerStats(
+            online_hours: intdiv($online, 3600),
+            shift_hours: intdiv($shift, 3600),
+            open_charges: $charges,
+            jailed: $jailed,
+            health: (int) ($rp->health ?? 100),
+            health_max: max(1, (int) ($rp->health_max ?? 100)),
+            energy: (int) ($rp->energy ?? 100),
+            energy_max: max(1, (int) ($rp->energy_max ?? 100)),
+            strength: (int) ($rp->strength_level ?? 0),
+            stamina: (int) ($rp->stamina_level ?? 0),
+        );
     }
 
     /**
      * Friends who are in the city right now.
      *
-     * @return Collection<int, object{id: int, username: string, look: string, motto: string}>
+     * @return Collection<int, Friend>
      */
     public function friendsInTown(User $user, int $limit = 5): Collection
     {
-        return $user->friends()
-            ->join('users', 'users.id', '=', 'messenger_friendships.user_two_id')
-            ->where('users.online', '1')
-            ->orderBy('users.username')
+        return DB::table('messenger_friendships as f')
+            ->join('users as u', 'u.id', '=', 'f.user_two_id')
+            ->where('f.user_one_id', $user->id)
+            ->where('u.online', '1')
+            ->orderBy('u.username')
             ->limit($limit)
-            ->get(['users.id', 'users.username', 'users.look', 'users.motto'])
-            ->map(fn (object $row): object => (object) [
-                'id' => (int) $row->id,
-                'username' => (string) $row->username,
-                'look' => (string) $row->look,
-                'motto' => (string) $row->motto,
-            ])
+            ->get(['u.id', 'u.username', 'u.look', 'u.motto'])
+            ->map(fn (stdClass $row): Friend => new Friend(
+                id: (int) $row->id,
+                username: (string) $row->username,
+                look: (string) $row->look,
+                motto: (string) $row->motto,
+            ))
             ->values();
     }
 
     /** @return array{online: int, total: int} */
     public function friendCounts(User $user): array
     {
-        $total = $user->friends()->count();
-        $online = $user->friends()
-            ->join('users', 'users.id', '=', 'messenger_friendships.user_two_id')
-            ->where('users.online', '1')
+        $total = DB::table('messenger_friendships')->where('user_one_id', $user->id)->count();
+        $online = DB::table('messenger_friendships as f')
+            ->join('users as u', 'u.id', '=', 'f.user_two_id')
+            ->where('f.user_one_id', $user->id)
+            ->where('u.online', '1')
             ->count();
 
         return ['online' => $online, 'total' => $total];

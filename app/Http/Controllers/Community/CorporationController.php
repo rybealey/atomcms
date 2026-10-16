@@ -20,7 +20,11 @@ class CorporationController extends Controller
         $corporations = $this->corporations->all();
         $job = $this->corporations->employment(AuthenticatedUser::current()->activeCharacter()->id);
 
-        return view('corporations.index', [
+        // The pixelrp theme's view: larastan only resolves the default theme's.
+        /** @var view-string $template */
+        $template = 'corporations.index';
+
+        return view($template, [
             'corporations' => $corporations,
             'employees' => (int) $corporations->sum('employees'),
             'openNow' => $corporations->where('on_duty', '>', 0)->count(),
@@ -37,7 +41,10 @@ class CorporationController extends Controller
         $character = AuthenticatedUser::current()->activeCharacter();
         $job = $this->corporations->employment($character->id);
 
-        return view('corporations.show', [
+        /** @var view-string $template */
+        $template = 'corporations.show';
+
+        return view($template, [
             'corporation' => $corporation,
             'job' => $job !== null && $job->corporation_id === $corporation->id ? $job : null,
             'characterId' => $character->id,

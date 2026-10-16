@@ -46,7 +46,11 @@ class WebsiteLoginLog extends Model
         return $this->belongsTo(User::class);
     }
 
-    /** We keep the log for 90 days. */
+    /**
+     * We keep the log for 90 days.
+     *
+     * @return Builder<WebsiteLoginLog>
+     */
     public function prunable(): Builder
     {
         return static::query()->where('created_at', '<', now()->subDays(90));

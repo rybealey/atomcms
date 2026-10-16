@@ -80,6 +80,8 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property string|null $pincode
  * @property int|null $extra_rank
  * @property int|null $team_id
+ * @property int|null $parent_id
+ * @property int|null $active_character_id
  * @property-read \Illuminate\Database\Eloquent\Collection<int, Activity> $activities
  * @property-read int|null $activities_count
  * @property-read int|null $applications_count
@@ -340,7 +342,7 @@ class User extends Authenticatable implements FilamentUser, HasName
             return $this;
         }
 
-        return self::find($this->parent_id) ?? $this;
+        return self::query()->whereKey($this->parent_id)->first() ?? $this;
     }
 
     /** @return \Illuminate\Database\Eloquent\Collection<int, self> Every character on this account, root first. */
@@ -372,7 +374,7 @@ class User extends Authenticatable implements FilamentUser, HasName
             return $root;
         }
 
-        $character = self::find($activeId);
+        $character = self::query()->whereKey($activeId)->first();
 
         if (! $character || (int) $character->parent_id !== (int) $root->id) {
             return $root;
@@ -471,11 +473,6 @@ class User extends Authenticatable implements FilamentUser, HasName
             ->get();
     }
 
-    public function hasAppliedForPosition(int $rankId): bool
-    {
-        return $this->applications()->where('rank_id', '=', $rankId)->exists();
-    }
-
     public function changePassword(string $newPassword): void
     {
         $this->password = Hash::make($newPassword);
@@ -498,16 +495,5 @@ class User extends Authenticatable implements FilamentUser, HasName
             ->logOnly(['id', 'username', 'motto', 'rank', 'credits'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
-    }
-
-    public function hasAppliedForTeam(int $teamId): bool
-    {
-        if (! $teamId) {
-            return false;
-        }
-
-        return $this->applications()
-            ->where('team_id', $teamId)
-            ->exists();
     }
 }

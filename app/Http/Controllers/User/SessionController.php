@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\User;
 
+use App\Data\LoginHistoryEntry;
 use App\Http\Controllers\Controller;
 use App\Models\Session;
 use App\Models\User\WebsiteLoginLog;
@@ -34,13 +35,13 @@ class SessionController extends Controller
         return view('user.settings.session-logs', [
             'sessions' => $sessionService->fetchSessionLogs($request),
             'sessionsAvailable' => config('session.driver') === 'database',
-            'history' => $history->map(fn (WebsiteLoginLog $log): object => (object) [
-                'when' => $log->created_at,
-                'ok' => $log->succeeded,
-                'method' => $log->method,
-                'device' => $sessionService->describeAgent((string) $log->user_agent),
-                'ip' => $sessionService->maskIp((string) $log->ip_address),
-            ]),
+            'history' => $history->map(fn (WebsiteLoginLog $log): LoginHistoryEntry => new LoginHistoryEntry(
+                when: $log->created_at,
+                ok: $log->succeeded,
+                method: $log->method,
+                device: $sessionService->describeAgent((string) $log->user_agent),
+                ip: $sessionService->maskIp((string) $log->ip_address),
+            )),
             'failedThisWeek' => WebsiteLoginLog::query()
                 ->where('user_id', $user->id)
                 ->where('succeeded', false)

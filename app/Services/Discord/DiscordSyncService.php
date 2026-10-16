@@ -125,6 +125,10 @@ class DiscordSyncService
     /**
      * Full desired roles array (current roles with only the bot-managed
      * subset corrected), or null when nothing needs to change.
+     *
+     * @param  array<int, string>  $currentRoles
+     *
+     * @return array<int, string>|null
      */
     private function desiredRoles(User $user, array $currentRoles): ?array
     {
@@ -164,6 +168,8 @@ class DiscordSyncService
     /**
      * Read side: Donor / Committee Member roles granted on Discord will map
      * to in-game badges. Foundation stub - wired up when those perks land.
+     *
+     * @param  array<int, string>  $currentRoles
      */
     private function syncBadgesFromRoles(User $user, array $currentRoles): void
     {

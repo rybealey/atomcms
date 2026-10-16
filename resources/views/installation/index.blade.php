@@ -1,70 +1,55 @@
 <x-installation-layout>
-    <x-content.installation-content-section icon="hotel-icon" classes="border">
-        <x-slot:title>
-            {{ __('Welcome to Atom CMS') }}
-        </x-slot:title>
+    @push('title', __('Setup'))
 
-        <x-slot:under-title>
-            {{ __('We are delighted of having you trying Atom CMS') }}
-        </x-slot:under-title>
+    @include('installation.partials.head', [
+        'step' => 1,
+        'title' => __('Welcome to Atom CMS'),
+        'lead' => __('A few screens of settings and your hotel is on the web. Nothing here is final: every value can be changed later.'),
+    ])
 
-        <div class="space-y-3">
-            <p>
-                {{ __('Hello there! We are truly grateful that you have chosen Atom CMS for your hotel.') }}
-            </p>
+    <form class="prp-card" method="POST" action="{{ route('installation.start-installation') }}" aria-labelledby="inst-form-title">
+        @csrf
 
-            <p>
-                {{ __('Atom CMS is built with the community in mind, meaning we highly value community input, rather than only bringing our own ideas & vision to the CMS we try our very best to implement suggestions made by our beloved community. We want everyone to be able to contribute or customise Atom CMS to their needs without having a bachelor in programming.') }}
-            </p>
+        <div class="sec-head">
+            <h2 id="inst-form-title" class="t-h2">{{ __('Before we start') }}</h2>
+            <p class="t-sm muted">{{ __('Thank you for choosing Atom CMS for your hotel.') }}</p>
+        </div>
 
-            <p>{{ __('Atom CMS sole purpose is to empower hotel owners like you. We want you to be able to run your hotel with ease. Our user-friendly interface, robust features, and helpful community are here to ensure that your experience with Atom CMS is nothing short of exceptional!') }}</p>
+        <div class="card-pad stack g5">
+            <div class="stack g3 t-body">
+                <p class="t-body">
+                    {{ __('Atom CMS is built with the community in mind: an easy way to run your hotel without a degree in programming, shaped by the suggestions of the people who use it.') }}
+                </p>
 
-            <p>
-                {{ __('As you dive into Atom CMS, we encourage you to explore the extensive range of features we have curated to help you bring your vision to life. From customizable templates to seamless integrations with clients like Nitro, we will have you set up in no time.') }}
-            </p>
-
-            <p>
-                {!! __('To get started, we recommend checking out our <a href=":documentation_link" target="_blank" class="font-semibold underline">comprehensive documentation</a>, which will guide you through the initial setup and help you make the most of your Atom CMS experience.', ['documentation_link' => 'https://github.com/atom-retros/atomcms/wiki']) !!}
-            </p>
-
-            <p>
-                {!! __('And remember, please <a href=":discord_link" target="_blank" class="font-semibold underline">join our Discord</a>. If you have any questions or need assistance, please do not hesitate to reach out. We are here to help you every step of the way.', ['discord_link' => 'https://discord.gg/pP6HyZedAj']) !!}
-            </p>
-
-            <p>
-                {{ __('Once again, thank you for choosing Atom CMS, and we cannot wait to see the incredible project you will create.') }}
-            </p>
-
-            <p class="font-semibold italic">
-                {{ __('With everything being said we just want to wish you a warm welcome to the Atom CMS family!') }}
-            </p>
-            <hr>
-
-            <div>
-                {{ __('To avoid any third-party party abuse, please provide the installation code, which can be found in your database inside the "website_installation" table under the column "installation_key".') }}
+                <p class="t-body">
+                    {!! __('The <a href=":documentation_link" target="_blank" rel="noopener" class="link">documentation</a> walks through the first setup and what comes after, and <a href=":discord_link" target="_blank" rel="noopener" class="link">the Discord</a> is where to ask when something is unclear.', [
+                        'documentation_link' => 'https://github.com/atom-retros/atomcms/wiki',
+                        'discord_link' => 'https://discord.gg/pP6HyZedAj',
+                    ]) !!}
+                </p>
             </div>
 
-            <form action="{{ route('installation.start-installation') }}" method="POST">
-                @csrf
+            <div class="prp-alert prp-alert-info">
+                <svg class="prp-alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>
+                <div>
+                    <span class="prp-alert-title">{{ __('The installation key') }}</span>
+                    {{ __('So nobody else can run this setup, it asks for the key in your database: the "website_installation" table, column "installation_key".') }}
+                </div>
+            </div>
 
-                <label class="block font-semibold text-gray-700" for="installation_key">
-                    {{ __('Installation key') }}
-                </label>
-
-                <input
-                    class="focus:ring-0 border-4 border-gray-200 rounded focus:border-[#d62a86] w-full @error('installation_key')border-red-600 ring-red-500 @enderror"
-                    id="installation_key" type="text" name="installation_key" placeholder="{{ __('Enter your installation key') }}" autofocus required autocomplete="false">
-
+            <div class="prp-field">
+                <label class="prp-field-label" for="installation_key">{{ __('Installation key') }}</label>
+                <input class="prp-input mono-input" id="installation_key" type="text" name="installation_key" value="{{ old('installation_key') }}"
+                    placeholder="{{ __('Enter your installation key') }}" autocomplete="off" autocapitalize="none" spellcheck="false" required autofocus
+                    @error('installation_key') aria-invalid="true" aria-describedby="installation_key-error" @enderror>
                 @error('installation_key')
-                    <p class="mt-1 text-xs italic text-red-500">
-                        {{ $message }}
-                    </p>
+                    <span class="prp-field-error" id="installation_key-error">{{ $message }}</span>
                 @enderror
-
-                <x-form.secondary-button classes="mt-3">
-                    {{ __('Start the setup') }}
-                </x-form.secondary-button>
-            </form>
+            </div>
         </div>
-    </x-content.installation-content-section>
+
+        <div class="card-foot">
+            <button type="submit" class="prp-btn prp-btn-primary">{{ __('Start the setup') }}</button>
+        </div>
+    </form>
 </x-installation-layout>
