@@ -2,10 +2,15 @@
     The guest frame: the city behind a single card.
 
     The backdrop is the same reception image the game shows on its hotel
-    view (pixelrp_city.png), so the website and the city open on one scene.
+    view (pixelrp_city.png), so the website and the city open on one scene,
+    with players who are in the city right now walking its foreground road.
     The chip up top still follows the real San Francisco (CityWeather).
 --}}
 @props(['wide' => false])
+
+@php
+    $walkers = app(\App\Services\City\Sidewalk::class)->walkers();
+@endphp
 
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-theme="system">
@@ -17,6 +22,7 @@
 <body>
     <div class="prp auth">
         <div class="auth-bg" aria-hidden="true" style="background-image: url('{{ asset('assets/images/pixelrp/city.webp') }}')"></div>
+        <x-prp.sidewalk :walkers="$walkers" />
 
         <header class="auth-top">
             <div class="row wrap g2" style="margin-left: auto">

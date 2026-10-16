@@ -276,6 +276,15 @@ details.reveal > summary::-webkit-details-marker { display: none; }
 /* auth screens */
 .auth { position: relative; min-height: 100vh; overflow: hidden; display: flex; flex-direction: column; background: #2a1640; }
 .auth-bg { position: absolute; inset: 0; background: #2a1640 center bottom / cover no-repeat; image-rendering: pixelated; image-rendering: crisp-edges; }
+/* players crossing the foreground road of the hotel view */
+.sidewalk { position: absolute; left: 0; right: 0; bottom: 0; height: 16vh; z-index: 1; overflow: hidden; pointer-events: none; }
+.sw-walker { position: absolute; left: 0; bottom: 4.5vh; width: 48px; height: clamp(40px, 6.2vh, 68px); animation-name: swWalkR; animation-timing-function: linear; animation-iteration-count: infinite; filter: drop-shadow(0 2px 1px rgba(0, 0, 0, 0.35)); }
+.sw-walker.sw-left { animation-name: swWalkL; }
+.sw-walker.sw-near { bottom: 1.5vh; height: clamp(44px, 7vh, 76px); }
+.sw-walker img { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); height: 100%; width: auto; image-rendering: pixelated; image-rendering: crisp-edges; }
+@keyframes swWalkR { from { transform: translateX(-80px); } to { transform: translateX(calc(100vw + 40px)); } }
+@keyframes swWalkL { from { transform: translateX(calc(100vw + 40px)); } to { transform: translateX(-80px); } }
+@media (prefers-reduced-motion: reduce) { .sw-walker, .sw-walker .wf { animation-play-state: paused; } }
 .auth-top { position: relative; z-index: 2; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); padding: var(--space-4) var(--space-6); }
 .auth-center { position: relative; z-index: 2; flex: 1 0 auto; display: flex; align-items: flex-start; justify-content: center; padding: var(--space-8) var(--space-4) 280px; }
 .auth-card { width: 100%; max-width: 420px; box-sizing: border-box; padding: var(--space-8); background: var(--surface); color: var(--ink); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); display: flex; flex-direction: column; gap: var(--space-6); }
