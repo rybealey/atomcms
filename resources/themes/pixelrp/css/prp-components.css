@@ -100,7 +100,8 @@
 /* ------------------------------------------------------------------ Nav --- */
 .prp-nav { display: flex; align-items: center; gap: var(--space-6); height: var(--nav-height); padding: 0 var(--space-6); background: var(--surface); border-bottom: 1px solid var(--line); }
 .prp-nav-brand { display: flex; align-items: center; margin-right: var(--space-2); }
-.prp-nav-brand img { display: block; width: auto; height: auto; max-height: var(--nav-height); image-rendering: pixelated; }
+/* the brand images carry their own size (.an-wm / .an-em); this only keeps them crisp */
+.prp-nav-brand img { display: block; max-height: var(--nav-height); image-rendering: pixelated; }
 .prp-nav-items { display: flex; align-items: stretch; gap: var(--space-1); height: 100%; margin: 0; padding: 0; list-style: none; }
 .prp-nav-item { position: relative; display: flex; }
 .prp-nav-link { display: flex; align-items: center; gap: var(--space-1); padding: 0 var(--space-3); background: none; border: 0; font: 500 14px/1 var(--font-sans); color: var(--ink-muted); text-decoration: none; cursor: pointer; }
