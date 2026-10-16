@@ -279,17 +279,25 @@
             <rect x="0" y="100" width="480" height="170" fill="{{ $p['fog'] }}" opacity="0.16"></rect>
         </g>
 
-        {{-- Players walking the sidewalk: the hotel's own imager, walk frames as a GIF. --}}
+        {{--
+            Players walking the sidewalk, drawn by the hotel's own imager. Each
+            walker is the four frames of the walk cycle as separate crisp PNGs,
+            bottom-centred in one box so the stride frames (a few pixels wider)
+            stay planted; the stylesheet steps through them.
+        --}}
         <g filter="{{ $p['walk'] }}">
             @foreach (array_values($walkers) as $index => $look)
                 @php
                     $left = $index % 2 === 1;
-                    $lane = $index % 3 === 2 ? 186 : 180;
+                    $ground = $index % 3 === 2 ? 238 : 232;
+                    $height = 44;
                 @endphp
                 <g class="walker {{ $left ? 'wl' : 'wr' }}" style="animation-duration: {{ $durations[$index % count($durations)] }}s; animation-delay: {{ $delays[$index % count($delays)] }}s">
-                    <rect x="4" y="{{ $lane + 52 }}" width="24" height="2" fill="#000" opacity="0.18"></rect>
-                    <image href="{{ \App\Support\Imager::walking($look, $left ? 6 : 2) }}" x="0" y="{{ $lane }}" width="32" height="55"
-                        preserveAspectRatio="xMidYMax meet" style="image-rendering: pixelated"></image>
+                    <rect x="4" y="{{ $ground - 1 }}" width="20" height="2" fill="#000" opacity="0.18"></rect>
+                    @for ($frame = 0; $frame < 4; $frame++)
+                        <image class="wf wf{{ $frame }}" href="{{ \App\Support\Imager::walkFrame($look, $frame, $left ? 6 : 2) }}" x="0" y="{{ $ground - $height }}" width="28" height="{{ $height }}"
+                            preserveAspectRatio="xMidYMax meet"></image>
+                    @endfor
                 </g>
             @endforeach
         </g>

@@ -317,7 +317,11 @@ details.reveal > summary::-webkit-details-marker { display: none; }
 .h-lav { color: #8a7bb0; --trim: #f3e6d0; --roof: #3d2634; --door: #6d1057; }
 .scene { --glass: #3b4a6b; }
 .ph-night { --win: #f5c542; } .ph-dusk { --win: #f5b96a; } .ph-dawn { --win: #ffe1b0; } .ph-day { --win: #bcd8ee; }
+.scene image { image-rendering: pixelated; image-rendering: crisp-edges; }
 .walker { animation-timing-function: linear; animation-iteration-count: infinite; }
+.wf { animation: prpFrame .56s steps(1) infinite; }
+.wf1 { animation-delay: -.42s; } .wf2 { animation-delay: -.28s; } .wf3 { animation-delay: -.14s; }
+@keyframes prpFrame { 0%, 24.99% { opacity: 1; } 25%, 100% { opacity: 0; } }
 .wr { animation-name: prpWalkR; } .wl { animation-name: prpWalkL; }
 @keyframes prpWalkR { from { transform: translateX(-40px); } to { transform: translateX(520px); } }
 @keyframes prpWalkL { from { transform: translateX(520px); } to { transform: translateX(-40px); } }
@@ -325,7 +329,7 @@ details.reveal > summary::-webkit-details-marker { display: none; }
 @keyframes prpDrift { from { transform: translateX(-30px); } to { transform: translateX(30px); } }
 .rain { animation: prpRain .9s linear infinite; }
 @keyframes prpRain { from { transform: translate(0, 0); } to { transform: translate(-20px, 270px); } }
-.is-paused .walker, .is-paused .drift, .is-paused .rain { animation-play-state: paused; }
+.is-paused .walker, .is-paused .wf, .is-paused .drift, .is-paused .rain { animation-play-state: paused; }
 @media (prefers-reduced-motion: reduce) {
-    .walker, .drift, .rain { animation-play-state: paused; }
+    .walker, .wf, .drift, .rain { animation-play-state: paused; }
 }

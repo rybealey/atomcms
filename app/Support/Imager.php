@@ -34,9 +34,12 @@ final class Imager
         return self::figure($look, ['direction' => $direction, 'head_direction' => $direction, 'headonly' => 1, 'size' => $size]);
     }
 
-    /** An animated walk, as a GIF of every walk frame. Direction 2 walks right, 6 walks left. */
-    public static function walking(string $look, int $direction = 2, string $size = 's'): string
+    /**
+     * One frame of the walk cycle (0-3) as a crisp medium PNG; the street
+     * steps through the four itself. Direction 2 walks right, 6 walks left.
+     */
+    public static function walkFrame(string $look, int $frame, int $direction = 2): string
     {
-        return self::figure($look, ['direction' => $direction, 'head_direction' => $direction, 'action' => 'wlk', 'size' => $size, 'img_format' => 'gif']);
+        return self::figure($look, ['direction' => $direction, 'head_direction' => $direction, 'action' => 'wlk', 'frame_num' => $frame, 'size' => 'm']);
     }
 }
