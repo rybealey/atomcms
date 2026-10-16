@@ -10,6 +10,7 @@
 
 @php
     $walkers = app(\App\Services\City\Sidewalk::class)->walkers();
+    $sky = app(\App\Services\City\CityWeather::class)->current();
 @endphp
 
 <!DOCTYPE html>
@@ -30,6 +31,12 @@
                     <span class="prp-dot prp-dot-online"></span>
                     <span class="t-num">{{ number_format(players_online()) }}</span> {{ __('online') }}
                 </span>
+                <span class="chip hide-sm">
+                    <x-prp.icon name="pin" class="ico-sm" />
+                    <span>San Francisco</span><span class="muted">·</span>
+                    <span class="t-num" data-sf-time>{{ $sky->time }}</span><span class="muted">·</span>
+                    <span>{{ $sky->weatherLabel() }}@if ($sky->temperature !== null), <span class="t-num">{{ $sky->temperature }}°F</span>@endif</span>
+                </span>
                 {{ $top ?? '' }}
             </div>
         </header>
@@ -43,11 +50,11 @@
         <footer class="auth-foot">
             <span></span>
 
-            <span class="chip chip-tall">
-                <span class="muted">{{ __(':hotel is a not-for-profit educational project.', ['hotel' => setting('hotel_name')]) }}</span>
-                <a class="link ink" href="{{ route('help-center.rules.index') }}">{{ __('Terms') }}</a>
-                <a class="link ink" href="{{ route('help-center.rules.index') }}#privacy">{{ __('Privacy') }}</a>
-            </span>
+            <p class="auth-foot-note">
+                {{ __(':hotel is a not-for-profit educational project.', ['hotel' => setting('hotel_name')]) }}
+                <a class="focusable" href="{{ route('help-center.rules.index') }}">{{ __('Terms') }}</a> ·
+                <a class="focusable" href="{{ route('help-center.rules.index') }}#privacy">{{ __('Privacy') }}</a>
+            </p>
         </footer>
     </div>
 

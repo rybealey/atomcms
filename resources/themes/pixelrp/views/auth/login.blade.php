@@ -2,21 +2,8 @@
     Log in. Served at `/` (the landing page) and as Fortify's login view, so the
     two can never drift apart.
 --}}
-@php
-    $sky = app(\App\Services\City\CityWeather::class)->current();
-@endphp
-
 <x-guest-layout aria-labelledby="login-title">
     @push('title', __('Log in'))
-
-    <x-slot:top>
-        <span class="chip hide-sm">
-            <x-prp.icon name="pin" class="ico-sm" />
-            <span>San Francisco</span><span class="muted">·</span>
-            <span class="t-num" data-sf-time>{{ $sky->time }}</span><span class="muted">·</span>
-            <span>{{ $sky->weatherLabel() }}@if ($sky->temperature !== null), <span class="t-num">{{ $sky->temperature }}°F</span>@endif</span>
-        </span>
-    </x-slot:top>
 
     <div class="stack g2">
         <img class="px-img auth-logo" src="{{ asset('assets/images/pixelrp/logo-hero.gif') }}" width="201" height="55" alt="{{ setting('hotel_name') }}">

@@ -104,7 +104,6 @@ button, input, select, textarea { font-family: inherit; }
 .tone-neutral { background: var(--gray-600); }
 .chip { display: inline-flex; align-items: center; gap: var(--space-2); height: 32px; padding: 0 var(--space-3); border-radius: var(--radius-full); background: var(--surface); color: var(--ink); border: 1px solid var(--line); font: 500 13px/16px var(--font-sans); white-space: nowrap; }
 .chip-btn { cursor: pointer; height: 36px; }
-.chip-tall { height: 36px; }
 .seg { display: inline-flex; padding: 3px; gap: 2px; border-radius: var(--radius-md); background: var(--surface-sunken); }
 .seg button, .seg a { height: 32px; padding: 0 var(--space-3); border: 0; border-radius: 8px; background: transparent; color: var(--ink-muted); font: 500 13px/16px var(--font-sans); cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; }
 .seg button[aria-pressed="true"], .seg a[aria-current="page"] { background: var(--surface); color: var(--ink); box-shadow: var(--shadow-sm); }
@@ -300,8 +299,10 @@ details.reveal > summary::-webkit-details-marker { display: none; }
 .auth-or::before, .auth-or::after { content: ""; flex: 1; height: 1px; background: var(--line); }
 .auth-logo { align-self: center; margin-bottom: 8px; border-radius: 6px; }
 .looks { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-3); }
-.auth-foot-note { margin: 0; font: 400 12px/18px var(--font-sans); color: rgba(255, 255, 255, 0.78); text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5); }
-.auth-foot-note a { color: inherit; text-underline-offset: 3px; border-radius: 2px; }
+/* the legal line stays a quiet caption over the picture, never a pill */
+.auth-foot-note { margin: 0; font: 400 11px/16px var(--font-sans); color: rgba(255, 255, 255, 0.55); text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45); }
+.auth-foot-note a { color: inherit; text-decoration: underline; text-underline-offset: 3px; border-radius: 2px; }
+.auth-foot-note a:hover { color: rgba(255, 255, 255, 0.85); }
 @media (max-width: 680px) {
     .auth-top, .auth-foot { padding: var(--space-3) var(--space-4); }
     .auth-center { padding: var(--space-4) var(--space-4) 200px; }
