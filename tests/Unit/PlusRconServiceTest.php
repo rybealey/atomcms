@@ -80,7 +80,7 @@ class PlusRconServiceTest extends BaseTestCase
         $rcon = new PlusRconService('127.0.0.1', $this->port);
         $response = $rcon->sendPlusCommand('give_user_currency', [42, 'credits', 100]);
 
-        $this->assertSame("give_user_currency\x01".'42:credits:100', $this->receiveOne());
+        $this->assertSame("give_user_currency\x01" . '42:credits:100', $this->receiveOne());
         $this->assertTrue($response->successful());
     }
 
@@ -104,7 +104,7 @@ class PlusRconServiceTest extends BaseTestCase
 
         $rcon->alertUser($user, 'note: hello');
 
-        $this->assertSame("alert_user\x01".'42:note; hello', $this->receiveOne());
+        $this->assertSame("alert_user\x01" . '42:note; hello', $this->receiveOne());
     }
 
     public function test_send_gift_grants_via_furniture_repository_without_connecting(): void
@@ -133,6 +133,6 @@ class PlusRconServiceTest extends BaseTestCase
 
         $rcon->syncDiscordStatus($user);
 
-        $this->assertSame("reload_user_discord\x01".'42', $this->receiveOne());
+        $this->assertSame("reload_user_discord\x01" . '42', $this->receiveOne());
     }
 }

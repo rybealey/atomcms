@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\Discord\DiscordApi;
 use App\Services\Discord\DiscordSyncService;
+use App\Support\AuthenticatedUser;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -35,12 +36,14 @@ class DiscordController extends Controller
             return $this->result('error', __('Discord linking is not available right now. Please try again later.'));
         }
 
-        if ($request->user()->discord_id) {
+        $user = AuthenticatedUser::from($request);
+
+        if ($user->discord_id) {
             // Push status now - the client may still be showing a stale
             // "unlinked" state from before this popup opened, and without
             // this it would sit on "Waiting for Discord" until the 90s
             // fallback even though nothing here actually changed.
-            $this->rcon->syncDiscordStatus($request->user());
+            $this->rcon->syncDiscordStatus($user);
 
             return $this->result('success', __('Your Discord account is already connected.'));
         }
@@ -73,7 +76,7 @@ class DiscordController extends Controller
             return $this->result('error', __('Discord did not confirm the link. Please try again from the game.'));
         }
 
-        $user = $request->user();
+        $user = AuthenticatedUser::from($request);
         $discordId = (string) $identity['id'];
 
         // One Discord account per game account - hard uniqueness (also
@@ -94,7 +97,7 @@ class DiscordController extends Controller
         // Auto-join the guild (no-op if already a member), then converge
         // nickname + roles right away.
         $this->api->joinGuild($discordId, $token['access_token']);
-        $this->sync->syncUser($user->fresh());
+        $this->sync->syncUser($user->fresh() ?? $user);
 
         // Best effort: push the new status straight into the open client so
         // the Settings window updates without the player doing anything.

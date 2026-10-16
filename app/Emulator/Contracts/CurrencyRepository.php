@@ -37,4 +37,12 @@ interface CurrencyRepository
      * @return Collection<int, LeaderboardEntry>
      */
     public function topBy(CurrencyTypes $currency, int $limit, array $excludeUserIds = []): Collection;
+
+    /**
+     * Where a player stands in a currency: 1 for the richest. Ties share the
+     * better rank.
+     *
+     * @param  array<int, int>  $excludeUserIds
+     */
+    public function rankOf(User $user, CurrencyTypes $currency, array $excludeUserIds = []): int;
 }

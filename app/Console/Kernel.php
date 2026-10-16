@@ -2,6 +2,7 @@
 
 namespace App\Console;
 
+use App\Models\User\WebsiteLoginLog;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
@@ -24,6 +25,9 @@ class Kernel extends ConsoleKernel
         $schedule->command('discord:sweep')
             ->everyTenMinutes()
             ->withoutOverlapping();
+
+        // pixelrp: the log in history (WebsiteLoginLog) is kept for 90 days.
+        $schedule->command('model:prune', ['--model' => [WebsiteLoginLog::class]])->daily();
     }
 
     /**

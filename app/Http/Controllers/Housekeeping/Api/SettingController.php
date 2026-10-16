@@ -111,7 +111,7 @@ class SettingController extends Controller
      */
     private function all(): array
     {
-        return WebsiteSetting::query()
+        return array_values(WebsiteSetting::query()
             ->orderBy('key')
             ->get()
             ->map(function (WebsiteSetting $setting): array {
@@ -125,7 +125,6 @@ class SettingController extends Controller
                     'has_value' => (string) $setting->value !== '',
                 ];
             })
-            ->values()
-            ->all();
+            ->all());
     }
 }

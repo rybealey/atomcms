@@ -35,7 +35,7 @@ class ListWebsiteBetaCodes extends ListRecords
                         ->helperText('Prepended to each code, e.g. "PXL" → PXL-9K7Q2M.'),
                 ])
                 ->action(function (array $data): void {
-                    $created = static::generateCodes(
+                    $created = self::generateCodes(
                         (int) $data['quantity'],
                         strtoupper(trim((string) ($data['prefix'] ?? ''))),
                     );

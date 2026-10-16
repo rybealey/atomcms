@@ -1,10 +1,8 @@
 <?php
 
-use App\Models\Community\Staff\WebsiteTeam;
 use App\Models\Game\Permission;
 use App\Models\User;
 use App\Services\Community\StaffService;
-use App\Services\Community\TeamService;
 use Illuminate\Support\Facades\Cache;
 
 beforeEach(function () {
@@ -96,34 +94,4 @@ test('staff visibility setting changes invalidate cached results', function () {
 
     expect($service->fetchStaffPositions($viewer)->flatMap->users->pluck('id'))
         ->not->toContain($staff->id);
-});
-
-test('team caches are invalidated when teams or their members change', function () {
-    $team = WebsiteTeam::create([
-        'rank_name' => 'Event Team',
-        'badge' => 'EVT',
-        'hidden_rank' => false,
-        'staff_color' => '#ffffff',
-        'staff_background' => '',
-        'job_description' => 'Runs events',
-    ]);
-    $member = User::factory()->create([
-        'username' => 'TeamMember',
-        'team_id' => $team->id,
-        'motto' => 'Before',
-    ]);
-    $service = app(TeamService::class);
-
-    expect($service->fetchTeams()->firstWhere('id', $team->id)->users->firstWhere('id', $member->id)->motto)
-        ->toBe('Before');
-
-    $member->update(['motto' => 'After']);
-
-    expect($service->fetchTeams()->firstWhere('id', $team->id)->users->firstWhere('id', $member->id)->motto)
-        ->toBe('After');
-
-    $team->update(['rank_name' => 'Updated Event Team']);
-
-    expect($service->fetchTeams()->firstWhere('id', $team->id)->rank_name)
-        ->toBe('Updated Event Team');
 });

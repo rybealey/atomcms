@@ -76,7 +76,7 @@ class DiscordProcessQueue extends Command
         // undo the link that was just made. The row is still deleted below
         // so it never accumulates.
         $unlinkIds = $unlinkIds->diff(
-            User::query()->whereIn('discord_id', $unlinkIds)->pluck('discord_id')
+            User::query()->whereIn('discord_id', $unlinkIds)->pluck('discord_id'),
         );
 
         foreach ($unlinkIds as $discordId) {

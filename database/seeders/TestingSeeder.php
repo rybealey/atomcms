@@ -73,9 +73,24 @@ class TestingSeeder extends Seeder
             });
         }
 
-        if (! Schema::hasTable('user_stats')) {
-            Schema::create('user_stats', function (Blueprint $table) {
-                $table->integer('id')->primary()->comment('Plus keys user_stats by the user id');
+        // pixelrp: the account/character columns and the hotel's own-account
+        // flag come from the emulator's SQL updates in a real hotel.
+        if (! Schema::hasColumn('users', 'parent_id')) {
+            Schema::table('users', function (Blueprint $table) {
+                $table->integer('parent_id')->nullable()->index();
+                $table->integer('active_character_id')->nullable();
+            });
+        }
+
+        if (! Schema::hasColumn('users', 'rp_system_account')) {
+            Schema::table('users', function (Blueprint $table) {
+                $table->boolean('rp_system_account')->default(false);
+            });
+        }
+
+        if (! Schema::hasTable('user_statistics')) {
+            Schema::create('user_statistics', function (Blueprint $table) {
+                $table->integer('id')->primary()->comment('Plus keys user_statistics by the user id');
                 $table->integer('OnlineTime')->default(0);
                 $table->integer('Respect')->default(0);
                 $table->integer('AchievementScore')->default(0);

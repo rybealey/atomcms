@@ -63,7 +63,7 @@ class BanScope
     public static function historyFor(int $userId, string $username): array
     {
         if (PlayerColumns::isPlus()) {
-            return DB::table('bans')
+            return array_values(DB::table('bans')
                 ->where('bantype', 'user')
                 ->where('value', $username)
                 ->orderByDesc('id')
@@ -77,10 +77,10 @@ class BanScope
                     'active' => (float) $ban->expire > time(),
                 ])
                 ->values()
-                ->all();
+                ->all());
         }
 
-        return DB::table('bans')
+        return array_values(DB::table('bans')
             ->where('user_id', $userId)
             ->orderByDesc('id')
             ->limit(20)
@@ -93,6 +93,6 @@ class BanScope
                 'active' => (int) $ban->ban_expire > time(),
             ])
             ->values()
-            ->all();
+            ->all());
     }
 }

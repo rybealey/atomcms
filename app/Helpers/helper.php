@@ -4,6 +4,8 @@ use App\Models\User;
 use App\Services\HousekeepingPermissionsService;
 use App\Services\PermissionsService;
 use App\Services\SettingsService;
+use App\Support\Imager;
+use Illuminate\Support\Facades\Cache;
 
 if (! function_exists('setting')) {
     /**
@@ -78,5 +80,32 @@ if (! function_exists('dropForeignKeyIfExists')) {
                 );
             }
         }
+    }
+}
+
+if (! function_exists('avatar_url')) {
+    /**
+     * A nitro-imager render of a figure string. See App\Support\Imager.
+     *
+     * @param  array<string, string|int>  $params
+     */
+    function avatar_url(string $look, array $params = []): string
+    {
+        return Imager::figure($look, $params);
+    }
+}
+
+if (! function_exists('players_online')) {
+    /**
+     * How many players are in the city right now. Shown on every page, so it
+     * reads from a short cache rather than counting rows on each hit.
+     */
+    function players_online(): int
+    {
+        return (int) Cache::remember(
+            'landing.players-online',
+            now()->addSeconds(30),
+            fn (): int => User::where('online', '1')->count(),
+        );
     }
 }

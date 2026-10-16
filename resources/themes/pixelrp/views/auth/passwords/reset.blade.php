@@ -1,35 +1,26 @@
-<x-guest-layout>
+<x-guest-layout aria-labelledby="reset-title">
     @push('title', __('Reset password'))
 
-    <img class="pixel-logo pixel-logo--sm" src="{{ asset('assets/images/pixelrp/logo-animated.gif') }}"
-        alt="{{ setting('hotel_name') }}" width="201" height="99">
-
-    <div class="pixel-card">
-        <div class="pixel-card__body">
-            <h1 class="pixel-card__title">{{ __('New password') }}</h1>
-
-            <x-pixel.alert :handled="['password', 'mail']" />
-
-            <form class="flex flex-col gap-4" method="POST" action="{{ route('reset.password.post', $token) }}">
-                @csrf
-
-                <div class="flex flex-col gap-3">
-                    <x-pixel.input name="password" type="password" :label="__('Password')" placeholder="••••••••"
-                        autocomplete="new-password"
-                        :hint="__('At least 12 characters, with upper and lower case, a number and a symbol.')" />
-
-                    <x-pixel.input name="password_confirmation" type="password" :label="__('Verify password')"
-                        placeholder="••••••••" autocomplete="new-password" />
-                </div>
-
-                <x-pixel.button size="lg" :full-width="true">
-                    {{ __('▶ Reset password') }}
-                </x-pixel.button>
-            </form>
-
-            <p class="pixel-meta">
-                <a class="pixel-link" href="{{ route('welcome') }}">{{ __('Back to log in') }}</a>
-            </p>
-        </div>
+    <div class="stack g2">
+        <img class="px-img auth-logo" src="{{ asset('assets/images/pixelrp/logo-hero.gif') }}" width="201" height="55" alt="{{ setting('hotel_name') }}">
+        <h1 id="reset-title" class="t-h1">{{ __('Choose a new password') }}</h1>
+        <p class="t-body muted">{{ __('Make it one you do not use anywhere else.') }}</p>
     </div>
+
+    <x-prp.alert :handled="['password', 'password_confirmation', 'mail']" />
+
+    <form class="stack g4" method="POST" action="{{ route('reset.password.post', $token) }}">
+        @csrf
+
+        <x-prp.field name="password" type="password" :label="__('New password')" autocomplete="new-password" :autofocus="true"
+            :hint="__('At least 12 characters, one capital letter, one lowercase letter, one number and one special character.')" />
+
+        <x-prp.field name="password_confirmation" type="password" :label="__('Confirm new password')" autocomplete="new-password" />
+
+        <button type="submit" class="prp-btn prp-btn-primary prp-btn-lg prp-btn-block">{{ __('Reset password') }}</button>
+    </form>
+
+    <p class="t-sm muted ta-center">
+        <a class="link" href="{{ route('welcome') }}">{{ __('Back to log in') }}</a>
+    </p>
 </x-guest-layout>

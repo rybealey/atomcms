@@ -7,10 +7,8 @@ use App\Emulator\Data\Feature;
 use App\Emulator\Emulator;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\AccountSettingsFormRequest;
-use App\Services\User\SessionService;
 use App\Support\AuthenticatedUser;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class AccountSettingsController extends Controller
@@ -31,15 +29,6 @@ class AccountSettingsController extends Controller
         return view('user.settings.account', [
             'user' => $user,
             'allowNameChange' => (bool) $allowNameChange,
-        ]);
-    }
-
-    public function sessionLogs(Request $request, SessionService $sessionService): View
-    {
-        $sessions = $sessionService->fetchSessionLogs($request);
-
-        return view('user.settings.session-logs', [
-            'logs' => $sessions,
         ]);
     }
 
@@ -64,10 +53,5 @@ class AccountSettingsController extends Controller
         }
 
         return redirect()->route('settings.account.show')->with('success', __('Your account settings has been updated'));
-    }
-
-    public function twoFactor(): View
-    {
-        return view('user.settings.two-factor');
     }
 }

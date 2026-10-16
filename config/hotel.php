@@ -28,4 +28,22 @@ return [
 
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Starting looks
+    |--------------------------------------------------------------------------
+    |
+    | The figures a new citizen can pick from on the registration form. Each
+    | is rendered by the imager on the form itself, so every part must exist
+    | in the hotel's figuredata. The first is the default.
+    |
+    */
+
+    'starting_looks' => [
+        'street' => ['label' => 'Street', 'figure' => 'hd-180-1.hr-100-61.ch-210-66.lg-270-82.sh-290-80'],
+        'smart' => ['label' => 'Smart', 'figure' => 'hd-180-2.hr-115-45.ch-215-1.lg-275-64.sh-305-62'],
+        'sporty' => ['label' => 'Sporty', 'figure' => 'hd-180-3.hr-125-31.ch-255-66.lg-285-82.sh-300-64'],
+        'night' => ['label' => 'Night shift', 'figure' => 'hd-180-4.hr-155-45.ch-225-62.lg-280-110.sh-295-62'],
+    ],
+
 ];

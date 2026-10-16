@@ -61,8 +61,8 @@ class FurniDeleteLogResource extends Resource
                 // way to search it.
                 TextColumn::make('account')
                     ->label(__('filament::resources.columns.account'))
-                    ->state(fn (FurniDeleteLog $record): string => $record->user?->parent?->username
-                        ?? $record->user?->username
+                    ->state(fn (FurniDeleteLog $record): string => $record->user->parent->username
+                        ?? $record->user->username
                         ?? $record->username)
                     ->toggleable(),
 

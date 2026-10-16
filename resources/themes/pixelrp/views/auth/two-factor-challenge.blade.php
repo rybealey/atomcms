@@ -1,37 +1,41 @@
-<x-guest-layout>
+<x-guest-layout aria-labelledby="login-title">
     @push('title', __('Two-factor authentication'))
 
-    <img class="pixel-logo pixel-logo--sm" src="{{ asset('assets/images/pixelrp/logo-animated.gif') }}"
-        alt="{{ setting('hotel_name') }}" width="201" height="99">
+    <div class="stack g2">
+        <p class="t-over brand-ink">{{ __('Two-factor check') }}</p>
+        <h1 id="login-title" class="t-h1">{{ __('Enter your code') }}</h1>
+        <p class="t-body muted">{{ __('Open your authenticator app and enter the 6-digit code for :hotel.', ['hotel' => setting('hotel_name')]) }}</p>
+    </div>
 
-    <div class="pixel-card">
-        <div class="pixel-card__body">
-            <h1 class="pixel-card__title">{{ __('Security check') }}</h1>
+    <x-prp.alert :handled="['code', 'recovery_code']" />
 
-            <p class="pixel-card__lede">
-                {{ __('Enter the code from your authenticator app, or one of your recovery codes.') }}
-            </p>
+    <form class="stack g4" method="POST" action="{{ route('two-factor.login') }}">
+        @csrf
 
-            <x-pixel.alert :handled="['code', 'recovery_code']" />
-
-            <form class="flex flex-col gap-4" method="POST" action="{{ route('two-factor.login') }}">
-                @csrf
-
-                <div class="flex flex-col gap-3">
-                    <x-pixel.input name="code" :label="__('Authentication code')" placeholder="000000"
-                        autocomplete="one-time-code" inputmode="numeric" :required="false" :autofocus="true" />
-
-                    <x-pixel.input name="recovery_code" :label="__('Recovery code')"
-                        :placeholder="__('Use a recovery code instead')" autocomplete="one-time-code"
-                        :required="false" />
-                </div>
-
-                <x-pixel.captcha />
-
-                <x-pixel.button size="lg" :full-width="true">
-                    {{ __('▶ Verify') }}
-                </x-pixel.button>
-            </form>
+        <div class="prp-field">
+            <label class="prp-field-label" for="login-otp">{{ __('Authentication code') }}</label>
+            <input class="prp-input code-input" id="login-otp" name="code" inputmode="numeric" autocomplete="one-time-code"
+                maxlength="6" placeholder="000000" aria-describedby="login-otp-hint" autofocus
+                @error('code') aria-invalid="true" @enderror>
+            @error('code')
+                <span class="prp-field-error">{{ $message }}</span>
+            @enderror
+            <span class="prp-field-hint" id="login-otp-hint">{{ __('Codes refresh every 30 seconds.') }}</span>
         </div>
+
+        <details class="reveal stack g3" @if ($errors->has('recovery_code') || old('recovery_code')) open @endif>
+            <summary class="link t-sm">{{ __('Use a recovery code') }}</summary>
+            <x-prp.field name="recovery_code" :label="__('Recovery code')" autocomplete="one-time-code" :required="false"
+                class="mono-input" :hint="__('One of the codes you saved when you turned on two-factor. Each works once.')" />
+        </details>
+
+        <x-prp.captcha />
+
+        <button type="submit" class="prp-btn prp-btn-primary prp-btn-lg prp-btn-block">{{ __('Verify and log in') }}</button>
+    </form>
+
+    <div class="row between wrap">
+        <span></span>
+        <a class="prp-btn prp-btn-quiet prp-btn-sm" href="{{ route('welcome') }}">{{ __('Back to log in') }}</a>
     </div>
 </x-guest-layout>

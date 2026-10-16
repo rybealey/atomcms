@@ -16,7 +16,6 @@ use App\Models\Game\Player\UserCurrency;
 use App\Models\Game\Player\UserSetting;
 use App\Models\Game\Player\UserSubscription;
 use App\Models\Game\Room;
-use App\Models\Help\WebsiteHelpCenterTicket;
 use App\Models\Miscellaneous\CameraWeb;
 use App\Models\Miscellaneous\WebsiteBetaCode;
 use App\Models\User\Ban;
@@ -81,6 +80,8 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property string|null $pincode
  * @property int|null $extra_rank
  * @property int|null $team_id
+ * @property int|null $parent_id
+ * @property int|null $active_character_id
  * @property-read \Illuminate\Database\Eloquent\Collection<int, Activity> $activities
  * @property-read int|null $activities_count
  * @property-read int|null $applications_count
@@ -117,8 +118,6 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property-read int|null $sessions_count
  * @property-read UserSetting|null $settings
  * @property-read WebsiteTeam|null $team
- * @property-read \Illuminate\Database\Eloquent\Collection<int, WebsiteHelpCenterTicket> $tickets
- * @property-read int|null $tickets_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, PersonalAccessToken> $tokens
  * @property-read int|null $tokens_count
  * @property-read int|null $transactions_count
@@ -343,7 +342,7 @@ class User extends Authenticatable implements FilamentUser, HasName
             return $this;
         }
 
-        return self::find($this->parent_id) ?? $this;
+        return self::query()->whereKey($this->parent_id)->first() ?? $this;
     }
 
     /** @return \Illuminate\Database\Eloquent\Collection<int, self> Every character on this account, root first. */
@@ -375,7 +374,7 @@ class User extends Authenticatable implements FilamentUser, HasName
             return $root;
         }
 
-        $character = self::find($activeId);
+        $character = self::query()->whereKey($activeId)->first();
 
         if (! $character || (int) $character->parent_id !== (int) $root->id) {
             return $root;
@@ -444,12 +443,6 @@ class User extends Authenticatable implements FilamentUser, HasName
         return $this->hasMany(Item::class, 'user_id');
     }
 
-    /** @return HasMany<WebsiteHelpCenterTicket, $this> */
-    public function tickets(): HasMany
-    {
-        return $this->hasMany(WebsiteHelpCenterTicket::class);
-    }
-
     /** @return HasMany<CameraWeb, $this> */
     public function photos(): HasMany
     {
@@ -480,11 +473,6 @@ class User extends Authenticatable implements FilamentUser, HasName
             ->get();
     }
 
-    public function hasAppliedForPosition(int $rankId): bool
-    {
-        return $this->applications()->where('rank_id', '=', $rankId)->exists();
-    }
-
     public function changePassword(string $newPassword): void
     {
         $this->password = Hash::make($newPassword);
@@ -507,16 +495,5 @@ class User extends Authenticatable implements FilamentUser, HasName
             ->logOnly(['id', 'username', 'motto', 'rank', 'credits'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
-    }
-
-    public function hasAppliedForTeam(int $teamId): bool
-    {
-        if (! $teamId) {
-            return false;
-        }
-
-        return $this->applications()
-            ->where('team_id', $teamId)
-            ->exists();
     }
 }

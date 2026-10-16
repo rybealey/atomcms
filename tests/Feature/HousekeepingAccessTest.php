@@ -1,11 +1,9 @@
 <?php
 
-use App\Models\Miscellaneous\WebsitePermission;
 use App\Models\User;
 use App\Models\User\Ban;
 use App\Models\WebsiteHousekeepingPermission;
 use App\Policies\BanPolicy;
-use App\Policies\WebsiteHelpCenterTicketPolicy;
 use Illuminate\Support\Facades\Gate;
 
 function grantHousekeepingPermission(string $permission, int $minRank): void
@@ -23,12 +21,14 @@ test('guests are redirected away from the housekeeping panel', function () {
     $this->get('/housekeeping')->assertRedirect();
 });
 
-test('users without the housekeeping permission are forbidden', function () {
+test('users without the housekeeping permission are sent back to the website', function () {
     installHotel();
 
     $user = User::factory()->create();
 
-    $this->actingAs($user)->get('/housekeeping')->assertForbidden();
+    // A page request is redirected (EnsureHousekeepingAccess); the JSON API refuses outright.
+    $this->actingAs($user)->get('/housekeeping')->assertRedirect(route('welcome'));
+    $this->actingAs($user)->getJson('/housekeeping/api/me')->assertForbidden();
 });
 
 test('policies evaluate the explicit actor instead of global authentication', function () {
@@ -38,22 +38,15 @@ test('policies evaluate the explicit actor instead of global authentication', fu
         ['permission' => 'manage_bans'],
         ['min_rank' => 5, 'description' => 'Manage bans'],
     );
-    WebsitePermission::query()->updateOrCreate(
-        ['permission' => 'manage_website_tickets'],
-        ['min_rank' => 5, 'description' => 'Manage tickets'],
-    );
 
     $signedInUser = User::factory()->create(['rank' => 1]);
     $explicitActor = User::factory()->create(['rank' => 7]);
     $this->actingAs($signedInUser);
 
     $banPolicy = app(BanPolicy::class);
-    $ticketPolicy = app(WebsiteHelpCenterTicketPolicy::class);
 
     expect($banPolicy->viewAny($explicitActor))->toBeTrue()
-        ->and($banPolicy->viewAny($signedInUser))->toBeFalse()
-        ->and($ticketPolicy->viewAny($explicitActor))->toBeTrue()
-        ->and($ticketPolicy->viewAny($signedInUser))->toBeFalse();
+        ->and($banPolicy->viewAny($signedInUser))->toBeFalse();
 });
 
 test('forced staff two-factor authentication also protects housekeeping', function () {
@@ -143,10 +136,10 @@ test('the user editor only resolves records below the actor rank', function () {
     $higher = User::factory()->create(['rank' => 7]);
 
     $this->actingAs($actor)
-        ->get("/housekeeping/user-management/users/{$lower->id}/edit")
+        ->get("/housekeeping/legacy/user-management/users/{$lower->id}/edit")
         ->assertOk();
 
     $this->actingAs($actor)
-        ->get("/housekeeping/user-management/users/{$higher->id}/edit")
+        ->get("/housekeeping/legacy/user-management/users/{$higher->id}/edit")
         ->assertNotFound();
 });

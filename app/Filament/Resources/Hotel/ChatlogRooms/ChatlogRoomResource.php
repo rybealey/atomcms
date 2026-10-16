@@ -6,6 +6,7 @@ use App\Filament\Concerns\RequiresEmulatorDriver;
 use App\Filament\Resources\Hotel\ChatlogRooms\Pages\ManageChatlogRooms;
 use App\Filament\Traits\TranslatableResource;
 use App\Models\ChatlogRoom;
+use Carbon\Carbon;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -108,7 +109,7 @@ class ChatlogRoomResource extends Resource
                 // DATETIME string, so ->dateTime()'s Carbon::parse($state) throws
                 // InvalidFormatException. Format from the timestamp explicitly.
                 ->formatStateUsing(fn ($state) => $state
-                    ? \Carbon\Carbon::createFromTimestamp((int) $state)->format('Y-m-d H:i')
+                    ? Carbon::createFromTimestamp((int) $state)->format('Y-m-d H:i')
                     : null)
                 ->toggleable(),
         ];

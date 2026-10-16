@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\Atom\BetaCodes;
 
-use App\Filament\Resources\Atom\BetaCodes\Pages;
 use App\Models\Miscellaneous\WebsiteBetaCode;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;

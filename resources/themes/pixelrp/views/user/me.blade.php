@@ -1,121 +1,276 @@
-<x-app-layout>
-    @push('title', auth()->user()->username)
+@php
+    $skies = [
+        'night' => ['#110a24', '#170f30', '#1e153c', '#271c49', '#302456'],
+        'dawn' => ['#3b3a6e', '#6a5a8e', '#bd8a96', '#f0a07a', '#ffd9b0'],
+        'day' => ['#4f9fdc', '#66ade2', '#7fbbe8', '#99c9ee', '#b7d9f3'],
+        'dusk' => ['#2a1640', '#4a0b3d', '#8a2a62', '#d0566a', '#f0954a'],
+    ];
+    $bands = $skies[$sky->phase];
+    $weatherIcon = match (true) {
+        $sky->weather === 'rain' => 'cloud-rain',
+        $sky->weather === 'fog' => 'cloud-fog',
+        $sky->weather === 'cloudy' => 'cloud',
+        $sky->phase === 'night' => 'moon',
+        default => 'sun',
+    };
+    $lastOnline = $me->last_online > 0 ? \Carbon\Carbon::createFromTimestamp($me->last_online) : null;
+    $joined = $me->account_created > 0 ? \Carbon\Carbon::createFromTimestamp($me->account_created) : null;
+    $motto = trim((string) $me->motto);
+@endphp
 
-    <div class="col-span-12 space-y-3 md:col-span-9">
-        <x-user.me-backdrop :user="$user" />
+<x-app-layout active="home">
+    @push('title', __('Home'))
 
-        <div
-            class="flex flex-col gap-3 rounded border bg-white p-1 shadow-sm dark:border-gray-900 dark:bg-gray-800 lg:flex-row lg:items-center lg:justify-between">
-            <div
-                class="relative flex items-center justify-center rounded bg-[#d62a86] py-2 px-2 text-sm font-semibold dark:text-gray-300 dark:border-gray-700 lg:self-stretch">
-                <div class="invisible h-6 w-6 -right-1 rotate-45 bg-[#d62a86] lg:visible lg:absolute"></div>
-                <img src="{{ asset('/assets/images/icons/online-friends.png') }}" alt="{{ __('Online Friends') }}"
-                     class="mr-2 mb-1 inline-flex" style="max-width: 24px; max-height: 24px">
-                <span class="relative text-white">{{ __('Online Friends') }}</span>
-            </div>
-
-            <div class="relative flex flex-wrap items-center justify-center gap-2 pl-2 sm:justify-start">
-                @foreach ($onlineFriends as $friend)
-                    <div data-popover-target="friend-{{ $friend->username }}"
-                         style="image-rendering: pixelated; background-image: url({{ setting('avatar_imager') }}{{ $friend->look }}&direction=2&head_direction=3&gesture=sml&action=wav&headonly=1&size=s)"
-                         class="inline-block h-10 w-10 rounded-full border-2 border-gray-300 bg-center bg-no-repeat dark:border-gray-900">
-                    </div>
-
-                    <div data-popover id="friend-{{ $friend->username }}" role="tooltip"
-                        class="invisible absolute z-10 inline-block w-64 rounded-lg border border-gray-200 bg-white text-sm font-light text-gray-500 opacity-0 shadow-xs transition-opacity duration-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400">
-                        <div
-                            class="rounded-t-lg border-b border-gray-200 bg-gray-100 px-3 py-2 dark:border-gray-600 dark:bg-gray-700">
-                            <div
-                                class="flex w-full items-center justify-center font-semibold text-gray-900 dark:text-white">
-                                {{ $friend->username }}
-                            </div>
-                        </div>
-                        <div class="overflow-y-auto px-3 py-2" style="max-height: 200px">
-                            <b class="mr-1 font-bold">{{ __('Motto') }}:</b>{{ $friend->motto }}<br>
-                            <b
-                                class="mr-1 font-bold">{{ __('Online Since') }}
-                                :</b>{{ date(config('habbo.site.date_format'), $friend->last_online) }}
-                        </div>
-                        <div data-popper-arrow></div>
-                    </div>
-                @endforeach
-            </div>
+    <div class="pg-head">
+        <div class="pg-head-text">
+            <h1 class="t-h1">{{ __('Home') }}</h1>
+            <p class="t-body muted">{{ __('Your character, wallet and friends at a glance.') }}</p>
         </div>
+    </div>
 
-        <x-content.content-card icon="friends-icon" classes="border dark:border-gray-900">
-            <x-slot:title>
-                {{ sprintf(__('User Referrals (%s/%s)'), auth()->user()->referrals->referrals_total ?? 0, setting('referrals_needed')) }}
-            </x-slot:title>
-
-            <x-slot:under-title>
-                {{ __('Referral new users and be rewarded by in-game goods') }}
-            </x-slot:under-title>
-
-            <div class="px-2 text-sm dark:text-gray-200">
-                {{ __('Here at :hotel we have added a referral system, allowing you to obtain a bonus for every :needed users that registers through your referral link will allow you to claim a reward of :amount diamonds!', ['hotel' => setting('hotel_name'), 'needed' => setting('referrals_needed'), 'amount' => setting('referral_reward_amount')]) }}
-                <br>
-
-                <small class="text-gray-400">
-                    {{ __('Boosting referrals by making own accounts will lead to removal of all progress, currency, inventory and a potential ban') }}
-                </small>
-
-                <div class="grid grid-cols-12 gap-2">
-                    <x-form.input classes="col-span-12 md:col-span-10 text-sm" name="referral"
-                                  value="{{ sprintf('%s/register/%s', config('habbo.site.site_url'), auth()->user()->referral_code) }}"
-                                  :autofocus="false" :readonly="true" />
-
-                    <div class="col-span-12 flex md:col-span-2" onclick="copyCode()">
-                        <x-form.secondary-button>
-                            {{ __('Copy code') }}
-                        </x-form.secondary-button>
+    <div class="grid">
+        {{-- Hello --}}
+        <section class="prp-card s8" aria-labelledby="hm-hello">
+            <div class="row wrap g0" style="align-items: stretch">
+                <div class="hero-sky" aria-hidden="true">
+                    <div class="hero-sky-bands">
+                        @foreach ($bands as $band)
+                            <div style="background: {{ $band }}"></div>
+                        @endforeach
+                        <div class="hero-sky-ground"></div>
                     </div>
-
+                    <x-prp.figure :look="$me->look" size="l" class="hero-figure" />
                 </div>
 
-                @if (auth()->user()->referrals?->referrals_total >= (int) setting('referrals_needed'))
-                    <form method="POST" action="{{ route('claim.referral-reward') }}">
-                        @csrf
-                        <x-form.secondary-button classes="mt-2">
-                            {{ __('Claim your referrals reward!') }}
-                        </x-form.secondary-button>
-                    </form>
-                @else
-                    <button disabled class="mt-2 w-full rounded bg-gray-400 p-2 text-white dark:bg-gray-900">
-                        {{ sprintf(__('You need to refer :needed more users, before being able to claim your reward', ['needed' =>auth()->user()->referralsNeeded() ?? 0]),auth()->user()->referrals->referrals_total ?? 0) }}
-                    </button>
+                <div class="stack g4 grow card-pad" style="flex: 1 1 300px; padding: 24px">
+                    <div class="stack g2">
+                        <p class="t-over muted">{{ $sky->greeting($hour) }}</p>
+                        <h2 id="hm-hello" class="t-h1">{{ $me->username }}</h2>
+                        @if ($motto !== '')
+                            <p class="t-body muted">&ldquo;{{ $motto }}&rdquo;</p>
+                        @endif
+                    </div>
+
+                    <div class="row wrap g2">
+                        @if ($me->online)
+                            <span class="prp-tag prp-tag-success"><span class="prp-dot prp-dot-online"></span>{{ __('In the city') }}</span>
+                        @else
+                            <span class="prp-tag prp-tag-neutral"><span class="prp-dot"></span>{{ __('Offline') }}</span>
+                        @endif
+                        <span class="t-sm muted">
+                            @if (! $me->online && $lastOnline !== null){{ __('Last seen :when', ['when' => $lastOnline->diffForHumans()]) }} · @endif
+                            @if ($joined !== null){{ __('Migrated in :when', ['when' => $joined->format('M Y')]) }}@endif
+                        </span>
+                    </div>
+
+                    <div class="row wrap g3" style="margin-top: auto">
+                        <a class="prp-btn prp-btn-primary prp-btn-lg" href="{{ route('nitro-client') }}">
+                            {{ __('Enter City') }}
+                            <x-prp.icon name="arrow-right" class="ico-sm" />
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        {{-- Wallet --}}
+        <section class="prp-card s4" aria-labelledby="hm-wallet">
+            <div class="prp-card-head">
+                <span class="prp-card-icon"><x-prp.icon name="wallet" /></span>
+                <div class="prp-card-titles">
+                    <h2 id="hm-wallet" class="prp-card-title">{{ __('Wallet') }}</h2>
+                    <p class="prp-card-sub">{{ __('Your balances in the city') }}</p>
+                </div>
+            </div>
+            <ul class="divide list-reset">
+                <li class="list-row">
+                    <span class="prp-currency-icon" style="background: var(--surface-sunken); width: 36px; height: 36px">
+                        <img src="{{ asset('assets/images/icons/currency/cash.png') }}" width="15" height="15" alt="" style="width: 15px; height: 15px">
+                    </span>
+                    <span class="grow t-body">{{ __('Cash') }}</span>
+                    <span class="t-num-lg">${{ number_format($wallet->cash) }}</span>
+                </li>
+                <li class="list-row">
+                    <span class="prp-currency-icon" style="background: var(--surface-sunken); width: 36px; height: 36px; color: var(--ink-muted)">
+                        <x-prp.icon name="bank" class="ico-sm" />
+                    </span>
+                    <span class="grow t-body">{{ __('Deposits') }}</span>
+                    <span class="t-num-lg">${{ number_format($wallet->deposits) }}</span>
+                </li>
+                <li class="list-row">
+                    <span class="prp-currency-icon" style="background: var(--surface-sunken); width: 36px; height: 36px">
+                        <img src="{{ asset('assets/images/icons/currency/diamonds.png') }}" width="15" height="15" alt="" style="width: 15px; height: 15px">
+                    </span>
+                    <span class="grow t-body">{{ __('Diamonds') }}</span>
+                    <span class="t-num-lg">{{ number_format($wallet->diamonds) }}</span>
+                </li>
+            </ul>
+        </section>
+
+        {{-- Job --}}
+        <section class="prp-card s4" aria-labelledby="hm-job">
+            <div class="prp-card-head">
+                <span class="prp-card-icon"><x-prp.icon name="briefcase" /></span>
+                <div class="prp-card-titles">
+                    <h2 id="hm-job" class="prp-card-title">{{ __('Your job') }}</h2>
+                    <p class="prp-card-sub">{{ $job?->corporation ?? __('Unemployed') }}</p>
+                </div>
+                @if ($job?->on_duty)
+                    <span class="prp-tag prp-tag-success">{{ __('On shift') }}</span>
                 @endif
             </div>
-        </x-content.content-card>
-    </div>
+            <div class="prp-card-body stack g4">
+                @if ($job !== null)
+                    <div class="kv">
+                        <div class="kv-cell"><span class="t-sm muted">{{ __('Position') }}</span><span class="t-label-lg">{{ $job->rank }}</span></div>
+                        <div class="kv-cell"><span class="t-sm muted">{{ __('Pay per shift') }}</span><span class="t-num-md">${{ number_format($job->pay) }}</span></div>
+                    </div>
+                    <div class="stack g2">
+                        <div class="row between">
+                            <span class="t-sm">
+                                @if ($job->next_rank !== null)
+                                    {{ __('Next promotion: :rank', ['rank' => $job->next_rank]) }}
+                                @else
+                                    {{ __('Top of the ladder') }}
+                                @endif
+                            </span>
+                            <span class="t-num muted">{{ __('Tier :tier / :tiers', ['tier' => $job->tier, 'tiers' => $job->tiers]) }}</span>
+                        </div>
+                        <div class="prog" role="progressbar" aria-label="{{ __('Tiers toward your next promotion') }}" aria-valuemin="0" aria-valuemax="{{ $job->tiers }}" aria-valuenow="{{ $job->tier }}">
+                            <span style="width: {{ round($job->tier / $job->tiers * 100) }}%"></span>
+                        </div>
+                    </div>
+                    <a class="link t-sm" href="{{ route('corporations.show', $job->corporation_id) }}">{{ __('View :corporation', ['corporation' => $job->corporation]) }}</a>
+                @else
+                    <p class="t-sm muted">{{ __('Every corporation in the city is hiring at its HQ. Pick one and ask for an interview.') }}</p>
+                    <a class="link t-sm" href="{{ route('corporations.index') }}">{{ __('Browse corporations') }}</a>
+                @endif
+            </div>
+        </section>
 
-    <div class="col-span-12 space-y-4 md:col-span-3">
-        <div class="relative w-full" style="height: 213px">
-            <div class="relative swiper articles-slider">
-                <div class="swiper-wrapper">
-                    @forelse ($articles as $article)
-                        <x-article-card :for-slider="true" :article="$article" />
-                    @empty
-                        <x-filler-article-card />
-                    @endforelse
+        {{-- Gang --}}
+        <section class="prp-card s4" aria-labelledby="hm-gang">
+            <div class="prp-card-head">
+                <span class="prp-card-icon prp-card-icon-accent"><x-prp.icon name="shield" /></span>
+                <div class="prp-card-titles">
+                    <h2 id="hm-gang" class="prp-card-title">{{ __('Your gang') }}</h2>
+                    <p class="prp-card-sub">{{ $gang?->name ?? __('No gang') }}</p>
+                </div>
+                @if ($gang !== null)
+                    <span class="prp-tag prp-tag-accent">#{{ $gang->rank }}</span>
+                @endif
+            </div>
+            <div class="prp-card-body stack g4">
+                @if ($gang !== null)
+                    <div class="kv">
+                        <div class="kv-cell"><span class="t-sm muted">{{ __('Rank') }}</span><span class="t-label-lg">{{ $gang->role }}</span></div>
+                        <div class="kv-cell"><span class="t-sm muted">{{ __('Turf held') }}</span><span class="t-num-md">{{ trans_choice(':count block|:count blocks', $gang->turf, ['count' => $gang->turf]) }}</span></div>
+                    </div>
+                    <div class="row g2">
+                        <div class="head-stack">
+                            @foreach ($gangMembers as $member)
+                                <x-prp.head :look="$member->look" :px="28" :alt="$member->username" />
+                            @endforeach
+                        </div>
+                        <span class="t-sm muted">{{ __(':online of :total members online', ['online' => $gang->online, 'total' => $gang->members]) }}</span>
+                    </div>
+                    <a class="link t-sm" href="{{ route('gangs.index') }}">{{ __('See gang standings') }}</a>
+                @else
+                    <p class="t-sm muted">{{ __('Gangs hold the blocks and run the night. Find one that is recruiting, or found your own in game.') }}</p>
+                    <a class="link t-sm" href="{{ route('gangs.index') }}">{{ __('See gang standings') }}</a>
+                @endif
+            </div>
+        </section>
+
+        {{-- Stats --}}
+        <section class="prp-card s4" aria-labelledby="hm-stats">
+            <div class="prp-card-head">
+                <span class="prp-card-icon"><x-prp.icon name="chart" /></span>
+                <div class="prp-card-titles">
+                    <h2 id="hm-stats" class="prp-card-title">{{ __('Your stats') }}</h2>
+                    <p class="prp-card-sub">
+                        {{ $stats->open_charges > 0 ? trans_choice(':count open charge|:count open charges', $stats->open_charges, ['count' => $stats->open_charges]) : __('Clean record') }}
+                    </p>
                 </div>
             </div>
-            <div class="swiper-pagination" style="bottom: 0px !important; z-index: 0;"></div>
-        </div>
+            <div class="prp-card-body stack g4">
+                <div class="stack g2">
+                    <div class="row between"><span class="t-sm">{{ __('Health') }}</span><span class="t-num muted">{{ $stats->health }} / {{ $stats->health_max }}</span></div>
+                    <div class="prog" role="progressbar" aria-label="{{ __('Health') }}" aria-valuemin="0" aria-valuemax="{{ $stats->health_max }}" aria-valuenow="{{ $stats->health }}">
+                        <span style="width: {{ round(min(1, $stats->health / $stats->health_max) * 100) }}%"></span>
+                    </div>
+                </div>
+                <div class="kv">
+                    <div class="kv-cell"><span class="t-sm muted">{{ __('Hours online') }}</span><span class="t-num-md">{{ number_format($stats->online_hours) }}</span></div>
+                    <div class="kv-cell"><span class="t-sm muted">{{ __('Hours on shift') }}</span><span class="t-num-md">{{ number_format($stats->shift_hours) }}</span></div>
+                    <div class="kv-cell"><span class="t-sm muted">{{ __('Strength') }}</span><span class="t-num-md">{{ __('Lv :level', ['level' => $stats->strength]) }}</span></div>
+                    <div class="kv-cell"><span class="t-sm muted">{{ __('Stamina') }}</span><span class="t-num-md">{{ __('Lv :level', ['level' => $stats->stamina]) }}</span></div>
+                </div>
+            </div>
+        </section>
 
-        <div class="!mt-3">
-            <x-user.discord-widget />
-        </div>
+        {{-- Friends --}}
+        <section class="prp-card s8" aria-labelledby="hm-friends">
+            <div class="prp-card-head">
+                <span class="prp-card-icon"><x-prp.icon name="users" /></span>
+                <div class="prp-card-titles">
+                    <h2 id="hm-friends" class="prp-card-title">{{ __('Friends in Town') }}</h2>
+                    <p class="prp-card-sub">{{ __(':online of :total friends online', ['online' => $friendCounts['online'], 'total' => $friendCounts['total']]) }}</p>
+                </div>
+            </div>
+            @if ($friends->isEmpty())
+                <div class="prp-card-body">
+                    <p class="t-sm muted">{{ $friendCounts['total'] === 0 ? __('No friends yet. Say hello to someone in the city.') : __('None of your friends are in the city right now.') }}</p>
+                </div>
+            @else
+                <ul class="divide list-reset">
+                    @foreach ($friends as $friend)
+                        <li class="list-row">
+                            <x-prp.head :look="$friend->look" :px="40" />
+                            <div class="grow stack g0">
+                                <span class="t-label-md">{{ $friend->username }}</span>
+                                @if ($friend->motto !== '')
+                                    <span class="t-sm muted">{{ $friend->motto }}</span>
+                                @endif
+                            </div>
+                            <span class="prp-staff-status hide-sm"><span class="prp-dot prp-dot-online"></span>{{ __('Online') }}</span>
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
+        </section>
+
+        {{-- City --}}
+        <section class="prp-card s4 self-start" aria-labelledby="hm-city">
+            <div class="prp-card-head">
+                <span class="prp-card-icon"><x-prp.icon name="pin" /></span>
+                <div class="prp-card-titles">
+                    <h2 id="hm-city" class="prp-card-title">San Francisco, CA</h2>
+                    <p class="prp-card-sub">{{ __('San Francisco time and weather') }}</p>
+                </div>
+            </div>
+            <div class="prp-card-body stack g4">
+                <div class="row" style="gap: 14px">
+                    <span aria-hidden="true" style="display: grid; place-items: center; flex: none; width: 56px; height: 56px; border-radius: 10px; background: var(--surface-sunken); color: var(--ink)">
+                        <x-prp.icon :name="$weatherIcon" class="ico-xl" />
+                    </span>
+                    <div class="stack" style="gap: 2px">
+                        <span class="t-num-lg" data-sf-time>{{ $sky->time }}</span>
+                        <span class="t-body muted">{{ $sky->weatherLabel() }}@if ($sky->temperature !== null), {{ $sky->temperature }}°F @endif</span>
+                    </div>
+                </div>
+                <div class="row g2">
+                    <span class="prp-dot prp-dot-online"></span>
+                    <span class="t-body"><span class="t-num">{{ number_format(players_online()) }}</span> {{ __('citizens online') }}</span>
+                </div>
+                <p class="t-sm muted">
+                    @if ($sky->held)
+                        {{ __('City staff are holding the sky right now, so the game and this page both show their weather.') }}
+                    @else
+                        {{ __('The sky in game follows the real city, so a foggy night here is a foggy night in :hotel.', ['hotel' => setting('hotel_name')]) }}
+                    @endif
+                </p>
+            </div>
+        </section>
     </div>
-
-    @push('javascript')
-        <script>
-            function copyCode() {
-                let copyText = document.querySelector("#referral");
-                copyText.select();
-                document.execCommand("copy");
-
-                window.toast('{{ __('Your referral code has been copied to your clipbord!') }}');
-            }
-        </script>
-    @endpush
 </x-app-layout>

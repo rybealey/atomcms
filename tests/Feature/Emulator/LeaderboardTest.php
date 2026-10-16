@@ -29,7 +29,7 @@ test('the plus stats leaderboard ranks players and excludes staff', function () 
     $idle = User::factory()->create();
     $staff = User::factory()->create();
 
-    DB::table('user_stats')->insert([
+    DB::table('user_statistics')->insert([
         ['id' => $active->id, 'OnlineTime' => 5_000, 'Respect' => 0, 'AchievementScore' => 0],
         ['id' => $idle->id, 'OnlineTime' => 100, 'Respect' => 0, 'AchievementScore' => 0],
         ['id' => $staff->id, 'OnlineTime' => 9_000, 'Respect' => 0, 'AchievementScore' => 0],

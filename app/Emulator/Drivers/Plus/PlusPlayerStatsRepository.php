@@ -40,6 +40,21 @@ class PlusPlayerStatsRepository implements PlayerStatsRepository
         return collect($entries);
     }
 
+    public function valueOf(User $user, Stat $stat): int
+    {
+        return (int) (DB::table('user_statistics')->where('id', $user->id)->value($this->column($stat)) ?? 0);
+    }
+
+    public function rankOf(User $user, Stat $stat, array $excludeUserIds = []): int
+    {
+        $column = $this->column($stat);
+
+        return DB::table('user_statistics')
+            ->whereNotIn('id', $excludeUserIds)
+            ->where($column, '>', $this->valueOf($user, $stat))
+            ->count() + 1;
+    }
+
     private function column(Stat $stat): string
     {
         return match ($stat) {

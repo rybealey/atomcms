@@ -54,6 +54,16 @@ class PlusCurrencyRepository implements CurrencyRepository
             ->map(fn (User $user) => new LeaderboardEntry($user, (int) $user->getAttribute($column)));
     }
 
+    public function rankOf(User $user, CurrencyTypes $currency, array $excludeUserIds = []): int
+    {
+        $column = $this->column($currency);
+
+        return User::query()
+            ->whereNotIn('id', $excludeUserIds)
+            ->where($column, '>', $this->balance($user, $currency))
+            ->count() + 1;
+    }
+
     private function column(CurrencyTypes $currency): string
     {
         return match ($currency) {

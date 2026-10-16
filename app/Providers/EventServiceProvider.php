@@ -2,16 +2,17 @@
 
 namespace App\Providers;
 
-use App\Models\Community\Staff\WebsiteTeam as StaffWebsiteTeam;
-use App\Models\Community\Teams\WebsiteTeam;
+use App\Listeners\RecordLoginAttempt;
+use App\Models\Community\Staff\WebsiteTeam;
 use App\Models\Game\Permission;
 use App\Models\User;
 use App\Observers\CommunityCacheObserver;
 use App\Observers\UserObserver;
+use Illuminate\Auth\Events\Failed;
+use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
-use Illuminate\Support\Facades\Event;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -24,12 +25,18 @@ class EventServiceProvider extends ServiceProvider
         Registered::class => [
             SendEmailVerificationNotification::class,
         ],
+        // pixelrp: the log in history under Settings > Sessions.
+        Login::class => [
+            RecordLoginAttempt::class,
+        ],
+        Failed::class => [
+            RecordLoginAttempt::class,
+        ],
     ];
 
     protected $observers = [
         User::class => [UserObserver::class, CommunityCacheObserver::class],
         Permission::class => [CommunityCacheObserver::class],
-        StaffWebsiteTeam::class => [CommunityCacheObserver::class],
         WebsiteTeam::class => [CommunityCacheObserver::class],
     ];
 

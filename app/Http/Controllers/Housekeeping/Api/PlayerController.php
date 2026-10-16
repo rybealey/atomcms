@@ -60,7 +60,7 @@ class PlayerController extends Controller
             ->orderByDesc('last_online')
             ->paginate((int) ($validated['per_page'] ?? 25));
 
-        $bannedIds = $this->bannedIds($page->getCollection()->map(fn (User $user): int => (int) $user->id)->values()->all());
+        $bannedIds = $this->bannedIds(array_values($page->getCollection()->map(fn (User $user): int => (int) $user->id)->all()));
 
         return response()->json([
             'items' => $page->getCollection()->map(fn (User $user): array => $this->summary($user, $canSeeEmail, in_array($user->id, $bannedIds, true)))->values(),
@@ -196,11 +196,10 @@ class PlayerController extends Controller
             return [];
         }
 
-        return BanScope::apply(User::query()->whereIn('id', $ids))
+        return array_values(BanScope::apply(User::query()->whereIn('id', $ids))
             ->pluck('id')
             ->map(fn (mixed $id): int => (int) $id)
-            ->values()
-            ->all();
+            ->all());
     }
 
     /**

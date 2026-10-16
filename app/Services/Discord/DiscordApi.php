@@ -3,6 +3,7 @@
 namespace App\Services\Discord;
 
 use App\Support\OutboundHttp;
+use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\Response;
 
 /**
@@ -38,7 +39,11 @@ class DiscordApi
         ]);
     }
 
-    /** Exchange the callback code for a short-lived access token. */
+    /**
+     * Exchange the callback code for a short-lived access token.
+     *
+     * @return array<string, mixed>|null
+     */
     public function exchangeCode(string $code, string $redirectUri): ?array
     {
         $response = OutboundHttp::request()
@@ -54,7 +59,11 @@ class DiscordApi
         return $response->successful() ? $response->json() : null;
     }
 
-    /** The consenting user's own Discord account (id, username, ...). */
+    /**
+     * The consenting user's own Discord account (id, username, ...).
+     *
+     * @return array<string, mixed>|null
+     */
     public function identify(string $accessToken): ?array
     {
         $response = OutboundHttp::request()
@@ -77,7 +86,11 @@ class DiscordApi
         return $response->successful();
     }
 
-    /** Guild member (nick, roles, ...), or null if not in the guild. */
+    /**
+     * Guild member (nick, roles, ...), or null if not in the guild.
+     *
+     * @return array<string, mixed>|null
+     */
     public function getMember(string $discordId): ?array
     {
         $response = $this->bot()->get($this->memberUrl($discordId));
@@ -85,13 +98,17 @@ class DiscordApi
         return $response->successful() ? $response->json() : null;
     }
 
-    /** PATCH nick and/or full roles array. */
+    /**
+     * PATCH nick and/or full roles array.
+     *
+     * @param  array<string, mixed>  $payload
+     */
     public function updateMember(string $discordId, array $payload): Response
     {
         return $this->bot()->patch($this->memberUrl($discordId), $payload);
     }
 
-    private function bot(): \Illuminate\Http\Client\PendingRequest
+    private function bot(): PendingRequest
     {
         return OutboundHttp::request()
             ->withHeaders(['Authorization' => 'Bot ' . config('services.discord.bot_token')]);
