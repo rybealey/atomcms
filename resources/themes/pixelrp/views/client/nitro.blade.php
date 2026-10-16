@@ -174,7 +174,8 @@
 
                 icon.className = 'dc-icon ' + reason.tone + (reason.blink ? ' is-blink' : '');
                 icon.querySelectorAll('[data-dc-icon]').forEach(function (svg) {
-                    svg.hidden = svg.getAttribute('data-dc-icon') !== reason.icon;
+                    // inline SVG has no .hidden property; toggle the attribute
+                    svg.toggleAttribute('hidden', svg.getAttribute('data-dc-icon') !== reason.icon);
                 });
 
                 text('dc-eyebrow', reason.eyebrow);

@@ -102,7 +102,8 @@ const initScene = () => {
             label.textContent = paused ? button.dataset.playLabel : button.dataset.pauseLabel;
         }
         icons.forEach((icon) => {
-            icon.hidden = icon.dataset.sceneIcon !== (paused ? "play" : "pause");
+            // inline SVG: toggle the attribute, HTMLElement.hidden does not exist on it
+            icon.toggleAttribute("hidden", icon.dataset.sceneIcon !== (paused ? "play" : "pause"));
         });
         write(SCENE_KEY, paused ? "1" : "0");
     };

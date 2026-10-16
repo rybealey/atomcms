@@ -38,7 +38,7 @@ button, input, select, textarea { font-family: inherit; }
 .ico-sm { width: 16px; height: 16px; flex: none; }
 .ico-lg { width: 22px; height: 22px; flex: none; }
 .ico-xl { width: 28px; height: 28px; flex: none; }
-.hidden { display: none !important; }
+.hidden, svg[hidden] { display: none !important; }
 
 /* ---------- page frame ---------- */
 .pg-nav { position: sticky; top: 0; z-index: 40; }
@@ -324,8 +324,8 @@ details.reveal > summary::-webkit-details-marker { display: none; }
 .wf1 { animation-delay: -.42s; } .wf2 { animation-delay: -.28s; } .wf3 { animation-delay: -.14s; }
 @keyframes prpFrame { 0%, 24.99% { opacity: 1; } 25%, 100% { opacity: 0; } }
 .wr { animation-name: prpWalkR; } .wl { animation-name: prpWalkL; }
-@keyframes prpWalkR { from { transform: translateX(-40px); } to { transform: translateX(520px); } }
-@keyframes prpWalkL { from { transform: translateX(520px); } to { transform: translateX(-40px); } }
+@keyframes prpWalkR { from { transform: translateX(-30px); } to { transform: translateX(510px); } }
+@keyframes prpWalkL { from { transform: translateX(510px); } to { transform: translateX(-30px); } }
 .drift { animation: prpDrift 90s linear infinite alternate; }
 @keyframes prpDrift { from { transform: translateX(-30px); } to { transform: translateX(30px); } }
 .rain { animation: prpRain .9s linear infinite; }

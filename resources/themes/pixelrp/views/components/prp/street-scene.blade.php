@@ -290,12 +290,12 @@
                 @php
                     $left = $index % 2 === 1;
                     $ground = $index % 3 === 2 ? 238 : 232;
-                    $height = 44;
+                    $height = 26;
                 @endphp
                 <g class="walker {{ $left ? 'wl' : 'wr' }}" style="animation-duration: {{ $durations[$index % count($durations)] }}s; animation-delay: {{ $delays[$index % count($delays)] }}s">
-                    <rect x="4" y="{{ $ground - 1 }}" width="20" height="2" fill="#000" opacity="0.18"></rect>
+                    <rect x="3" y="{{ $ground - 1 }}" width="12" height="1.5" fill="#000" opacity="0.18"></rect>
                     @for ($frame = 0; $frame < 4; $frame++)
-                        <image class="wf wf{{ $frame }}" href="{{ \App\Support\Imager::walkFrame($look, $frame, $left ? 6 : 2) }}" x="0" y="{{ $ground - $height }}" width="28" height="{{ $height }}"
+                        <image class="wf wf{{ $frame }}" href="{{ \App\Support\Imager::walkFrame($look, $frame, $left ? 5 : 1) }}" x="0" y="{{ $ground - $height }}" width="18" height="{{ $height }}"
                             preserveAspectRatio="xMidYMax meet"></image>
                     @endfor
                 </g>

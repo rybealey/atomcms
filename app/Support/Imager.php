@@ -36,7 +36,7 @@ final class Imager
 
     /**
      * One frame of the walk cycle (0-3) as a crisp medium PNG; the street
-     * steps through the four itself. Direction 2 walks right, 6 walks left.
+     * steps through the four itself. Direction 1 walks right, 5 walks left.
      */
     public static function walkFrame(string $look, int $frame, int $direction = 2): string
     {
