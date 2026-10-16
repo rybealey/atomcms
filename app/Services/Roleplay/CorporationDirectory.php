@@ -133,8 +133,8 @@ class CorporationDirectory
                 ->whereIn('h.rank_id', $ranks->pluck('id')->all())
                 ->distinct()
                 ->orderBy('r.id')
-                ->get(['r.id', 'r.name'])
-                ->map(fn (stdClass $room): HqRoom => new HqRoom((int) $room->id, (string) $room->name))
+                ->get(['r.id', 'r.' . RoleplaySchema::roomTitleColumn() . ' as title'])
+                ->map(fn (stdClass $room): HqRoom => new HqRoom((int) $room->id, (string) $room->title))
                 ->values();
         }
 

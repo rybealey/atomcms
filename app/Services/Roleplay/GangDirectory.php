@@ -44,7 +44,7 @@ class GangDirectory
 
         $members = DB::table('rp_gang_members as m')
             ->join('users as u', 'u.id', '=', 'm.user_id')
-            ->selectRaw('m.gang_id, COUNT(*) AS total, SUM(u.online = 1) AS online')
+            ->selectRaw("m.gang_id, COUNT(*) AS total, SUM(u.online = '1') AS online")
             ->groupBy('m.gang_id')
             ->get()
             ->keyBy('gang_id');
@@ -104,12 +104,14 @@ class GangDirectory
             return new Collection;
         }
 
+        $title = 'r.' . RoleplaySchema::roomTitleColumn();
+
         return DB::table('rp_turfs as t')
             ->join('rooms as r', 'r.id', '=', 't.room_id')
             ->join('groups as g', 'g.id', '=', 't.gang_id')
             ->orderBy('g.name')
-            ->orderBy('r.name')
-            ->get(['r.id as room_id', 'r.name as district', 'g.id as gang_id', 'g.name as gang', 't.claimed_at'])
+            ->orderBy($title)
+            ->get(['r.id as room_id', $title . ' as district', 'g.id as gang_id', 'g.name as gang', 't.claimed_at'])
             ->map(fn (stdClass $row): Territory => new Territory(
                 room_id: (int) $row->room_id,
                 district: (string) $row->district,

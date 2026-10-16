@@ -47,7 +47,7 @@
                         <p class="t-over muted">{{ $sky->greeting($hour) }}</p>
                         <h2 id="hm-hello" class="t-h1">{{ $me->username }}</h2>
                         @if ($motto !== '')
-                            <p class="t-body muted">&ldquo;{{ $motto }}&rdquo;</p>
+                            <p class="t-body muted">{{ $motto }}</p>
                         @endif
                     </div>
 
