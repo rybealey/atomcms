@@ -274,7 +274,8 @@ details.reveal > summary::-webkit-details-marker { display: none; }
 @media (max-width: 680px) { .hero-sky { flex-basis: 100%; min-height: 200px; } }
 
 /* auth screens */
-.auth { position: relative; min-height: 100vh; overflow: hidden; display: flex; flex-direction: column; background: #110a24; }
+.auth { position: relative; min-height: 100vh; overflow: hidden; display: flex; flex-direction: column; background: #2a1640; }
+.auth-bg { position: absolute; inset: 0; background: #2a1640 center bottom / cover no-repeat; image-rendering: pixelated; image-rendering: crisp-edges; }
 .auth-top { position: relative; z-index: 2; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); padding: var(--space-4) var(--space-6); }
 .auth-center { position: relative; z-index: 2; flex: 1 0 auto; display: flex; align-items: flex-start; justify-content: center; padding: var(--space-8) var(--space-4) 280px; }
 .auth-card { width: 100%; max-width: 420px; box-sizing: border-box; padding: var(--space-8); background: var(--surface); color: var(--ink); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); display: flex; flex-direction: column; gap: var(--space-6); }
