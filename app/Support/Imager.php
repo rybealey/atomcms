@@ -19,7 +19,7 @@ final class Imager
 
         $query = http_build_query(array_filter($params, fn (mixed $value): bool => $value !== null && $value !== ''));
 
-        return $base.rawurlencode($look).($query !== '' ? '&'.$query : '');
+        return $base . rawurlencode($look) . ($query !== '' ? '&' . $query : '');
     }
 
     /** A full-body standing figure, facing the viewer's right. */

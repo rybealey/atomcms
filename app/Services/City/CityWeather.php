@@ -24,7 +24,7 @@ use Throwable;
 class CityWeather
 {
     private const URL = 'https://api.open-meteo.com/v1/forecast?latitude=37.7749&longitude=-122.4194'
-        .'&current=temperature_2m,is_day,weather_code&temperature_unit=fahrenheit&timezone=America%2FLos_Angeles';
+        . '&current=temperature_2m,is_day,weather_code&temperature_unit=fahrenheit&timezone=America%2FLos_Angeles';
 
     private const TIMEZONE = 'America/Los_Angeles';
 
@@ -98,7 +98,7 @@ class CityWeather
                     }
                 }
             } catch (Throwable $e) {
-                Log::warning('City weather refresh failed: '.$e->getMessage());
+                Log::warning('City weather refresh failed: ' . $e->getMessage());
             }
 
             /** @var array{code: int|null, temperature: int|null} */

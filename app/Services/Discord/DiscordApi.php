@@ -3,6 +3,7 @@
 namespace App\Services\Discord;
 
 use App\Support\OutboundHttp;
+use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\Response;
 
 /**
@@ -91,7 +92,7 @@ class DiscordApi
         return $this->bot()->patch($this->memberUrl($discordId), $payload);
     }
 
-    private function bot(): \Illuminate\Http\Client\PendingRequest
+    private function bot(): PendingRequest
     {
         return OutboundHttp::request()
             ->withHeaders(['Authorization' => 'Bot ' . config('services.discord.bot_token')]);

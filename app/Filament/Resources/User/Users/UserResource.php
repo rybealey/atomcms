@@ -17,6 +17,7 @@ use App\Filament\Traits\TranslatableResource;
 use App\Models\Community\Staff\WebsiteTeam;
 use App\Models\Game\Permission;
 use App\Models\User;
+use Carbon\Carbon;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Facades\Filament;
@@ -278,7 +279,7 @@ class UserResource extends Resource
                     // InvalidFormatException on the raw digit string. Format from the
                     // timestamp explicitly instead.
                     ->formatStateUsing(fn ($state) => $state
-                        ? \Carbon\Carbon::createFromTimestamp((int) $state)->format('Y-m-d H:i')
+                        ? Carbon::createFromTimestamp((int) $state)->format('Y-m-d H:i')
                         : null)
                     ->label(__('filament::resources.columns.created_at')),
             ])

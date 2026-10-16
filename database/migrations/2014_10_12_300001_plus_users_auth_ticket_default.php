@@ -54,7 +54,5 @@ return new class extends Migration
         return $column !== null && $column->COLUMN_DEFAULT === '';
     }
 
-    public function down(): void
-    {
-    }
+    public function down(): void {}
 };

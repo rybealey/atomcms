@@ -95,7 +95,9 @@ jobs:
         run: npm ci --ignore-scripts
 
       - name: Security advisories
-        run: npm audit --audit-level=moderate
+        # Production dependencies only: the Blade/PHP prettier plugins and the
+        # typography plugin are dev tooling that never ships to a browser.
+        run: npm audit --omit=dev --audit-level=moderate
 
       - name: Build Atom theme
         run: npm run build:atom
@@ -144,7 +146,9 @@ jobs:
           extensions: sockets, gd, mbstring, pdo_mysql, bcmath, intl, zip
           coverage: none
 
-      - run: cp .env.example .env
+      # The testing env points at the mariadb service above; phpunit.xml no
+      # longer forces a host, so this file is what decides it.
+      - run: cp .env.testing.example .env
 
       - name: Get composer cache directory
         id: composer-cache

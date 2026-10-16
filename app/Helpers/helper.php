@@ -4,6 +4,8 @@ use App\Models\User;
 use App\Services\HousekeepingPermissionsService;
 use App\Services\PermissionsService;
 use App\Services\SettingsService;
+use App\Support\Imager;
+use Illuminate\Support\Facades\Cache;
 
 if (! function_exists('setting')) {
     /**
@@ -89,7 +91,7 @@ if (! function_exists('avatar_url')) {
      */
     function avatar_url(string $look, array $params = []): string
     {
-        return \App\Support\Imager::figure($look, $params);
+        return Imager::figure($look, $params);
     }
 }
 
@@ -100,7 +102,7 @@ if (! function_exists('players_online')) {
      */
     function players_online(): int
     {
-        return (int) \Illuminate\Support\Facades\Cache::remember(
+        return (int) Cache::remember(
             'landing.players-online',
             now()->addSeconds(30),
             fn (): int => User::where('online', '1')->count(),

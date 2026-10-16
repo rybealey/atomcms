@@ -7,6 +7,7 @@ use App\Filament\Resources\User\Bans\Pages\ManageBans;
 use App\Filament\Tables\Columns\UserAvatarColumn;
 use App\Filament\Traits\TranslatableResource;
 use App\Models\User\Ban;
+use Carbon\Carbon;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -130,7 +131,7 @@ class BanResource extends Resource
                     // DATETIME string, so ->date()'s Carbon::parse($state) throws
                     // InvalidFormatException. Format from the timestamp explicitly.
                     ->formatStateUsing(fn ($state) => $state
-                        ? \Carbon\Carbon::createFromTimestamp((int) $state)->format('Y-m-d H:i')
+                        ? Carbon::createFromTimestamp((int) $state)->format('Y-m-d H:i')
                         : null),
 
                 TextColumn::make('ban_expire')

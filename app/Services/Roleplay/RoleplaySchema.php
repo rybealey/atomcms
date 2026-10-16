@@ -14,11 +14,11 @@ final class RoleplaySchema
 {
     public static function has(string $table): bool
     {
-        return (bool) Cache::remember('roleplay:has-table:'.$table, now()->addMinutes(10), fn (): bool => Schema::hasTable($table));
+        return (bool) Cache::remember('roleplay:has-table:' . $table, now()->addMinutes(10), fn (): bool => Schema::hasTable($table));
     }
 
     public static function hasColumn(string $table, string $column): bool
     {
-        return (bool) Cache::remember('roleplay:has-column:'.$table.'.'.$column, now()->addMinutes(10), fn (): bool => self::has($table) && Schema::hasColumn($table, $column));
+        return (bool) Cache::remember('roleplay:has-column:' . $table . '.' . $column, now()->addMinutes(10), fn (): bool => self::has($table) && Schema::hasColumn($table, $column));
     }
 }

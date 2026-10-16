@@ -60,12 +60,12 @@ class SessionService
         if (str_contains($ip, ':')) {
             $parts = explode(':', $ip);
 
-            return count($parts) > 2 ? implode(':', array_slice($parts, 0, 3)).':…' : $ip;
+            return count($parts) > 2 ? implode(':', array_slice($parts, 0, 3)) . ':…' : $ip;
         }
 
         $parts = explode('.', $ip);
 
-        return count($parts) === 4 ? implode('.', array_slice($parts, 0, 3)).'.xx' : $ip;
+        return count($parts) === 4 ? implode('.', array_slice($parts, 0, 3)) . '.xx' : $ip;
     }
 
     protected function createAgent(Session $session): Agent

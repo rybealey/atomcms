@@ -8,6 +8,7 @@ use Database\Seeders\WebsiteLanguageSeeder;
 use Database\Seeders\WebsitePermissionSeeder;
 use Database\Seeders\WebsiteSettingsSeeder;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\TestCase;
 use Tests\CreatesApplication;
 
 /**
@@ -33,7 +34,7 @@ use Tests\CreatesApplication;
  * one-time setup: `php artisan migrate --force` run manually against that
  * database before these tests exist).
  */
-class PlusRegistrationTest extends \Illuminate\Foundation\Testing\TestCase
+class PlusRegistrationTest extends TestCase
 {
     use CreatesApplication, DatabaseTransactions;
 
