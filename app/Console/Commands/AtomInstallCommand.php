@@ -275,7 +275,8 @@ class AtomInstallCommand extends Command
             return true;
         }
 
-        $basePath = $this->option('sql') ?: database_path('arcturus/BaseDB-MS-3.5.5.sql.gz');
+        $sql = $this->option('sql');
+        $basePath = is_string($sql) && $sql !== '' ? $sql : database_path('arcturus/BaseDB-MS-3.5.5.sql.gz');
 
         if (! $this->importDump($basePath, 'Arcturus base database (Morningstar 3.5.5)')) {
             return false;
@@ -285,7 +286,8 @@ class AtomInstallCommand extends Command
             return true;
         }
 
-        $catalogPath = $this->option('catalog-sql') ?: database_path('arcturus/catalog.sql.gz');
+        $catalogSql = $this->option('catalog-sql');
+        $catalogPath = is_string($catalogSql) && $catalogSql !== '' ? $catalogSql : database_path('arcturus/catalog.sql.gz');
 
         return $this->importDump($catalogPath, 'catalog');
     }
@@ -379,6 +381,7 @@ class AtomInstallCommand extends Command
         $seeded = DB::table('website_settings')->where('key', 'theme')->value('value');
 
         $theme = $this->option('theme');
+        $theme = is_string($theme) ? $theme : null;
 
         if ($theme !== null && ! in_array($theme, self::THEMES, true)) {
             warning("Unknown theme '{$theme}' - expected one of: " . implode(', ', self::THEMES) . '. Keeping the current theme.');
