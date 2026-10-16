@@ -199,7 +199,7 @@ class PlayerController extends Controller
         return array_values(BanScope::apply(User::query()->whereIn('id', $ids))
             ->pluck('id')
             ->map(fn (mixed $id): int => (int) $id)
-                        ->all());
+            ->all());
     }
 
     /**

@@ -66,6 +66,6 @@ class StaffController extends Controller
                 'min_rank' => (int) $row->min_rank,
                 'description' => (string) $row->description,
             ])
-                        ->all());
+            ->all());
     }
 }

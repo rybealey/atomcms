@@ -125,6 +125,6 @@ class SettingController extends Controller
                     'has_value' => (string) $setting->value !== '',
                 ];
             })
-                        ->all());
+            ->all());
     }
 }
