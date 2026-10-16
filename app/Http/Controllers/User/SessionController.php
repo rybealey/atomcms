@@ -23,7 +23,6 @@ class SessionController extends Controller
     public function index(Request $request, SessionService $sessionService): View
     {
         $user = AuthenticatedUser::from($request);
-        $since = now()->subDays(30)->timestamp;
 
         $history = WebsiteLoginLog::query()
             ->where('user_id', $user->id)
@@ -47,7 +46,6 @@ class SessionController extends Controller
                 ->where('succeeded', false)
                 ->where('created_at', '>=', now()->subWeek())
                 ->count(),
-            'since' => $since,
         ]);
     }
 

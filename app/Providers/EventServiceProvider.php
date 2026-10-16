@@ -2,9 +2,9 @@
 
 namespace App\Providers;
 
+use App\Listeners\RecordLoginAttempt;
 use App\Models\Community\Staff\WebsiteTeam;
 use App\Models\Game\Permission;
-use App\Listeners\RecordLoginAttempt;
 use App\Models\User;
 use App\Observers\CommunityCacheObserver;
 use App\Observers\UserObserver;

@@ -20,7 +20,7 @@ class RecordLoginAttempt
 {
     public function __construct(private readonly Request $request) {}
 
-    public function handle(Login|Failed $event): void
+    public function handle(Failed|Login $event): void
     {
         // Session restores and other guards (Filament's panel, API tokens) are
         // not website log ins.
@@ -45,7 +45,7 @@ class RecordLoginAttempt
         }
     }
 
-    private function method(Login|Failed $event, ?User $user): string
+    private function method(Failed|Login $event, ?User $user): string
     {
         if ($event instanceof Failed) {
             return $user === null ? 'unknown-user' : 'wrong-password';
