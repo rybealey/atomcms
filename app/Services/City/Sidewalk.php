@@ -6,9 +6,9 @@ use App\Models\User;
 use Illuminate\Support\Facades\Cache;
 
 /**
- * Who is walking the street on the guest pages: real players, by figure, for
- * the imager to draw. Online players first, capped at eight; when the city is
- * nearly empty, the last few who were around, so the street is never bare.
+ * Who is walking the street on the guest pages: players who are in the city
+ * right now, by figure, for the imager to draw. Capped at eight; an empty
+ * city is an empty street.
  */
 class Sidewalk
 {
@@ -23,17 +23,6 @@ class Sidewalk
                 ->inRandomOrder()
                 ->limit(8)
                 ->pluck('look');
-
-            if ($looks->count() < 3) {
-                $looks = $looks->merge(
-                    User::query()
-                        ->where('online', '0')
-                        ->where('rp_system_account', 0)
-                        ->orderByDesc('last_online')
-                        ->limit(6 - $looks->count())
-                        ->pluck('look'),
-                );
-            }
 
             return $looks
                 ->filter(fn (mixed $look): bool => is_string($look) && $look !== '')

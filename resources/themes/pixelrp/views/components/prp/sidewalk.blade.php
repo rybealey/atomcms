@@ -1,11 +1,13 @@
 @props(['walkers' => []])
 
 @php
-    // Real players, drawn walking by the hotel's own imager: four crisp walk
-    // frames per walker, stepped by the stylesheet, crossing the foreground
-    // road at the bottom of the hotel view. Direction 1 walks right, 5 left.
+    // Players in the city right now, drawn walking by the hotel's own imager:
+    // four crisp walk frames per walker, stepped by the stylesheet, crossing
+    // the foreground road at the bottom of the hotel view. Direction 1 walks
+    // right, 5 left. Nobody is in view when the page loads: each walker waits
+    // off the edge for its delay, then steps in.
     $durations = [34, 38, 31, 29, 27, 36, 32, 35];
-    $delays = [-2, -20, -15, -9, -13, -27, -6, -18];
+    $delays = [3, 9, 16, 24, 33, 43, 54, 66];
 @endphp
 
 <div class="sidewalk" aria-hidden="true">

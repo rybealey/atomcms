@@ -282,7 +282,7 @@ details.reveal > summary::-webkit-details-marker { display: none; }
    script aligns the four frames by the head (the stride frames are wider on
    one side) and paces the step cycle to the walker's speed. Until it runs,
    frames sit centred at a fixed height. */
-.sw-walker { --sw-scale: 1.25; position: absolute; left: 0; bottom: 4.5vh; width: 60px; height: 96px; animation-name: swWalkR; animation-timing-function: linear; animation-iteration-count: infinite; filter: drop-shadow(0 2px 1px rgba(0, 0, 0, 0.35)); }
+.sw-walker { --sw-scale: 1.25; position: absolute; left: 0; bottom: 4.5vh; width: 60px; height: 96px; animation-name: swWalkR; animation-timing-function: linear; animation-iteration-count: infinite; animation-fill-mode: backwards; filter: drop-shadow(0 2px 1px rgba(0, 0, 0, 0.35)); }
 .sw-walker.sw-left { animation-name: swWalkL; }
 .sw-walker.sw-near { bottom: 1.5vh; }
 .sw-walker img { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); height: 100%; width: auto; image-rendering: pixelated; image-rendering: crisp-edges; }
