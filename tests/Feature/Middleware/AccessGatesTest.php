@@ -62,7 +62,7 @@ test('the housekeeping login remains available during maintenance', function () 
     installHotel();
     setSetting('maintenance_enabled', '1');
 
-    $this->get('/housekeeping/login')->assertOk();
+    $this->get('/housekeeping/legacy/login')->assertOk();
 });
 
 test('staff above the maintenance rank bypass maintenance', function () {

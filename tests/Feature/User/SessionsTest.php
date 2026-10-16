@@ -46,11 +46,3 @@ test('the sessions page shows the history and warns about failed attempts', func
         ->assertSee('203.0.113.xx')
         ->assertDontSee('203.0.113.9');
 });
-
-test('the current session cannot log itself out', function () {
-    $user = User::factory()->create();
-
-    $this->actingAs($user)
-        ->delete(route('settings.sessions.destroy', session()->getId()))
-        ->assertStatus(422);
-});

@@ -1,3 +1,7 @@
+@php
+    $strengthWords = [__('Too short'), __('Weak'), __('Fair'), __('Good'), __('Strong')];
+@endphp
+
 <x-app-layout active="settings">
     @push('title', __('Password settings'))
 
@@ -40,7 +44,7 @@
                         @enderror
                         <div class="row" style="gap: 10px; margin-top: 4px">
                             <div class="strength-bars" data-strength-bars data-score="0" aria-hidden="true"
-                                data-words='@json([__('Too short'), __('Weak'), __('Fair'), __('Good'), __('Strong')])'>
+                                data-words='@json($strengthWords)'>
                                 <span></span><span></span><span></span><span></span>
                             </div>
                             <span class="t-sm" id="sp-strength" style="min-width: 110px; text-align: right">

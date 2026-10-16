@@ -1,3 +1,6 @@
+@php
+    $disconnectedTitle = __('Disconnected from :hotel', ['hotel' => setting('hotel_name')]);
+@endphp
 <!DOCTYPE html>
 <html lang="en" data-theme="system">
 
@@ -184,7 +187,7 @@
                     text('dc-time', new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'America/Los_Angeles' }).format(new Date()));
                 } catch (e) {}
 
-                document.title = @json(__('Disconnected from :hotel', ['hotel' => setting('hotel_name')]));
+                document.title = @json($disconnectedTitle);
                 overlay.hidden = false;
 
                 var frame = document.getElementById('nitro');

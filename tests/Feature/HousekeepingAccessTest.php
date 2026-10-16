@@ -21,12 +21,14 @@ test('guests are redirected away from the housekeeping panel', function () {
     $this->get('/housekeeping')->assertRedirect();
 });
 
-test('users without the housekeeping permission are forbidden', function () {
+test('users without the housekeeping permission are sent back to the website', function () {
     installHotel();
 
     $user = User::factory()->create();
 
-    $this->actingAs($user)->get('/housekeeping')->assertForbidden();
+    // A page request is redirected (EnsureHousekeepingAccess); the JSON API refuses outright.
+    $this->actingAs($user)->get('/housekeeping')->assertRedirect(route('welcome'));
+    $this->actingAs($user)->getJson('/housekeeping/api/me')->assertForbidden();
 });
 
 test('policies evaluate the explicit actor instead of global authentication', function () {
@@ -134,10 +136,10 @@ test('the user editor only resolves records below the actor rank', function () {
     $higher = User::factory()->create(['rank' => 7]);
 
     $this->actingAs($actor)
-        ->get("/housekeeping/user-management/users/{$lower->id}/edit")
+        ->get("/housekeeping/legacy/user-management/users/{$lower->id}/edit")
         ->assertOk();
 
     $this->actingAs($actor)
-        ->get("/housekeeping/user-management/users/{$higher->id}/edit")
+        ->get("/housekeeping/legacy/user-management/users/{$higher->id}/edit")
         ->assertNotFound();
 });

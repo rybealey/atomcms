@@ -88,9 +88,9 @@ class TestingSeeder extends Seeder
             });
         }
 
-        if (! Schema::hasTable('user_stats')) {
-            Schema::create('user_stats', function (Blueprint $table) {
-                $table->integer('id')->primary()->comment('Plus keys user_stats by the user id');
+        if (! Schema::hasTable('user_statistics')) {
+            Schema::create('user_statistics', function (Blueprint $table) {
+                $table->integer('id')->primary()->comment('Plus keys user_statistics by the user id');
                 $table->integer('OnlineTime')->default(0);
                 $table->integer('Respect')->default(0);
                 $table->integer('AchievementScore')->default(0);
