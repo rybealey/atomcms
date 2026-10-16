@@ -14,7 +14,7 @@
         <span class="sw-walker {{ $left ? 'sw-left' : 'sw-right' }} {{ $index % 3 === 2 ? 'sw-near' : '' }}"
             style="animation-duration: {{ $durations[$index % count($durations)] }}s; animation-delay: {{ $delays[$index % count($delays)] }}s">
             @for ($frame = 0; $frame < 4; $frame++)
-                <img class="wf wf{{ $frame }}" src="{{ \App\Support\Imager::walkFrame($look, $frame, $left ? 5 : 1) }}" alt="" loading="lazy" decoding="async">
+                <img class="wf wf{{ $frame }}" src="{{ \App\Support\Imager::walkFrame($look, $frame, $left ? 5 : 1) }}" alt="" decoding="async">
             @endfor
         </span>
     @endforeach

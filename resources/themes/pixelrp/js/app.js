@@ -112,6 +112,87 @@ const initScene = () => {
     button.addEventListener("click", () => apply(!scene.classList.contains("is-paused")));
 };
 
+/* --------------------------------------------------------------- Walkers --- */
+/*
+ * The imager crops each walk frame to its content, so the stride frames are
+ * wider than the standing ones and not evenly so. Centring them would move
+ * the body a few pixels every step; aligning them by the head keeps the
+ * walker steady. The step cycle is then paced to the walker's speed so the
+ * feet stop sliding over the road.
+ */
+const headCentre = (img) => {
+    if (!img.naturalWidth) {
+        return null;
+    }
+
+    try {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        const context = canvas.getContext("2d");
+        context.drawImage(img, 0, 0);
+        const rows = Math.min(24, canvas.height);
+        const data = context.getImageData(0, 0, canvas.width, rows).data;
+        let min = Infinity;
+        let max = -1;
+
+        for (let y = 0; y < rows; y++) {
+            for (let x = 0; x < canvas.width; x++) {
+                if (data[(y * canvas.width + x) * 4 + 3] > 40) {
+                    min = Math.min(min, x);
+                    max = Math.max(max, x);
+                }
+            }
+        }
+
+        return max < 0 ? null : (min + max) / 2;
+    } catch (e) {
+        return null;
+    }
+};
+
+const alignWalker = async (walker) => {
+    const frames = [...walker.querySelectorAll("img")];
+
+    await Promise.all(frames.map((img) => (img.complete ? Promise.resolve() : new Promise((resolve) => {
+        img.addEventListener("load", resolve, { once: true });
+        img.addEventListener("error", resolve, { once: true });
+    }))));
+
+    const scale = parseFloat(getComputedStyle(walker).getPropertyValue("--sw-scale")) || 1;
+    const centres = frames.map(headCentre);
+
+    if (centres.some((centre) => centre === null)) {
+        return;
+    }
+
+    const width = Math.max(...frames.map((img) => img.naturalWidth));
+    const height = frames[0].naturalHeight;
+    const base = centres[0];
+
+    walker.style.width = `${Math.round(width * scale)}px`;
+    walker.style.height = `${Math.round(height * scale)}px`;
+
+    frames.forEach((img, index) => {
+        img.style.height = `${Math.round(img.naturalHeight * scale)}px`;
+        img.style.left = `${Math.round((width / 2 - centres[index]) * scale)}px`;
+    });
+
+    // Two steps per cycle, each about a quarter of the body height long.
+    const seconds = parseFloat(getComputedStyle(walker).animationDuration) || 30;
+    const speed = (window.innerWidth + 120) / seconds;
+    const cycle = (2 * 0.25 * height * scale) / speed;
+    walker.style.setProperty("--sw-cycle", `${Math.max(0.3, Math.min(1.2, cycle)).toFixed(2)}s`);
+
+    walker.classList.add("is-aligned");
+};
+
+const initWalkers = () => {
+    document.querySelectorAll(".sw-walker").forEach((walker) => {
+        alignWalker(walker);
+    });
+};
+
 /* ----------------------------------------------------------------- Clock --- */
 const initClocks = () => {
     const clocks = document.querySelectorAll("[data-sf-time]");
@@ -432,6 +513,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initTheme();
     initMenus();
     initScene();
+    initWalkers();
     initClocks();
     initPasswordToggles();
     initPasswordStrength();

@@ -278,10 +278,15 @@ details.reveal > summary::-webkit-details-marker { display: none; }
 .auth-bg { position: absolute; inset: 0; background: #2a1640 center bottom / cover no-repeat; image-rendering: pixelated; image-rendering: crisp-edges; }
 /* players crossing the foreground road of the hotel view */
 .sidewalk { position: absolute; left: 0; right: 0; bottom: 0; height: 16vh; z-index: 1; overflow: hidden; pointer-events: none; }
-.sw-walker { position: absolute; left: 0; bottom: 4.5vh; width: 48px; height: clamp(40px, 6.2vh, 68px); animation-name: swWalkR; animation-timing-function: linear; animation-iteration-count: infinite; filter: drop-shadow(0 2px 1px rgba(0, 0, 0, 0.35)); }
+/* Each walker is drawn at --sw-scale times the imager's medium render; the
+   script aligns the four frames by the head (the stride frames are wider on
+   one side) and paces the step cycle to the walker's speed. Until it runs,
+   frames sit centred at a fixed height. */
+.sw-walker { --sw-scale: 1.25; position: absolute; left: 0; bottom: 4.5vh; width: 60px; height: 96px; animation-name: swWalkR; animation-timing-function: linear; animation-iteration-count: infinite; filter: drop-shadow(0 2px 1px rgba(0, 0, 0, 0.35)); }
 .sw-walker.sw-left { animation-name: swWalkL; }
-.sw-walker.sw-near { bottom: 1.5vh; height: clamp(44px, 7vh, 76px); }
+.sw-walker.sw-near { bottom: 1.5vh; }
 .sw-walker img { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); height: 100%; width: auto; image-rendering: pixelated; image-rendering: crisp-edges; }
+.sw-walker.is-aligned img { transform: none; }
 @keyframes swWalkR { from { transform: translateX(-80px); } to { transform: translateX(calc(100vw + 40px)); } }
 @keyframes swWalkL { from { transform: translateX(calc(100vw + 40px)); } to { transform: translateX(-80px); } }
 @media (prefers-reduced-motion: reduce) { .sw-walker, .sw-walker .wf { animation-play-state: paused; } }
@@ -329,8 +334,8 @@ details.reveal > summary::-webkit-details-marker { display: none; }
 .ph-night { --win: #f5c542; } .ph-dusk { --win: #f5b96a; } .ph-dawn { --win: #ffe1b0; } .ph-day { --win: #bcd8ee; }
 .scene image { image-rendering: pixelated; image-rendering: crisp-edges; }
 .walker { animation-timing-function: linear; animation-iteration-count: infinite; }
-.wf { animation: prpFrame .56s steps(1) infinite; }
-.wf1 { animation-delay: -.42s; } .wf2 { animation-delay: -.28s; } .wf3 { animation-delay: -.14s; }
+.wf { animation: prpFrame var(--sw-cycle, .56s) steps(1) infinite; }
+.wf1 { animation-delay: calc(var(--sw-cycle, .56s) * -0.75); } .wf2 { animation-delay: calc(var(--sw-cycle, .56s) * -0.5); } .wf3 { animation-delay: calc(var(--sw-cycle, .56s) * -0.25); }
 @keyframes prpFrame { 0%, 24.99% { opacity: 1; } 25%, 100% { opacity: 0; } }
 .wr { animation-name: prpWalkR; } .wl { animation-name: prpWalkL; }
 @keyframes prpWalkR { from { transform: translateX(-30px); } to { transform: translateX(510px); } }
