@@ -5,7 +5,6 @@
  */
 
 const THEME_KEY = "prp-theme";
-const SCENE_KEY = "prp-scene-paused";
 
 const read = (key) => {
     try {
@@ -81,35 +80,6 @@ const initMenus = () => {
             }
         });
     });
-};
-
-/* ----------------------------------------------------------------- Scene --- */
-const initScene = () => {
-    const scene = document.querySelector("[data-scene]");
-    const button = document.querySelector("[data-scene-pause]");
-
-    if (!scene || !button) {
-        return;
-    }
-
-    const label = button.querySelector("[data-scene-label]");
-    const icons = button.querySelectorAll("[data-scene-icon]");
-
-    const apply = (paused) => {
-        scene.classList.toggle("is-paused", paused);
-        button.setAttribute("aria-pressed", paused ? "true" : "false");
-        if (label) {
-            label.textContent = paused ? button.dataset.playLabel : button.dataset.pauseLabel;
-        }
-        icons.forEach((icon) => {
-            // inline SVG: toggle the attribute, HTMLElement.hidden does not exist on it
-            icon.toggleAttribute("hidden", icon.dataset.sceneIcon !== (paused ? "play" : "pause"));
-        });
-        write(SCENE_KEY, paused ? "1" : "0");
-    };
-
-    apply(read(SCENE_KEY) === "1");
-    button.addEventListener("click", () => apply(!scene.classList.contains("is-paused")));
 };
 
 /* --------------------------------------------------------------- Walkers --- */
@@ -512,7 +482,6 @@ const initConfirms = () => {
 document.addEventListener("DOMContentLoaded", () => {
     initTheme();
     initMenus();
-    initScene();
     initWalkers();
     initClocks();
     initPasswordToggles();

@@ -6,7 +6,7 @@
     // the foreground road at the bottom of the hotel view. Direction 1 walks
     // right, 5 left. Nobody is in view when the page loads: each walker waits
     // off the edge for its delay, then steps in.
-    $durations = [34, 38, 31, 29, 27, 36, 32, 35];
+    $durations = [24, 27, 22, 20, 19, 26, 23, 25];
     $delays = [3, 9, 16, 24, 33, 43, 54, 66];
 @endphp
 

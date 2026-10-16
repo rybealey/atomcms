@@ -47,8 +47,8 @@
     --}}
     <div id="disconnected" class="prp" hidden>
         <div class="auth">
-            {{-- No walkers here: the player has just lost the city; the street stands still. --}}
-            <x-prp.street-scene :sky="$sky" />
+            {{-- The same hotel view as the login page, with no walkers: the player has just lost the city. --}}
+            <div class="auth-bg" aria-hidden="true" style="background-image: url('{{ asset('assets/images/pixelrp/city.webp') }}')"></div>
             <div class="dc-overlay" aria-hidden="true"></div>
 
             <header class="auth-top">
@@ -91,12 +91,6 @@
             </main>
 
             <footer class="auth-foot">
-                <button type="button" class="chip chip-btn focusable" aria-pressed="false" data-scene-pause
-                    data-pause-label="{{ __('Pause street') }}" data-play-label="{{ __('Play street') }}">
-                    <x-prp.icon name="pause" class="ico-sm" data-scene-icon="pause" />
-                    <x-prp.icon name="play" class="ico-sm" data-scene-icon="play" hidden />
-                    <span data-scene-label>{{ __('Pause street') }}</span>
-                </button>
                 <p class="auth-foot-note">
                     {{ __(':hotel is a not-for-profit educational project.', ['hotel' => setting('hotel_name')]) }}
                     <a class="focusable" href="{{ route('help-center.rules.index') }}">{{ __('Terms') }}</a> ·

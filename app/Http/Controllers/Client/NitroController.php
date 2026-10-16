@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
-use App\Services\City\CityWeather;
 use App\Support\AssetPass;
 use App\Support\AuthenticatedUser;
 use Illuminate\Http\Request;
@@ -11,7 +10,7 @@ use Illuminate\Http\Response;
 
 class NitroController extends Controller
 {
-    public function __invoke(Request $request, CityWeather $weather): Response
+    public function __invoke(Request $request): Response
     {
         $user = AuthenticatedUser::from($request);
 
@@ -28,11 +27,9 @@ class NitroController extends Controller
         //
         // The asset pass rides on this response, so it is set before the
         // client iframe asks for its first file (AssetPass).
-        // The disconnected screen behind the client is the same live street
-        // as the login page, so it is rendered with the page and shown later.
+        // The disconnected screen is rendered with the page and shown later.
         $response = response()->view('client.nitro', [
             'sso' => $user->activeCharacter()->ssoTicket(),
-            'sky' => $weather->current(),
         ]);
 
         foreach (AssetPass::issue($user, $request) as $cookie) {

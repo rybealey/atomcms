@@ -12,8 +12,8 @@ beforeEach(function () {
     Cache::flush();
 });
 
-test('the guest pages render over the live street', function (string $route) {
-    $this->get(route($route))->assertOk()->assertSee('data-scene', false);
+test('the guest pages render over the hotel view', function (string $route) {
+    $this->get(route($route))->assertOk()->assertSee('city.webp', false);
 })->with([
     'landing' => 'welcome',
     'register' => 'register',
@@ -49,6 +49,7 @@ test('the game page carries the disconnected screen', function () {
         ->get(route('nitro-client'))
         ->assertOk()
         ->assertSee('id="disconnected"', false)
+        ->assertSee('city.webp', false)
         ->assertSee('session.replaced', false)
         ->assertSee('idle.timeout', false)
         ->assertSee('server.restart', false);
