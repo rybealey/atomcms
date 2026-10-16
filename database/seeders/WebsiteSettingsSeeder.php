@@ -120,7 +120,7 @@ class WebsiteSettingsSeeder extends Seeder
             ],
             [
                 'key' => 'badges_path',
-                'value' => '/client/flash/c_images/album1584',
+                'value' => '/nitro-assets/assets/c_images/album1584',
                 'comment' => 'The path to the badges folder, for the frontend',
             ],
             [

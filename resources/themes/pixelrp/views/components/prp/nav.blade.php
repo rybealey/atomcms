@@ -74,6 +74,7 @@
             <div style="position: relative">
                 <button type="button" class="an-me" aria-expanded="false" aria-controls="an-menu" data-menu-toggle>
                     <x-prp.head :look="$me->look" :px="34" />
+                    <span class="an-me-name" aria-hidden="true">{{ $me->username }}</span>
                     <span class="sr-only">{{ __('Account menu for :name', ['name' => $me->username]) }}</span>
                     <x-prp.icon name="chevron-down" class="ico-sm" />
                 </button>
