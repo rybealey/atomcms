@@ -20,11 +20,7 @@ class GangController extends Controller
         $mine = $gangs->membership($character->id);
         $leader = $standings->first();
 
-        // The pixelrp theme's view: larastan only resolves the default theme's.
-        /** @var view-string $template */
-        $template = 'gangs.index';
-
-        return view($template, [
+        return view('gangs.index', [
             'gangs' => $standings,
             'territories' => $gangs->territories(),
             'mine' => $mine,

@@ -49,7 +49,7 @@ class WebsiteLoginLog extends Model
     /**
      * We keep the log for 90 days.
      *
-     * @return Builder<WebsiteLoginLog>
+     * @return Builder<static>
      */
     public function prunable(): Builder
     {
