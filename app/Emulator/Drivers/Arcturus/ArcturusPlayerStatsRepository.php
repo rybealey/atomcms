@@ -6,6 +6,7 @@ use App\Emulator\Contracts\PlayerStatsRepository;
 use App\Emulator\Data\LeaderboardEntry;
 use App\Emulator\Data\Stat;
 use App\Models\Game\Player\UserSetting;
+use App\Models\User;
 use Illuminate\Support\Collection;
 
 /**
@@ -26,6 +27,21 @@ class ArcturusPlayerStatsRepository implements PlayerStatsRepository
             ->map(fn (UserSetting $row) => $row->user === null ? null : new LeaderboardEntry($row->user, (int) $row->getAttribute($column)))
             ->filter()
             ->values();
+    }
+
+    public function valueOf(User $user, Stat $stat): int
+    {
+        return (int) (UserSetting::query()->where('user_id', $user->id)->value($this->column($stat)) ?? 0);
+    }
+
+    public function rankOf(User $user, Stat $stat, array $excludeUserIds = []): int
+    {
+        $column = $this->column($stat);
+
+        return UserSetting::query()
+            ->whereNotIn('user_id', $excludeUserIds)
+            ->where($column, '>', $this->valueOf($user, $stat))
+            ->count() + 1;
     }
 
     private function column(Stat $stat): string

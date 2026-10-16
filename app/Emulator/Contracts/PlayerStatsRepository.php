@@ -4,6 +4,7 @@ namespace App\Emulator\Contracts;
 
 use App\Emulator\Data\LeaderboardEntry;
 use App\Emulator\Data\Stat;
+use App\Models\User;
 use Illuminate\Support\Collection;
 
 /**
@@ -21,4 +22,15 @@ interface PlayerStatsRepository
      * @return Collection<int, LeaderboardEntry>
      */
     public function topBy(Stat $stat, int $limit, array $excludeUserIds = []): Collection;
+
+    /** A player's own value for a statistic. */
+    public function valueOf(User $user, Stat $stat): int;
+
+    /**
+     * Where a player stands in a statistic: 1 for the top. Ties share the
+     * better rank.
+     *
+     * @param  array<int, int>  $excludeUserIds
+     */
+    public function rankOf(User $user, Stat $stat, array $excludeUserIds = []): int;
 }

@@ -83,6 +83,21 @@ class ArcturusCurrencyRepository implements CurrencyRepository
             ->values();
     }
 
+    public function rankOf(User $user, CurrencyTypes $currency, array $excludeUserIds = []): int
+    {
+        $balance = $this->balance($user, $currency);
+
+        if ($currency === CurrencyTypes::Credits) {
+            return User::query()->whereNotIn('id', $excludeUserIds)->where('credits', '>', $balance)->count() + 1;
+        }
+
+        return UserCurrency::query()
+            ->where('type', $currency->value)
+            ->whereNotIn('user_id', $excludeUserIds)
+            ->where('amount', '>', $balance)
+            ->count() + 1;
+    }
+
     /**
      * @param  Builder<covariant Model>|HasMany<covariant Model, User>  $query
      */

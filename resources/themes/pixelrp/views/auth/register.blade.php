@@ -1,127 +1,94 @@
 {{--
     Reached two ways: Fortify's registerView (plain /register) and
     UserReferralController (/register/{referral_code}). Only $referral_code is
-    guaranteed to be present, so nothing here may depend on the article and
-    photo data Fortify happens to pass alongside it.
+    guaranteed to be present.
 --}}
-<x-guest-layout>
+@php
+    $looks = config('hotel.starting_looks', []);
+    $selectedLook = old('look', array_key_first($looks));
+@endphp
+
+<x-guest-layout wide aria-labelledby="reg-title">
     @push('title', __('Create account'))
 
-    <img class="pixel-logo pixel-logo--sm" src="{{ asset('assets/images/pixelrp/logo-animated.gif') }}"
-        alt="{{ setting('hotel_name') }}" width="201" height="99">
+    <a href="{{ route('welcome') }}" aria-label="{{ __(':hotel, back to log in', ['hotel' => setting('hotel_name')]) }}" class="focusable auth-logo">
+        <img class="px-img" src="{{ asset('assets/images/pixelrp/logo-hero.gif') }}" width="201" height="55" alt="">
+    </a>
 
-    <div class="pixel-card pixel-card--wide">
-        {{-- Boarding pass header: the departure board flips through origin
-             cities while the destination stays put. --}}
-        <div class="pixel-pass">
-            <div class="pixel-pass__row">
-                <span class="pixel-pass__meta">{{ __('Now departing') }}</span>
-                <span class="pixel-pass__meta pixel-pass__boarding">● {{ __('Boarding') }}</span>
-            </div>
-
-            <div class="pixel-pass__route">
-                <span class="pixel-pass__code" data-departure-board>HAB</span>
-                <span class="pixel-pass__arrow" aria-hidden="true">▶▶▶</span>
-                <span class="pixel-pass__code">PXL <small>(SFO)</small></span>
-            </div>
-
-            <div class="pixel-pass__stub">
-                <span>{{ __('Flight PXL-26') }}</span>
-                <span>{{ __('Gate 1UP') }}</span>
-                <span>{{ __('Seat ∞') }}</span>
-            </div>
-        </div>
-
-        <div class="pixel-card__body pixel-card__body--stub">
-            <p class="pixel-card__lede">{{ __('Fill out your boarding pass to join the city.') }}</p>
-
-            <x-pixel.alert :handled="['username', 'mail', 'password', 'beta_code']" />
-
-            <form class="flex flex-col gap-4" method="POST" action="{{ route('register') }}">
-                @csrf
-
-                <div class="flex flex-col gap-3">
-                    <x-pixel.input name="username" :label="__('In-game username')" placeholder="pixel_punk"
-                        :autofocus="true" autocomplete="username" />
-
-                    <x-pixel.input name="mail" type="email" :label="__('Email address')" placeholder="you@example.com"
-                        autocomplete="email" />
-
-                    <x-pixel.input name="password" type="password" :label="__('Password')" placeholder="••••••••"
-                        autocomplete="new-password"
-                        :hint="__('At least 12 characters, with upper and lower case, a number and a symbol.')" />
-
-                    <x-pixel.input name="password_confirmation" type="password" :label="__('Verify password')"
-                        placeholder="••••••••" autocomplete="new-password" />
-
-                    @if (setting('requires_beta_code'))
-                        <x-pixel.input name="beta_code" :label="__('Beta code')"
-                            :placeholder="__('Enter your beta code')"
-                            :hint="__('Registration is invite only right now.')" />
-                    @endif
-                </div>
-
-                <x-pixel.checkbox name="terms">
-                    {{ __('I accept the') }}
-                    <a class="pixel-link" href="{{ route('help-center.rules.index') }}" target="_blank"
-                        rel="noopener">{{ __('terms & rules') }}</a>
-                </x-pixel.checkbox>
-
-                {{-- Credits the referrer once the account is created. --}}
-                <input type="hidden" name="referral_code" value="{{ $referral_code }}">
-
-                <x-pixel.captcha />
-
-                <x-pixel.button size="lg" :full-width="true">
-                    {{ __('▶ Board now') }}
-                </x-pixel.button>
-            </form>
-
-            <p class="pixel-meta">
-                {{ __('Already a citizen?') }}
-                <a class="pixel-link" href="{{ route('welcome') }}">{{ __('Log in') }}</a>
-            </p>
-        </div>
+    <div class="stack g2">
+        <p class="t-over brand-ink">{{ __('Citizenship application') }}</p>
+        <h1 id="reg-title" class="t-display">{{ __('Move to San Francisco') }}</h1>
+        <p class="t-body muted">{{ __('Pick a name and choose your vibe.') }}</p>
     </div>
 
-    @push('scripts')
-        <script>
-            // Departure board: scramble the origin code, then settle it
-            // left-to-right. Purely decorative, so it stays put for anyone who
-            // has asked for reduced motion.
-            (() => {
-                const board = document.querySelector('[data-departure-board]');
+    <x-prp.alert :handled="['username', 'mail', 'password', 'password_confirmation', 'beta_code', 'look', 'terms']" />
 
-                if (! board || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-                    return;
-                }
+    <form class="stack g5" method="POST" action="{{ route('register') }}">
+        @csrf
 
-                const cities = ['HAB', 'WAV', 'VGE'];
-                const glyphs = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-                const randomGlyph = () => glyphs[Math.floor(Math.random() * glyphs.length)];
-                let index = 0;
+        <div class="form-grid">
+            <div class="full">
+                <x-prp.field name="username" id="reg-user" :label="__('Username')" autocomplete="username" autocapitalize="none" spellcheck="false"
+                    :autofocus="true" :hint="__('3 to 15 characters: letters, numbers, dashes and underscores. This is your name in the city.')" />
+            </div>
 
-                setInterval(() => {
-                    const next = cities[(index + 1) % cities.length];
-                    let ticks = 0;
+            <div class="full">
+                <x-prp.field name="mail" id="reg-mail" type="email" :label="__('Email')" autocomplete="email"
+                    :hint="__('Only used for account recovery and verification for account and billing support where applicable.')" />
+            </div>
 
-                    const spin = setInterval(() => {
-                        ticks += 1;
+            <x-prp.field name="password" id="reg-pass" type="password" :label="__('Password')" autocomplete="new-password"
+                aria-describedby="reg-pass-hint" />
 
-                        if (ticks >= 10) {
-                            clearInterval(spin);
-                            index = (index + 1) % cities.length;
-                            board.textContent = cities[index];
+            <x-prp.field name="password_confirmation" id="reg-pass2" type="password" :label="__('Confirm password')" autocomplete="new-password"
+                aria-describedby="reg-pass-hint" />
 
-                            return;
-                        }
+            <span class="prp-field-hint full" id="reg-pass-hint" style="margin-top: -8px">
+                {{ __('At least 12 characters, one capital letter, one lowercase letter, one number and one special character.') }}
+            </span>
+        </div>
 
-                        const settled = ticks >= 8 ? 2 : ticks >= 6 ? 1 : 0;
-                        board.textContent = next.slice(0, settled)
-                            + Array.from({ length: 3 - settled }, randomGlyph).join('');
-                    }, 70);
-                }, 7000);
-            })();
-        </script>
-    @endpush
+        @if ($looks !== [])
+            <fieldset class="stack g2" style="margin: 0; padding: 0; border: 0">
+                <legend class="prp-field-label" style="padding: 0; margin-bottom: 8px">{{ __('Starting look') }}</legend>
+                <div class="looks">
+                    @foreach ($looks as $key => $look)
+                        <label class="radio-card">
+                            <input type="radio" name="look" value="{{ $key }}" @checked($selectedLook === $key)>
+                            <x-prp.figure :look="$look['figure']" size="m" alt="" />
+                            <span class="t-label">{{ __($look['label']) }}</span>
+                        </label>
+                    @endforeach
+                </div>
+                @error('look')
+                    <span class="prp-field-error">{{ $message }}</span>
+                @enderror
+            </fieldset>
+        @endif
+
+        @if (setting('requires_beta_code'))
+            <x-prp.field name="beta_code" id="reg-key" :label="__('Early Access Key')" autocomplete="off" autocapitalize="characters" spellcheck="false"
+                placeholder="XXXX-XXXX-XXXX" class="mono-input"
+                :hint="__(':hotel is in early access. You need a key to create an account.', ['hotel' => setting('hotel_name')])" />
+        @endif
+
+        <x-prp.check name="terms" :required="true" :top="true">
+            {!! __("I'm 18 or older and I agree to the :terms and the :rules.", [
+                'terms' => '<a class="link" href="'.e(route('help-center.rules.index')).'" target="_blank" rel="noopener">'.e(__('Terms')).'</a>',
+                'rules' => '<a class="link" href="'.e(route('help-center.rules.index')).'" target="_blank" rel="noopener">'.e(__('city rules')).'</a>',
+            ]) !!}
+        </x-prp.check>
+
+        {{-- Credits the referrer once the account is created. --}}
+        <input type="hidden" name="referral_code" value="{{ $referral_code }}">
+
+        <x-prp.captcha />
+
+        <button type="submit" class="prp-btn prp-btn-primary prp-btn-lg prp-btn-block">{{ __('Create account') }}</button>
+    </form>
+
+    <p class="t-sm muted ta-center">
+        {{ __('Already a citizen?') }}
+        <a class="link" href="{{ route('welcome') }}">{{ __('Log in') }}</a>
+    </p>
 </x-guest-layout>

@@ -24,6 +24,9 @@ class Kernel extends ConsoleKernel
         $schedule->command('discord:sweep')
             ->everyTenMinutes()
             ->withoutOverlapping();
+
+        // pixelrp: the log in history (WebsiteLoginLog) is kept for 90 days.
+        $schedule->command('model:prune', ['--model' => [\App\Models\User\WebsiteLoginLog::class]])->daily();
     }
 
     /**

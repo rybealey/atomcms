@@ -97,7 +97,7 @@ class CreateNewUser implements CreatesNewUsers
             'account_created' => time(),
             'last_login' => time(),
             'motto' => setting('start_motto') ?: 'Welcome to the hotel!',
-            'look' => setting('start_look') ?: 'hr-100-61.hd-180-1.ch-210-66.lg-270-110.sh-305-62',
+            'look' => $this->startingLook($input['look'] ?? null),
             'credits' => setting('start_credits') ?: 1000,
             'ip_register' => $ip,
             'ip_current' => $ip,
@@ -125,6 +125,21 @@ class CreateNewUser implements CreatesNewUsers
                 'beta_code' => __('The beta code is invalid.'),
             ]);
         }
+    }
+
+    /**
+     * The figure a new citizen starts in: the look they picked on the form, or
+     * the hotel's start_look when none was offered or chosen.
+     */
+    private function startingLook(mixed $key): string
+    {
+        $looks = config('hotel.starting_looks', []);
+
+        if (is_string($key) && isset($looks[$key]['figure']) && is_string($looks[$key]['figure'])) {
+            return $looks[$key]['figure'];
+        }
+
+        return setting('start_look') ?: 'hd-180-1.hr-100-61.ch-210-66.lg-270-82.sh-290-80';
     }
 
     /**
@@ -161,7 +176,7 @@ class CreateNewUser implements CreatesNewUsers
     /**
      * @param  array<string, mixed>  $inputs
      *
-     * @return array{username: string, mail: string, password: string, beta_code?: string, referral_code?: string}
+     * @return array{username: string, mail: string, password: string, beta_code?: string, referral_code?: string, look?: string}
      */
     private function validate(array $inputs): array
     {
@@ -174,6 +189,9 @@ class CreateNewUser implements CreatesNewUsers
             'password' => $this->passwordRules(),
             'beta_code' => [Rule::requiredIf(setting('requires_beta_code') === '1'), 'nullable', 'string', new BetaCodeRule],
             'referral_code' => ['nullable', 'string', 'max:255'],
+            // pixelrp: one of the starting looks in config/hotel.php, rendered
+            // on the form by the imager; omitted on installs without presets.
+            'look' => ['nullable', 'string', Rule::in(array_keys(config('hotel.starting_looks', [])))],
             'terms' => ['required', 'accepted'],
             'g-recaptcha-response' => ['sometimes', 'string', new GoogleRecaptchaRule],
             'cf-turnstile-response' => [app(Turnstile::class)],

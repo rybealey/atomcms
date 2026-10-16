@@ -10,6 +10,8 @@ export default defineConfig({
             input: [
                 path.resolve(__dirname, "css/app.css"),
                 path.resolve(__dirname, "js/app.js"),
+                // Shared entries other layouts (installation, housekeeping's
+                // Filament theme) still read from the same manifest.
                 "resources/js/global.js",
                 "resources/css/global.css",
                 "resources/css/filament/housekeeping/theme.css",
@@ -28,14 +30,10 @@ export default defineConfig({
             },
         },
     ],
-    resolve: {
-        alias: {
-            "@": path.resolve(__dirname, "js/app.js"),
-            livewire: path.resolve(__dirname, "../../../vendor/livewire/livewire/dist/livewire.esm.js"),
-        },
-    },
     css: {
         postcss: {
+            // Tailwind only touches the shared entries above; the pixelrp
+            // theme itself is plain CSS on the design system's tokens.
             plugins: [tailwindcss(), autoprefixer()],
         },
     },

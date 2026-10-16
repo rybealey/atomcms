@@ -7,6 +7,8 @@ use App\Http\Controllers\Badge\BadgeController;
 use App\Http\Controllers\Client\AssetPassController;
 use App\Http\Controllers\Client\FlashController;
 use App\Http\Controllers\Client\NitroController;
+use App\Http\Controllers\Community\CorporationController;
+use App\Http\Controllers\Community\GangController;
 use App\Http\Controllers\Community\LeaderboardController;
 use App\Http\Controllers\Community\PhotosController;
 use App\Http\Controllers\Community\Staff\StaffController;
@@ -40,11 +42,13 @@ use App\Http\Controllers\Miscellaneous\LogoGeneratorController;
 use App\Http\Controllers\Miscellaneous\MaintenanceController;
 use App\Http\Controllers\User\AccountSettingsController;
 use App\Http\Controllers\User\BannedController;
+use App\Http\Controllers\User\CharacterSwitchController;
 use App\Http\Controllers\User\DiscordController;
 use App\Http\Controllers\User\ForgotPasswordController;
 use App\Http\Controllers\User\MeController;
 use App\Http\Controllers\User\PasswordSettingsController;
 use App\Http\Controllers\User\ReferralController;
+use App\Http\Controllers\User\SessionController;
 use App\Http\Controllers\User\TwoFactorAuthenticationController;
 use App\Http\Controllers\User\UserReferralController;
 use Illuminate\Support\Facades\Route;
@@ -156,6 +160,13 @@ Route::middleware(['maintenance', 'check.ban', 'force.staff.2fa'])->group(functi
         });
         Route::prefix('user')->group(function () {
             Route::get('/me', MeController::class)->name('me.show');
+
+            // pixelrp: which of the account's characters the website shows and
+            // the next /game load enters as (see MULTI_CHARACTER.md).
+            Route::post('/characters/{character}/switch', CharacterSwitchController::class)
+                ->whereNumber('character')
+                ->middleware('throttle:10,1')
+                ->name('characters.switch');
             Route::post('/claim/referral-reward', ReferralController::class)
                 ->middleware('throttle:5,1')
                 ->name('claim.referral-reward');
@@ -168,13 +179,17 @@ Route::middleware(['maintenance', 'check.ban', 'force.staff.2fa'])->group(functi
                 Route::get('/password', [PasswordSettingsController::class, 'edit'])->name('settings.password.show');
                 Route::put('/password', [PasswordSettingsController::class, 'update'])->name('settings.password.update');
 
-                Route::get('/session-logs', [AccountSettingsController::class, 'sessionLogs'])->name('settings.session-logs');
+                // pixelrp: where you're logged in, and the log in history
+                Route::get('/session-logs', [SessionController::class, 'index'])->name('settings.session-logs');
+                Route::delete('/sessions', [SessionController::class, 'destroyOthers'])->name('settings.sessions.destroy-others');
+                Route::delete('/sessions/{session}', [SessionController::class, 'destroy'])->name('settings.sessions.destroy');
 
                 Route::get('/two-factor', [TwoFactorAuthenticationController::class, 'index'])->name('settings.two-factor');
                 Route::middleware('throttle:two-factor-settings')->group(function () {
                     Route::post('/two-factor-authentication', [TwoFactorAuthenticationController::class, 'store'])->name('user.two-factor.enable');
                     Route::post('/two-factor-authentication/confirm', [TwoFactorAuthenticationController::class, 'verify'])->name('two-factor.verify');
                     Route::delete('/two-factor-authentication', [TwoFactorAuthenticationController::class, 'destroy'])->name('user.two-factor.disable');
+                    Route::post('/two-factor-authentication/recovery-codes', [TwoFactorAuthenticationController::class, 'regenerateRecoveryCodes'])->name('user.two-factor.recovery-codes');
                 });
             });
         });
@@ -236,6 +251,12 @@ Route::middleware(['maintenance', 'check.ban', 'force.staff.2fa'])->group(functi
 
         // Leaderboard routes
         Route::get('/leaderboard', LeaderboardController::class)->name('leaderboard.index');
+
+        // pixelrp: the city's corporations and gangs, read from the emulator's
+        // roleplay tables. Joining either happens in game.
+        Route::get('/corporations', [CorporationController::class, 'index'])->name('corporations.index');
+        Route::get('/corporations/{id}', [CorporationController::class, 'show'])->whereNumber('id')->name('corporations.show');
+        Route::get('/gangs', GangController::class)->name('gangs.index');
 
         // Help center
         Route::prefix('help-center')->as('help-center.')->withoutMiddleware('check.ban')->group(function () {

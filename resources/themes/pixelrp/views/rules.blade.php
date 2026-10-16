@@ -1,29 +1,35 @@
 <x-app-layout>
-    @push('title', __('Rules'))
+    @push('title', __('Terms and city rules'))
 
-    <div class="col-span-12 flex flex-col gap-y-3">
-        <div class="mb-4 w-full rounded bg-red-600 p-4 text-white">
-            {{ __('Rules and regulations are subject to change without notice. As a member of the :hotel community, you hereby agree to and understand the following terms and conditions above. Failure to comply with these rules and regulations will result in the necessary sanctions implemented upon your account. If you have any questions or concerns in regards to The :hotel Way, please do not hesitate to ask a member of the Hotel Staff.', ['hotel' => setting('hotel_name')]) }}
+    <div class="pg-head">
+        <div class="pg-head-text">
+            <h1 class="t-h1">{{ __('Terms and city rules') }}</h1>
+            <p class="t-body muted">{{ __('Rules and regulations can change without notice. By playing in :hotel you agree to them; breaking them leads to sanctions on your account. Ask a member of staff if anything is unclear.', ['hotel' => setting('hotel_name')]) }}</p>
         </div>
+    </div>
 
-        <div class="flex flex-col gap-y-6">
-            @foreach ($categories as $category)
-                <x-content.content-card icon="{{ $category->badge }}" classes="border dark:border-gray-900">
-                    <x-slot:title>
-                        {{ $category->name }}
-                    </x-slot:title>
-
-                    <x-slot:under-title>
-                        {{ $category->description }}
-                    </x-slot:under-title>
-
-                    <ul class="rounded bg-gray-100 p-2 dark:bg-gray-700 dark:text-gray-300">
-                        @foreach ($category->rules as $rule)
-                            <li><strong>{{ $rule->paragraph }}.</strong> {{ $rule->rule }}</li>
-                        @endforeach
-                    </ul>
-                </x-content.content-card>
-            @endforeach
-        </div>
+    <div class="stack g6">
+        @forelse ($categories as $category)
+            <section class="prp-card" aria-labelledby="rule-cat-{{ $category->id }}">
+                <div class="prp-card-head">
+                    <div class="prp-card-titles">
+                        <h2 id="rule-cat-{{ $category->id }}" class="prp-card-title">{{ $category->name }}</h2>
+                        @if ($category->description)
+                            <p class="prp-card-sub">{{ $category->description }}</p>
+                        @endif
+                    </div>
+                </div>
+                <ol class="prp-card-body stack g3" style="margin: 0; padding-left: 40px">
+                    @foreach ($category->rules as $rule)
+                        <li class="t-body"><strong style="font-weight: 500">{{ $rule->paragraph }}.</strong> {{ $rule->rule }}</li>
+                    @endforeach
+                </ol>
+            </section>
+        @empty
+            <div class="prp-card card-pad stack g2 empty">
+                <h2 class="t-h3">{{ __('No rules have been published yet') }}</h2>
+                <p class="t-sm muted">{{ __('Check back soon.') }}</p>
+            </div>
+        @endforelse
     </div>
 </x-app-layout>

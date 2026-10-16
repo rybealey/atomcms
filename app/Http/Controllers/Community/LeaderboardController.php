@@ -2,37 +2,20 @@
 
 namespace App\Http\Controllers\Community;
 
-use App\Emulator\Contracts\CurrencyRepository;
-use App\Emulator\Contracts\PlayerStatsRepository;
-use App\Emulator\Data\Stat;
-use App\Enums\CurrencyTypes;
 use App\Http\Controllers\Controller;
-use App\Models\User;
-use App\Services\Community\StaffService;
+use App\Services\Community\LeaderboardService;
+use App\Support\AuthenticatedUser;
 use Illuminate\View\View;
 
 class LeaderboardController extends Controller
 {
-    private const SIZE = 9;
-
-    public function __invoke(
-        CurrencyRepository $currencies,
-        PlayerStatsRepository $stats,
-        StaffService $staffService,
-    ): View {
-        // pixelrp: the hotel's own accounts (PixelRP) are never ranked either.
-        $staffIds = array_merge(
-            $staffService->fetchEmployeeIds(),
-            User::where('rp_system_account', 1)->pluck('id')->map(fn (mixed $id): int => (int) $id)->all(),
-        );
+    public function __invoke(LeaderboardService $leaderboards): View
+    {
+        $me = AuthenticatedUser::current()->activeCharacter();
 
         return view('leaderboard', [
-            'credits' => $currencies->topBy(CurrencyTypes::Credits, self::SIZE, $staffIds),
-            'duckets' => $currencies->topBy(CurrencyTypes::Duckets, self::SIZE, $staffIds),
-            'diamonds' => $currencies->topBy(CurrencyTypes::Diamonds, self::SIZE, $staffIds),
-            'mostOnline' => $stats->topBy(Stat::OnlineTime, self::SIZE, $staffIds),
-            'respectsReceived' => $stats->topBy(Stat::RespectsReceived, self::SIZE, $staffIds),
-            'achievementScores' => $stats->topBy(Stat::AchievementScore, self::SIZE, $staffIds),
+            'me' => $me,
+            'categories' => $leaderboards->categories($me),
         ]);
     }
 }
