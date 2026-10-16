@@ -2,8 +2,7 @@
 
 namespace App\Providers;
 
-use App\Models\Community\Staff\WebsiteTeam as StaffWebsiteTeam;
-use App\Models\Community\Teams\WebsiteTeam;
+use App\Models\Community\Staff\WebsiteTeam;
 use App\Models\Game\Permission;
 use App\Listeners\RecordLoginAttempt;
 use App\Models\User;
@@ -39,7 +38,6 @@ class EventServiceProvider extends ServiceProvider
     protected $observers = [
         User::class => [UserObserver::class, CommunityCacheObserver::class],
         Permission::class => [CommunityCacheObserver::class],
-        StaffWebsiteTeam::class => [CommunityCacheObserver::class],
         WebsiteTeam::class => [CommunityCacheObserver::class],
     ];
 

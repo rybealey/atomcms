@@ -14,18 +14,7 @@ test('account pages render for the signed-in user', function (string $route) {
     'password settings' => 'settings.password.show',
     'two factor settings' => 'settings.two-factor',
     'session logs' => 'settings.session-logs',
-    'draw badge' => 'draw-badge',
 ]);
-
-test('the logo generator is permission gated', function () {
-    $this->actingAs(User::factory()->create(['rank' => 1]))
-        ->get(route('logo-generator.index'))
-        ->assertRedirect(route('me.show'));
-
-    $this->actingAs(User::factory()->create(['rank' => 7]))
-        ->get(route('logo-generator.index'))
-        ->assertOk();
-});
 
 test('guests are redirected off account pages', function () {
     $this->get(route('settings.account.show'))->assertRedirect();

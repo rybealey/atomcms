@@ -26,10 +26,6 @@ class DatabaseSeeder extends Seeder
             // Help center
             WebsiteRuleCategorySeeder::class,
             WebsiteRuleSeeder::class,
-            WebsiteHelperCenterCategorySeeder::class,
-
-            // Values
-            WebsiteRareValuesCategorySeeder::class,
 
             // Housekeeping permissions
             HousekeepingPermissionSeeder::class,

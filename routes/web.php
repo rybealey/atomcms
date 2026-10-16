@@ -1,32 +1,17 @@
 <?php
 
 use App\Actions\Fortify\Controllers\TwoFactorAuthenticatedSessionController;
-use App\Http\Controllers\Articles\ArticleController;
-use App\Http\Controllers\Articles\WebsiteArticleCommentsController;
-use App\Http\Controllers\Badge\BadgeController;
 use App\Http\Controllers\Client\AssetPassController;
 use App\Http\Controllers\Client\FlashController;
 use App\Http\Controllers\Client\NitroController;
 use App\Http\Controllers\Community\CorporationController;
 use App\Http\Controllers\Community\GangController;
 use App\Http\Controllers\Community\LeaderboardController;
-use App\Http\Controllers\Community\PhotosController;
-use App\Http\Controllers\Community\Staff\StaffController;
-use App\Http\Controllers\Community\Staff\WebsiteTeamsController;
-use App\Http\Controllers\Community\WebsiteRareValuesController;
 use App\Http\Controllers\Diamonds\DiamondCheckoutController;
 use App\Http\Controllers\Diamonds\DiamondCryptoCheckoutController;
 use App\Http\Controllers\Diamonds\DiamondReturnController;
 use App\Http\Controllers\Diamonds\DiamondStripeWebhookController;
-use App\Http\Controllers\Help\HelpCenterController;
-use App\Http\Controllers\Help\TicketController;
-use App\Http\Controllers\Help\TicketReplyController;
 use App\Http\Controllers\Help\WebsiteRulesController;
-use App\Http\Controllers\Home\HomeController as UserHomeController;
-use App\Http\Controllers\Home\ItemController as HomeItemController;
-use App\Http\Controllers\Home\MessageController as HomeMessageController;
-use App\Http\Controllers\Home\RatingController as HomeRatingController;
-use App\Http\Controllers\Home\ShopController as HomeShopController;
 use App\Http\Controllers\Housekeeping\Api\BadgeController as HousekeepingBadgeController;
 use App\Http\Controllers\Housekeeping\Api\DashboardController as HousekeepingDashboardController;
 use App\Http\Controllers\Housekeeping\Api\MeController as HousekeepingMeController;
@@ -38,7 +23,6 @@ use App\Http\Controllers\Housekeeping\HousekeepingController;
 use App\Http\Controllers\Miscellaneous\HomeController;
 use App\Http\Controllers\Miscellaneous\InstallationController;
 use App\Http\Controllers\Miscellaneous\LocaleController;
-use App\Http\Controllers\Miscellaneous\LogoGeneratorController;
 use App\Http\Controllers\Miscellaneous\MaintenanceController;
 use App\Http\Controllers\User\AccountSettingsController;
 use App\Http\Controllers\User\BannedController;
@@ -203,52 +187,6 @@ Route::middleware(['maintenance', 'check.ban', 'force.staff.2fa'])->group(functi
             Route::get('/callback', [DiscordController::class, 'callback'])->middleware('throttle:10,1')->name('discord.callback');
         });
 
-        // Drawbadge
-        Route::get('/draw-badge', [BadgeController::class, 'show'])->name('draw-badge');
-        Route::post('/buy-badge', [BadgeController::class, 'buy'])->name('badge.buy');
-
-        // Homes
-        Route::prefix('home')->as('home.')->group(function () {
-            Route::get('/{user:username}', [UserHomeController::class, 'show'])->name('show')->withoutMiddleware('auth');
-            Route::get('/{user:username}/placed-items', [UserHomeController::class, 'getPlacedItems'])->name('placed-items')->withoutMiddleware('auth');
-            Route::get('/{user:username}/widget-content/{itemId}', [HomeItemController::class, 'getWidgetContent'])->name('widget-content')->withoutMiddleware('auth');
-
-            Route::post('/{user:username}/save', [UserHomeController::class, 'save'])->name('save')->middleware('throttle:10,1');
-            Route::post('/{user:username}/buy-item', [HomeItemController::class, 'store'])->name('buy-item')->middleware('throttle:30,1');
-            Route::post('/{user:username}/rating', [HomeRatingController::class, 'store'])->name('rating')->middleware('throttle:10,1');
-            Route::post('/{user:username}/message', [HomeMessageController::class, 'store'])->name('message')->middleware('throttle:10,1');
-
-            // Shop & Inventory API
-            Route::prefix('shop')->as('shop.')->group(function () {
-                Route::get('/categories', [HomeShopController::class, 'categories'])->name('categories');
-                Route::get('/category/{category}/items', [HomeShopController::class, 'itemsByCategory'])->name('category-items');
-                Route::get('/type/{type}/items', [HomeShopController::class, 'itemsByType'])->name('type-items');
-                Route::get('/balance', [HomeShopController::class, 'balance'])->name('balance');
-            });
-
-            Route::get('/{user:username}/inventory', [HomeShopController::class, 'inventory'])->name('inventory');
-        });
-
-        // Community routes
-        Route::prefix('community')->group(function () {
-            Route::get('/photos', PhotosController::class)->name('photos.index');
-
-            // Allowed to be visited without being logged in
-            Route::withoutMiddleware('auth')->group(function () {
-                Route::get('/articles', [ArticleController::class, 'index'])->name('article.index');
-                Route::get('/article/{article:slug}', [ArticleController::class, 'show'])->name('article.show');
-            });
-
-            Route::get('/staff', StaffController::class)->name('staff.index');
-            Route::get('/teams', WebsiteTeamsController::class)->name('teams.index');
-
-            Route::post('/article/{article:slug}/comment', [WebsiteArticleCommentsController::class, 'store'])->name('article.comment.store');
-            Route::delete('/article/{comment}/comment', [WebsiteArticleCommentsController::class, 'destroy'])->name('article.comment.destroy');
-            Route::post('/article/{article:slug}/toggle-reaction', [ArticleController::class, 'toggleReaction'])
-                ->name('article.toggle-reaction')
-                ->middleware('throttle:30,1');
-        });
-
         // Leaderboard routes
         Route::get('/leaderboard', LeaderboardController::class)->name('leaderboard.index');
 
@@ -258,29 +196,9 @@ Route::middleware(['maintenance', 'check.ban', 'force.staff.2fa'])->group(functi
         Route::get('/corporations/{id}', [CorporationController::class, 'show'])->whereNumber('id')->name('corporations.show');
         Route::get('/gangs', GangController::class)->name('gangs.index');
 
-        // Help center
+        // Help center. Only the rules page survives the redesign; Terms links
+        // still point at it.
         Route::prefix('help-center')->as('help-center.')->withoutMiddleware('check.ban')->group(function () {
-            Route::get('/', HelpCenterController::class)->name('index');
-
-            Route::prefix('tickets')->as('ticket.')->group(function () {
-                Route::get('/create', [TicketController::class, 'create'])->name('create');
-                Route::post('/store', [TicketController::class, 'store'])->name('store');
-
-                Route::get('/show/{ticket}', [TicketController::class, 'show'])->name('show');
-                Route::get('/edit/{ticket}', [TicketController::class, 'edit'])->name('edit');
-                Route::put('/edit/{ticket}', [TicketController::class, 'update'])->name('update');
-                Route::delete('/delete/{ticket}', [TicketController::class, 'destroy'])->name('destroy');
-
-                Route::put('/toggle-status/{ticket}', [TicketController::class, 'toggleTicketStatus'])->name('toggle-status');
-
-                Route::post('/reply/{ticket}/store', [TicketReplyController::class, 'store'])->name('reply.store');
-                Route::delete('/reply/{reply}/delete', [TicketReplyController::class, 'destroy'])->name('reply.destroy');
-
-                // All open tickets
-                Route::get('/all', [TicketController::class, 'index'])->name('index');
-            });
-
-            // Rules
             Route::get('/rules', WebsiteRulesController::class)->name('rules.index')->withoutMiddleware('auth');
         });
 
@@ -298,15 +216,6 @@ Route::middleware(['maintenance', 'check.ban', 'force.staff.2fa'])->group(functi
                 ->middleware('throttle:10,1');
         });
 
-        // Rare values routes - reads the emulator's furniture schema, so only
-        // available on drivers that support it.
-        Route::middleware('emulator.feature:rare-values')->group(function () {
-            Route::get('/values', [WebsiteRareValuesController::class, 'index'])->name('values.index');
-            Route::post('/values/search', [WebsiteRareValuesController::class, 'search'])->name('values.search');
-            Route::get('/values/category/{category}', [WebsiteRareValuesController::class, 'category'])->name('values.category');
-            Route::get('/values/{value}', [WebsiteRareValuesController::class, 'value'])->name('values.value');
-        });
-
         // Client routes. The game lives at /game itself (pixelrp); /game/nitro
         // stays as a redirect so old bookmarks keep working.
         Route::middleware(['findretros.redirect', 'vpn.checker'])->group(function () {
@@ -316,10 +225,6 @@ Route::middleware(['maintenance', 'check.ban', 'force.staff.2fa'])->group(functi
             Route::redirect('/game/nitro', '/game', 301);
             Route::get('/game/flash', FlashController::class)->name('flash-client');
         });
-
-        // Logo generator
-        Route::get('/logo-generator', [LogoGeneratorController::class, 'index'])->name('logo-generator.index');
-        Route::post('/logo-generator', [LogoGeneratorController::class, 'store'])->name('store.generated-logo');
     });
 });
 

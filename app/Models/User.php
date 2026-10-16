@@ -16,7 +16,6 @@ use App\Models\Game\Player\UserCurrency;
 use App\Models\Game\Player\UserSetting;
 use App\Models\Game\Player\UserSubscription;
 use App\Models\Game\Room;
-use App\Models\Help\WebsiteHelpCenterTicket;
 use App\Models\Miscellaneous\CameraWeb;
 use App\Models\Miscellaneous\WebsiteBetaCode;
 use App\Models\User\Ban;
@@ -117,8 +116,6 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property-read int|null $sessions_count
  * @property-read UserSetting|null $settings
  * @property-read WebsiteTeam|null $team
- * @property-read \Illuminate\Database\Eloquent\Collection<int, WebsiteHelpCenterTicket> $tickets
- * @property-read int|null $tickets_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, PersonalAccessToken> $tokens
  * @property-read int|null $tokens_count
  * @property-read int|null $transactions_count
@@ -442,12 +439,6 @@ class User extends Authenticatable implements FilamentUser, HasName
     public function items(): HasMany
     {
         return $this->hasMany(Item::class, 'user_id');
-    }
-
-    /** @return HasMany<WebsiteHelpCenterTicket, $this> */
-    public function tickets(): HasMany
-    {
-        return $this->hasMany(WebsiteHelpCenterTicket::class);
     }
 
     /** @return HasMany<CameraWeb, $this> */

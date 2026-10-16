@@ -1,11 +1,9 @@
 <?php
 
-use App\Models\Miscellaneous\WebsitePermission;
 use App\Models\User;
 use App\Models\User\Ban;
 use App\Models\WebsiteHousekeepingPermission;
 use App\Policies\BanPolicy;
-use App\Policies\WebsiteHelpCenterTicketPolicy;
 use Illuminate\Support\Facades\Gate;
 
 function grantHousekeepingPermission(string $permission, int $minRank): void
@@ -38,22 +36,15 @@ test('policies evaluate the explicit actor instead of global authentication', fu
         ['permission' => 'manage_bans'],
         ['min_rank' => 5, 'description' => 'Manage bans'],
     );
-    WebsitePermission::query()->updateOrCreate(
-        ['permission' => 'manage_website_tickets'],
-        ['min_rank' => 5, 'description' => 'Manage tickets'],
-    );
 
     $signedInUser = User::factory()->create(['rank' => 1]);
     $explicitActor = User::factory()->create(['rank' => 7]);
     $this->actingAs($signedInUser);
 
     $banPolicy = app(BanPolicy::class);
-    $ticketPolicy = app(WebsiteHelpCenterTicketPolicy::class);
 
     expect($banPolicy->viewAny($explicitActor))->toBeTrue()
-        ->and($banPolicy->viewAny($signedInUser))->toBeFalse()
-        ->and($ticketPolicy->viewAny($explicitActor))->toBeTrue()
-        ->and($ticketPolicy->viewAny($signedInUser))->toBeFalse();
+        ->and($banPolicy->viewAny($signedInUser))->toBeFalse();
 });
 
 test('forced staff two-factor authentication also protects housekeeping', function () {
