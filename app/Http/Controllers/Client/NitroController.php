@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
 use App\Services\City\CityWeather;
-use App\Services\City\Sidewalk;
 use App\Support\AssetPass;
 use App\Support\AuthenticatedUser;
 use Illuminate\Http\Request;
@@ -12,7 +11,7 @@ use Illuminate\Http\Response;
 
 class NitroController extends Controller
 {
-    public function __invoke(Request $request, CityWeather $weather, Sidewalk $sidewalk): Response
+    public function __invoke(Request $request, CityWeather $weather): Response
     {
         $user = AuthenticatedUser::from($request);
 
@@ -34,7 +33,6 @@ class NitroController extends Controller
         $response = response()->view('client.nitro', [
             'sso' => $user->activeCharacter()->ssoTicket(),
             'sky' => $weather->current(),
-            'walkers' => $sidewalk->walkers(),
         ]);
 
         foreach (AssetPass::issue($user, $request) as $cookie) {

@@ -47,7 +47,8 @@
     --}}
     <div id="disconnected" class="prp" hidden>
         <div class="auth">
-            <x-prp.street-scene :sky="$sky" :walkers="$walkers" />
+            {{-- No walkers here: the player has just lost the city; the street stands still. --}}
+            <x-prp.street-scene :sky="$sky" />
             <div class="dc-overlay" aria-hidden="true"></div>
 
             <header class="auth-top">
