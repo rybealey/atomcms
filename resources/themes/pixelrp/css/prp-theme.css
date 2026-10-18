@@ -151,9 +151,13 @@ button, input, select, textarea { font-family: inherit; }
 
 /* avatars from the imager */
 /* A full-figure render (size m) with its feet on the bottom edge: the face is 67px
-   above them whatever the hat, so the frame centres there and scales by --head-k. */
+   above them whatever the hat, so the frame centres there and scales by --head-k.
+   The img box is the frame itself (36px, scaled from its corner) and the figure is
+   placed inside it with object-position, feet 49px (67 - 18) below the box. Placing
+   the img itself that far down leaves its empty pre-load box outside the clip, and
+   Safari never starts a lazy load it cannot see. */
 .head { position: relative; width: var(--head-px, 32px); height: var(--head-px, 32px); border-radius: var(--radius-full); background: var(--surface-sunken); overflow: hidden; flex: none; }
-.head img { position: absolute; left: 50%; bottom: 50%; width: auto; height: auto; max-width: none; transform-origin: 50% 100%; transform: translate(-50%, calc(67px * var(--head-k, 1))) scale(var(--head-k, 1)); image-rendering: pixelated; }
+.head img { position: absolute; left: 0; top: 0; width: 36px; height: 36px; max-width: none; object-fit: none; object-position: 50% calc(100% + 49px); transform-origin: 0 0; transform: scale(var(--head-k, 1)); image-rendering: pixelated; }
 .head-stack { display: flex; align-items: center; }
 .head-stack .head { border: 2px solid var(--surface); }
 .head-stack .head + .head { margin-left: -8px; }
@@ -267,14 +271,26 @@ details.reveal > summary::-webkit-details-marker { display: none; }
 }
 @media (min-width: 861px) { .an-enter-sm { display: none !important; } }
 
-/* home hero */
-.hero-sky { position: relative; flex: 0 0 220px; min-height: 236px; overflow: hidden; }
-.hero-sky-bands { position: absolute; inset: 0; display: flex; flex-direction: column; }
-.hero-sky-bands > div { flex: 2; }
-.hero-sky-bands > div:first-child, .hero-sky-bands > div:nth-child(5) { flex: 3; }
-.hero-sky-ground { height: 40px; background: #b9aea6; border-top: 4px solid #cfc4bb; flex: none !important; }
-.hero-figure { position: absolute; left: 50%; bottom: 26px; transform: translateX(-50%); height: 130px; width: auto; }
-@media (max-width: 680px) { .hero-sky { flex-basis: 100%; min-height: 200px; } }
+/* home hero: the street from the login screen, cropped to the skyline and the
+   road, with the player standing in the middle of it. The art is painted at
+   dusk; the tint layer moves it to the city's current phase and weather. */
+.hero-scene { position: relative; flex: 0 0 280px; min-height: 260px; overflow: hidden; background: #2a1640; isolation: isolate; }
+.hero-scene-art { position: absolute; inset: 0; background-repeat: no-repeat; background-size: auto 165%; background-position: 66% 100%; }
+.hero-scene-tint { position: absolute; inset: 0; pointer-events: none; }
+/* a floor of shade so the figure reads against the lit street */
+.hero-scene::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, rgba(20, 9, 15, 0.55), rgba(20, 9, 15, 0) 45%); pointer-events: none; }
+.hero-scene-shadow { position: absolute; z-index: 1; left: 50%; bottom: 20px; width: 64px; height: 12px; transform: translateX(-50%); border-radius: 50%; background: radial-gradient(closest-side, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0)); }
+.hero-figure { position: absolute; z-index: 2; left: 50%; bottom: 24px; transform: translateX(-50%); height: 130px; width: auto; image-rendering: pixelated; }
+.hero-night .hero-scene-tint { background: linear-gradient(#0b0722, #1b1340); mix-blend-mode: multiply; opacity: 0.6; }
+.hero-dawn .hero-scene-tint { background: linear-gradient(#8fa0e0, #ffc6a8); mix-blend-mode: soft-light; opacity: 0.9; }
+.hero-day .hero-scene-art { filter: saturate(0.75) brightness(1.2) hue-rotate(-12deg); }
+.hero-day .hero-scene-tint { background: linear-gradient(#7fbbe8, rgba(183, 217, 243, 0.4)); mix-blend-mode: screen; opacity: 0.55; }
+.hero-cloudy .hero-scene-art, .hero-rain .hero-scene-art { filter: saturate(0.55) brightness(0.9); }
+.hero-day.hero-cloudy .hero-scene-art, .hero-day.hero-rain .hero-scene-art { filter: saturate(0.5) brightness(1.1); }
+.hero-fog .hero-scene-art { filter: saturate(0.6) blur(1px); }
+.hero-fog .hero-scene-tint::after { content: ""; position: absolute; inset: 0; background: linear-gradient(rgba(214, 206, 222, 0.7), rgba(214, 206, 222, 0.2) 70%); }
+.hero-rain .hero-scene-tint::after { content: ""; position: absolute; inset: -20px; background: repeating-linear-gradient(105deg, rgba(200, 210, 255, 0.18) 0 1px, transparent 1px 9px); }
+@media (max-width: 680px) { .hero-scene { flex-basis: 100%; min-height: 220px; } .hero-scene-art { background-size: cover; background-position: 70% 100%; } }
 
 /* auth screens: the hotel view and its road are pinned to the viewport, so the
    register form scrolls over the same picture, at the same scale, as login */

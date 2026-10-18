@@ -1,11 +1,4 @@
 @php
-    $skies = [
-        'night' => ['#110a24', '#170f30', '#1e153c', '#271c49', '#302456'],
-        'dawn' => ['#3b3a6e', '#6a5a8e', '#bd8a96', '#f0a07a', '#ffd9b0'],
-        'day' => ['#4f9fdc', '#66ade2', '#7fbbe8', '#99c9ee', '#b7d9f3'],
-        'dusk' => ['#2a1640', '#4a0b3d', '#8a2a62', '#d0566a', '#f0954a'],
-    ];
-    $bands = $skies[$sky->phase];
     $weatherIcon = match (true) {
         $sky->weather === 'rain' => 'cloud-rain',
         $sky->weather === 'fog' => 'cloud-fog',
@@ -32,13 +25,11 @@
         {{-- Hello --}}
         <section class="prp-card s8" aria-labelledby="hm-hello">
             <div class="row wrap g0" style="align-items: stretch">
-                <div class="hero-sky" aria-hidden="true">
-                    <div class="hero-sky-bands">
-                        @foreach ($bands as $band)
-                            <div style="background: {{ $band }}"></div>
-                        @endforeach
-                        <div class="hero-sky-ground"></div>
-                    </div>
+                {{-- The player on the street from the login screen, tinted to the city's sky right now --}}
+                <div class="hero-scene hero-{{ $sky->phase }} hero-{{ $sky->weather }}" aria-hidden="true">
+                    <div class="hero-scene-art" style="background-image: url('{{ asset('assets/images/pixelrp/city.webp') }}')"></div>
+                    <div class="hero-scene-tint"></div>
+                    <span class="hero-scene-shadow"></span>
                     <x-prp.figure :look="$me->look" size="l" class="hero-figure" />
                 </div>
 
@@ -112,7 +103,7 @@
             <div class="prp-card-head">
                 <span class="prp-card-icon"><x-prp.icon name="briefcase" /></span>
                 <div class="prp-card-titles">
-                    <h2 id="hm-job" class="prp-card-title">{{ __('Your job') }}</h2>
+                    <h2 id="hm-job" class="prp-card-title">{{ __('Employment') }}</h2>
                     <p class="prp-card-sub">{{ $job?->corporation ?? __('Unemployed') }}</p>
                 </div>
                 @if ($job?->on_duty)
@@ -153,7 +144,7 @@
             <div class="prp-card-head">
                 <span class="prp-card-icon prp-card-icon-accent"><x-prp.icon name="shield" /></span>
                 <div class="prp-card-titles">
-                    <h2 id="hm-gang" class="prp-card-title">{{ __('Your gang') }}</h2>
+                    <h2 id="hm-gang" class="prp-card-title">{{ __('Gang Affiliation') }}</h2>
                     <p class="prp-card-sub">{{ $gang?->name ?? __('No gang') }}</p>
                 </div>
                 @if ($gang !== null)
@@ -187,7 +178,7 @@
             <div class="prp-card-head">
                 <span class="prp-card-icon"><x-prp.icon name="chart" /></span>
                 <div class="prp-card-titles">
-                    <h2 id="hm-stats" class="prp-card-title">{{ __('Your stats') }}</h2>
+                    <h2 id="hm-stats" class="prp-card-title">{{ __('Statistics') }}</h2>
                     <p class="prp-card-sub">
                         {{ $stats->open_charges > 0 ? trans_choice(':count open charge|:count open charges', $stats->open_charges, ['count' => $stats->open_charges]) : __('Clean record') }}
                     </p>
