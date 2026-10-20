@@ -78,8 +78,11 @@ return [
     // /nitro-assets/ request against it. Unset means no pass is ever issued -
     // and nginx then turns every game file away - so compose.prod.yaml
     // refuses to start without it.
+    // guard_pause_minutes: how long a browser guard catch keeps the account
+    // from every game file (App\Support\AssetPause).
     'asset_pass' => [
         'secret' => env('ASSET_PASS_SECRET'),
         'ttl' => (int) env('ASSET_PASS_TTL', 86400),
+        'guard_pause_minutes' => (int) env('ASSET_GUARD_PAUSE_MINUTES', 30),
     ],
 ];

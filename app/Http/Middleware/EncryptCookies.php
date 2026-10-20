@@ -16,6 +16,7 @@ class EncryptCookies extends Middleware
         // pixelrp: nginx reads these raw (secure_link) - see AssetPass.
         AssetPass::USER,
         AssetPass::EXPIRES,
+        AssetPass::TIER,
         AssetPass::SIGNATURE,
     ];
 }
