@@ -27,7 +27,7 @@ class HousekeepingPermissionSeeder extends Seeder
             ],
             [
                 'permission' => 'delete_user',
-                'min_rank' => 7,
+                'min_rank' => 6,
                 'description' => 'The minimum rank required before being able to delete a user',
             ],
             [
@@ -102,22 +102,22 @@ class HousekeepingPermissionSeeder extends Seeder
             ],
             [
                 'permission' => 'view_activity_logs',
-                'min_rank' => 7,
+                'min_rank' => 6,
                 'description' => 'The minimum rank required before being able to view activity logs',
             ],
             [
                 'permission' => 'delete_website_settings',
-                'min_rank' => 7,
+                'min_rank' => 6,
                 'description' => 'The minimum rank required before being able to delete website settings',
             ],
             [
                 'permission' => 'manage_permissions',
-                'min_rank' => 7,
+                'min_rank' => 6,
                 'description' => 'The minimum rank required before being able to manage hotel rank permissions',
             ],
             [
                 'permission' => 'delete_permissions',
-                'min_rank' => 7,
+                'min_rank' => 6,
                 'description' => 'The minimum rank required before being able to delete hotel rank permissions',
             ],
             [
@@ -132,32 +132,32 @@ class HousekeepingPermissionSeeder extends Seeder
             ],
             [
                 'permission' => 'manage_achievements',
-                'min_rank' => 7,
+                'min_rank' => 6,
                 'description' => 'The minimum rank required before being able to manage achievements',
             ],
             [
                 'permission' => 'manage_commandlogs',
-                'min_rank' => 7,
+                'min_rank' => 6,
                 'description' => 'The minimum rank required before being able to manage command logs',
             ],
             [
                 'permission' => 'manage_furni_delete_logs',
-                'min_rank' => 7,
+                'min_rank' => 6,
                 'description' => 'The minimum rank required before being able to view the furni deletion logs',
             ],
             [
                 'permission' => 'manage_camera_web',
-                'min_rank' => 7,
+                'min_rank' => 6,
                 'description' => 'The minimum rank required before being able to manage published camera photos',
             ],
             [
                 'permission' => 'manage_housekeeping_permissions',
-                'min_rank' => 7,
+                'min_rank' => 6,
                 'description' => 'The minimum rank required before being able to manage housekeeping permissions',
             ],
             [
                 'permission' => 'manage_home_items',
-                'min_rank' => 7,
+                'min_rank' => 6,
                 'description' => 'The minimum rank required before being able to manage user home items and categories',
             ],
             [

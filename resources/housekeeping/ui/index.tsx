@@ -67,8 +67,7 @@ export function Pill({ tone = 'info', children }: { tone?: Tone; children: React
 }
 
 export function rankTone(rank: number, minStaff: number): string {
-  if (rank >= 8) return 'hk-rank--top';
-  if (rank >= 6) return 'hk-rank--mgmt';
+  if (rank >= 6) return 'hk-rank--top';
   if (rank >= Math.min(2, minStaff)) return 'hk-rank--staff';
   return '';
 }

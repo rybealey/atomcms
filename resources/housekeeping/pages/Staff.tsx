@@ -53,7 +53,7 @@ const LABELS: Record<string, string> = {
 };
 
 function shortRank(name: string): string {
-  return name.replace(/Trial Moderators?/i, 'Trial mod').replace(/Senior Moderators?/i, 'Senior mod').replace(/Community Leaders?/i, 'Comm. lead').replace(/Administrators?/i, 'Admin').replace(/Moderators?/i, 'Mod').replace(/Developers?/i, 'Dev').replace(/Managers?/i, 'Mgr');
+  return name.replace(/Builders?/i, 'Builder').replace(/Trial Moderators?/i, 'Trial mod').replace(/Administrators?/i, 'Admin').replace(/Moderators?/i, 'Mod').replace(/Developers?/i, 'Dev');
 }
 
 export default function Staff() {
