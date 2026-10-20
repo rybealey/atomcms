@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
 use App\Support\AssetPass;
+use App\Support\AssetPause;
 use App\Support\AuthenticatedUser;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -17,6 +18,16 @@ class NitroController extends Controller
         $user->update([
             'ip_current' => $request->ip(),
         ]);
+
+        // pixelrp: the browser guard sent this account back to the website a
+        // moment ago (AssetPause). No ticket and no pass until the pause ends -
+        // the page shows the ordinary "Connection lost" screen, with no reason.
+        if (AssetPause::until($user) !== null) {
+            return response()->view('client.nitro', [
+                'sso' => null,
+                'paused' => true,
+            ]);
+        }
 
         // pixelrp: the account enters the hotel as its ACTIVE character - the
         // last one played, or the root when there is only one. This is the

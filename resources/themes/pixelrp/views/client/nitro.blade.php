@@ -37,7 +37,10 @@
 </head>
 
 <body>
-    <iframe id="nitro" src="{{ sprintf('%s/index.html?sso=%s', setting('nitro_path'), $sso) }}" title="{{ setting('hotel_name') }}"></iframe>
+    {{-- A paused account (AssetPause) gets no client, only the screen below. --}}
+    @if (empty($paused))
+        <iframe id="nitro" src="{{ sprintf('%s/index.html?sso=%s', setting('nitro_path'), $sso) }}" title="{{ setting('hotel_name') }}"></iframe>
+    @endif
 
     {{--
         Shown when the client reports that its connection closed. The reason
@@ -210,6 +213,13 @@
                 var fn = window.FlashExternalInterface[payload.method];
                 if (typeof fn === 'function') fn.apply(null, payload.params || []);
             });
+
+            @if (! empty($paused))
+                // The browser guard sent this account back to the website a
+                // moment ago (AssetPause). Nothing was loaded; the ordinary
+                // screen shows, and it doesn't say why.
+                show('connection.lost');
+            @endif
         })();
     </script>
 </body>

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\AssetPausesController;
 use App\Http\Controllers\Api\HotelApiController;
 use App\Http\Controllers\Api\NewsImageController;
 use Illuminate\Support\Facades\Route;
@@ -22,3 +23,6 @@ Route::get('/online-count', [HotelApiController::class, 'onlineUserCount'])->nam
 Route::get('/deploy-status', [HotelApiController::class, 'deployStatus'])->name('api.deploy-status')->middleware('throttle:60,1');
 // pixelrp: featured-image library for the phone's News app
 Route::get('/news/images', NewsImageController::class)->name('api.news-images')->middleware('throttle:60,1');
+// pixelrp: the web container's nginx asking who is paused from game files
+// (AssetPause) - reachable from its internal server only, with the secret.
+Route::get('/internal/asset-pauses', AssetPausesController::class)->name('api.internal.asset-pauses');
