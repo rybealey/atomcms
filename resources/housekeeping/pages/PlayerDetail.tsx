@@ -4,8 +4,8 @@ import { useCrumbs } from '../Shell';
 import { useSession } from '@hk/lib/session';
 import { useFetch } from '@hk/lib/useFetch';
 import { badgeUrl, fullUrl } from '@hk/lib/avatar';
-import { fmtDate, fmtDateTime, fmtDuration, fmtNumber, relTime } from '@hk/lib/format';
-import { Button, Card, ErrorBox, LegacyLink, OnlineDot, Pill, RankChip, Skeleton, Tabs } from '@hk/ui';
+import { fmtDate, fmtDateTime, fmtDuration, fmtNumber, plural, relTime } from '@hk/lib/format';
+import { Avatar, Button, Card, ErrorBox, LegacyLink, OnlineDot, Pill, RankChip, Skeleton, Tabs } from '@hk/ui';
 import { PlayerSummary, statusOf } from './Players';
 
 interface PlayerDetailData {
@@ -15,7 +15,10 @@ interface PlayerDetailData {
     badges: string[];
     ban: { reason: string; expires_at: number } | null;
     ban_history: { reason: string; expires_at: number; added_by: string; added_at: number; active: boolean }[];
-    sessions: { ip: string; browser: string; at: number | null }[];
+    // Null when the viewer may not see IPs.
+    connections: Connection[] | null;
+    logins: LoginEntry[] | null;
+    linked: LinkedAccount[] | null;
     roleplay: {
       corporation: { id: number; name: string; badge: string; rank_name: string; rank_order: number; tier: number; hired_at: number; shift_seconds: number; shift_seconds_week: number; on_duty: boolean } | null;
       gang: { id: number; name: string; role_name: string; joined_at: number } | null;
@@ -23,6 +26,23 @@ interface PlayerDetailData {
   };
   can: { edit: boolean; reset_password: boolean; ban: boolean; delete: boolean; chatlogs: boolean };
 }
+
+/** One IP and device the account entered the hotel from (ConnectionReport). */
+interface Connection {
+  ip: string; country: string | null; location: string | null; device: string;
+  browser: string; os: string; type: string; screen: string | null; gpu: string | null; reported: boolean;
+  first_seen: number | null; last_seen: number | null; visits: number;
+  details: [string, string][];
+}
+interface LoginEntry { ip: string; device: string; ok: boolean; method: string; at: number | null }
+type LinkedAccount = PlayerSummary & { same_device: boolean; same_hardware: boolean; shared_ips: string[]; seen_together: number | null };
+
+const LOGIN_METHOD: Record<string, string> = {
+  password: 'Password',
+  'password-2fa': 'Password and two-factor',
+  'wrong-password': 'Wrong password',
+  'unknown-user': 'Unknown username',
+};
 
 const CURRENCY_ICON: Record<string, string> = {
   credits: '/assets/images/profile/credits.png',
@@ -229,28 +249,17 @@ export default function PlayerDetail() {
 
       {tab === 'security' ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <Card title="Sessions & IPs">
-            {p.sessions.length === 0 ? (
-              <div className="hk-card__body muted small">No website sessions logged.</div>
-            ) : (
-              p.sessions.map((s, i) => (
-                <div key={i} className="hk-row" style={{ flexWrap: 'wrap' }}>
-                  <code>{p.ip !== null ? s.ip : s.ip.replace(/\.\d+\.\d+$/, '.xx.xx')}</code>
-                  <span style={{ flex: 1 }} className="small muted">{s.browser}</span>
-                  <span className="muted">{s.at ? fmtDateTime(s.at) : '—'}</span>
-                  {i === 0 ? <Pill tone="success">Latest</Pill> : null}
-                </div>
-              ))
-            )}
-            {p.ip !== null ? (
-              <div className="hk-row" style={{ flexWrap: 'wrap' }}>
-                <code>{p.ip || '—'}</code>
-                <span style={{ flex: 1 }} className="small muted">Last hotel IP</span>
-                <code>{p.register_ip || '—'}</code>
-                <span className="small muted">Registration IP</span>
-              </div>
-            ) : null}
-          </Card>
+          {p.connections === null ? (
+            <Card title="IPs & devices">
+              <div className="hk-card__body muted small">Hidden — needs the edit players capability.</div>
+            </Card>
+          ) : (
+            <>
+              <ConnectionsCard rows={p.connections} lastIp={p.ip} registerIp={p.register_ip} />
+              <LinkedCard rows={p.linked ?? []} imager={me.config.imager} />
+              <LoginsCard rows={p.logins ?? []} />
+            </>
+          )}
           <Card title="Email">
             <div className="hk-card__body" style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
               <code style={{ fontSize: 14 }}>{p.mail ?? 'Hidden — needs the edit players capability'}</code>
@@ -299,5 +308,121 @@ export default function PlayerDetail() {
         </Card>
       ) : null}
     </section>
+  );
+}
+
+/** Every IP and device the account entered the hotel from; a row opens to show all its details. */
+function ConnectionsCard({ rows, lastIp, registerIp }: { rows: Connection[]; lastIp: string | null; registerIp: string | null }) {
+  const [open, setOpen] = useState<number | null>(null);
+
+  return (
+    <Card title="IPs & devices" action={<span className="small muted">{rows.length}</span>}>
+      {rows.length === 0 ? (
+        <div className="hk-card__body muted small">Nothing logged yet. This fills in the next time they enter the hotel.</div>
+      ) : (
+        rows.map((c, i) => (
+          <div key={`${c.ip}-${c.device}`}>
+            <button type="button" className="hk-row--btn" aria-expanded={open === i} onClick={() => setOpen(open === i ? null : i)}>
+              <code>{c.ip}</code>
+              {c.country ? <Pill tone="ink">{c.country}</Pill> : null}
+              <span className="hk-row__main">
+                <span className="hk-row__title">
+                  {c.browser} on {c.os}
+                </span>
+                <span className="hk-row__sub">{[c.type, c.screen, c.gpu, `device ${c.device}`].filter(Boolean).join(' · ')}</span>
+              </span>
+              <span className="small muted" style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                {relTime(c.last_seen)}
+                <br />
+                {c.visits} {plural(c.visits, 'visit')}
+              </span>
+            </button>
+            {open === i ? (
+              <div className="hk-card__body" style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 13, background: 'var(--hover)', borderBottom: '2px solid var(--line-soft)' }}>
+                <div className="hk-kv">
+                  <span className="muted">First seen</span>
+                  <span>{fmtDateTime(c.first_seen)}</span>
+                </div>
+                <div className="hk-kv">
+                  <span className="muted">Last seen</span>
+                  <span>{fmtDateTime(c.last_seen)}</span>
+                </div>
+                {c.details.map(([label, value]) => (
+                  <div key={label} className="hk-kv">
+                    <span className="muted" style={{ flex: 'none' }}>{label}</span>
+                    <span style={{ textAlign: 'right', wordBreak: 'break-word', minWidth: 0 }}>{value}</span>
+                  </div>
+                ))}
+                {!c.reported ? <span className="muted small">The browser didn't report its specs on this visit.</span> : null}
+              </div>
+            ) : null}
+          </div>
+        ))
+      )}
+      <div className="hk-row" style={{ flexWrap: 'wrap' }}>
+        <code>{lastIp || '—'}</code>
+        <span style={{ flex: 1 }} className="small muted">
+          Last hotel IP
+        </span>
+        <code>{registerIp || '—'}</code>
+        <span className="small muted">Registration IP</span>
+      </div>
+    </Card>
+  );
+}
+
+/** Other accounts that played from the same device, hardware or IP. */
+function LinkedCard({ rows, imager }: { rows: LinkedAccount[]; imager: string }) {
+  return (
+    <Card title="Accounts on the same IP or device" action={<span className="small muted">{rows.length}</span>}>
+      {rows.length === 0 ? (
+        <div className="hk-card__body muted small">No other account shares an IP or device with this one.</div>
+      ) : (
+        rows.map((o) => (
+          <div key={o.id} className="hk-row" style={{ flexWrap: 'wrap' }}>
+            <Link to={`/players/${o.id}`} className="hk-cell-btn" style={{ flex: 1, minWidth: 200 }}>
+              <Avatar look={o.look} imager={imager} />
+              <span style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.25, minWidth: 0 }}>
+                <span className="name" style={{ fontWeight: 600 }}>
+                  {o.username}
+                </span>
+                <span className="small muted">
+                  {o.shared_ips.length === 0
+                    ? 'No shared IP'
+                    : `${plural(o.shared_ips.length, 'Shared IP')}: ${o.shared_ips.slice(0, 3).join(', ')}${o.shared_ips.length > 3 ? ` and ${o.shared_ips.length - 3} more` : ''}`}
+                </span>
+              </span>
+            </Link>
+            {o.same_device ? <Pill tone="danger">Same device</Pill> : null}
+            {o.same_hardware && !o.same_device ? <Pill tone="warning">Same hardware</Pill> : null}
+            {o.banned ? <Pill tone="danger">Banned</Pill> : null}
+            <span className="small muted">{relTime(o.seen_together ?? o.last_online)}</span>
+          </div>
+        ))
+      )}
+    </Card>
+  );
+}
+
+/** The account's website log in attempts, both outcomes. */
+function LoginsCard({ rows }: { rows: LoginEntry[] }) {
+  return (
+    <Card title="Website log ins" action={<span className="small muted">{rows.length}</span>}>
+      {rows.length === 0 ? (
+        <div className="hk-card__body muted small">No log ins recorded.</div>
+      ) : (
+        rows.map((l, i) => (
+          <div key={i} className="hk-row" style={{ flexWrap: 'wrap' }}>
+            <Pill tone={l.ok ? 'success' : 'danger'}>{l.ok ? 'OK' : 'Failed'}</Pill>
+            <code>{l.ip || '—'}</code>
+            <span className="hk-row__main">
+              <span className="hk-row__title">{l.device}</span>
+              <span className="hk-row__sub">{LOGIN_METHOD[l.method] ?? l.method}</span>
+            </span>
+            <span className="small muted">{fmtDateTime(l.at)}</span>
+          </div>
+        ))
+      )}
+    </Card>
   );
 }

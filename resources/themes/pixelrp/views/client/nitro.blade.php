@@ -1,5 +1,6 @@
 @php
     $disconnectedTitle = __('Disconnected from :hotel', ['hotel' => setting('hotel_name')]);
+    $deviceReportUrl = route('nitro-client.device', [], false);
 @endphp
 <!DOCTYPE html>
 <html lang="en" data-theme="system">
@@ -221,6 +222,99 @@
                 show('connection.lost');
             @endif
         })();
+    </script>
+
+    {{--
+        The browser and machine this page runs on, for staff on the
+        housekeeping player page (ConnectionLog, DeviceReportController): once
+        per load, a few seconds in so it never competes with the client
+        starting. Whatever a browser won't say is simply left out.
+    --}}
+    <script>
+        setTimeout(async function () {
+            var n = navigator, s = screen, d = {};
+            var safe = async function (read) {
+                try { return await read(); } catch (e) { return null; }
+            };
+            var media = function (query) {
+                return window.matchMedia ? window.matchMedia(query).matches : false;
+            };
+
+            d.screen = { w: s.width, h: s.height, availW: s.availWidth, availH: s.availHeight, depth: s.colorDepth, dpr: window.devicePixelRatio, orientation: s.orientation ? s.orientation.type : null };
+            d.viewport = { w: window.innerWidth, h: window.innerHeight };
+            d.timezone = await safe(function () { return Intl.DateTimeFormat().resolvedOptions().timeZone; });
+            d.tzOffset = new Date().getTimezoneOffset();
+            d.language = n.language || null;
+            d.languages = n.languages ? Array.prototype.slice.call(n.languages, 0, 8) : null;
+            d.platform = n.platform || null;
+            d.vendor = n.vendor || null;
+            d.cores = n.hardwareConcurrency || null;
+            d.memory = n.deviceMemory || null;
+            d.touch = typeof n.maxTouchPoints === 'number' ? n.maxTouchPoints : null;
+            d.cookies = n.cookieEnabled;
+            d.dnt = n.doNotTrack || window.doNotTrack || null;
+            d.pdf = typeof n.pdfViewerEnabled === 'boolean' ? n.pdfViewerEnabled : null;
+            d.webdriver = n.webdriver === true;
+            d.colorScheme = media('(prefers-color-scheme: dark)') ? 'dark' : 'light';
+            d.colorGamut = media('(color-gamut: p3)') ? 'p3' : (media('(color-gamut: srgb)') ? 'srgb' : null);
+            d.reducedMotion = media('(prefers-reduced-motion: reduce)');
+
+            if (n.connection) {
+                d.connection = { type: n.connection.effectiveType || null, kind: n.connection.type || null, downlink: n.connection.downlink, rtt: n.connection.rtt, saveData: !!n.connection.saveData };
+            }
+
+            // The graphics card, from a throwaway WebGL context let go at once.
+            d.gpu = await safe(function () {
+                var canvas = document.createElement('canvas');
+                var gl = canvas.getContext('webgl2'), version = 2;
+                if (!gl) { gl = canvas.getContext('webgl'); version = 1; }
+                if (!gl) return null;
+                var info = gl.getExtension('WEBGL_debug_renderer_info');
+                var gpu = {
+                    vendor: info ? gl.getParameter(info.UNMASKED_VENDOR_WEBGL) : gl.getParameter(gl.VENDOR),
+                    renderer: info ? gl.getParameter(info.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER),
+                    webgl: version,
+                    maxTexture: gl.getParameter(gl.MAX_TEXTURE_SIZE)
+                };
+                var lose = gl.getExtension('WEBGL_lose_context');
+                if (lose) lose.loseContext();
+                return gpu;
+            });
+
+            // Chromium's client hints: the real OS version (Windows 11 says 10
+            // in its user agent), CPU architecture, phone model, full versions.
+            if (n.userAgentData) {
+                d.uaData = { brands: n.userAgentData.brands, mobile: n.userAgentData.mobile, platform: n.userAgentData.platform };
+                var hints = await safe(function () {
+                    return n.userAgentData.getHighEntropyValues(['architecture', 'bitness', 'model', 'platformVersion', 'fullVersionList', 'wow64', 'formFactors']);
+                });
+                if (hints) Object.assign(d.uaData, hints);
+            }
+
+            var estimate = await safe(function () { return n.storage && n.storage.estimate ? n.storage.estimate() : null; });
+            if (estimate && estimate.quota) d.storageGB = Math.round(estimate.quota / 1e9);
+
+            // How many, not which: without a permission prompt, names stay hidden.
+            var devices = await safe(function () { return n.mediaDevices && n.mediaDevices.enumerateDevices ? n.mediaDevices.enumerateDevices() : null; });
+            if (devices) {
+                d.media = { cameras: 0, microphones: 0, speakers: 0 };
+                devices.forEach(function (device) {
+                    if (device.kind === 'videoinput') d.media.cameras++;
+                    else if (device.kind === 'audioinput') d.media.microphones++;
+                    else if (device.kind === 'audiooutput') d.media.speakers++;
+                });
+            }
+
+            var battery = await safe(function () { return n.getBattery ? n.getBattery() : null; });
+            if (battery) d.battery = { level: Math.round(battery.level * 100), charging: battery.charging };
+
+            fetch(@json($deviceReportUrl), {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': @json(csrf_token()) },
+                body: JSON.stringify(d)
+            }).catch(function () {});
+        }, 3000);
     </script>
 </body>
 

@@ -91,7 +91,7 @@ export default function Players() {
           ) : null}
         </div>
         <div className="hk-actions">
-          <SearchBox value={search} onChange={setSearch} placeholder={canSeeEmail ? 'Username, email or IP' : 'Username'} width={240} />
+          <SearchBox value={search} onChange={setSearch} placeholder={canSeeEmail ? 'Username, email, IP or device' : 'Username'} width={240} />
         </div>
       </div>
 

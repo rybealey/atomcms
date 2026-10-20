@@ -12,6 +12,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\HousekeepingPermissionsService;
 use App\Support\Housekeeping\BanScope;
+use App\Support\Housekeeping\ConnectionReport;
 use App\Support\Housekeeping\PlayerColumns;
 use App\Support\Housekeeping\RankDirectory;
 use Illuminate\Database\Eloquent\Builder;
@@ -48,10 +49,27 @@ class PlayerController extends Controller
 
         if ($search !== '') {
             $like = addcslashes($search, '\\%_') . '%';
-            $query->where(function (Builder $where) use ($like, $search): void {
+            // pixelrp: staff who may see IPs also find every account that ever
+            // played from a pasted IP, device ID or hardware code
+            // (website_connection_logs, website_login_logs).
+            $byIp = $canSeeEmail && filter_var($search, FILTER_VALIDATE_IP) !== false;
+            $byDevice = $canSeeEmail && preg_match('/^[a-f0-9]{8}([a-f0-9]{8}|[a-f0-9]{24})?$/', $search) === 1;
+            $query->where(function (Builder $where) use ($like, $search, $byIp, $byDevice): void {
                 $where->where('username', 'like', $like)
                     ->orWhere('mail', 'like', $like)
                     ->orWhere(PlayerColumns::currentIp(), $search);
+
+                if ($byIp) {
+                    $where->orWhere(PlayerColumns::registerIp(), $search)
+                        ->orWhereIn('id', DB::table('website_connection_logs')->where('ip_address', $search)->select('user_id'))
+                        ->orWhereIn('id', DB::table('website_login_logs')->where('ip_address', $search)->whereNotNull('user_id')->select('user_id'));
+                }
+
+                if ($byDevice) {
+                    $where->orWhereIn('id', DB::table('website_connection_logs')
+                        ->where(fn ($match) => $match->where('device_id', 'like', $search . '%')->orWhere('hardware_hash', $search))
+                        ->select('user_id'));
+                }
             });
         }
 
@@ -84,20 +102,6 @@ class PlayerController extends Controller
         $badges = app(BadgeRepository::class);
         $bans = Emulator::supports(Feature::BanManagement) ? app(BanRepository::class)->activeAccountBan($user) : null;
 
-        // Website sessions (Laravel's sessions table, when the database
-        // session driver is in use); the hotel's own IPs come from the user row.
-        $sessions = DB::table('sessions')
-            ->where('user_id', $user->id)
-            ->orderByDesc('last_activity')
-            ->limit(8)
-            ->get(['ip_address', 'user_agent', 'last_activity'])
-            ->map(fn (object $row): array => [
-                'ip' => (string) ($row->ip_address ?? ''),
-                'browser' => (string) ($row->user_agent ?? ''),
-                'at' => (int) $row->last_activity,
-            ])
-            ->values();
-
         return response()->json([
             'player' => $this->summary($user, $canSeeEmail, $bans !== null) + [
                 'register_ip' => $canSeeEmail ? (string) $user->getAttribute(PlayerColumns::registerIp()) : null,
@@ -112,7 +116,11 @@ class PlayerController extends Controller
                 'badges' => array_slice($badges->codes($user), 0, 30),
                 'ban' => $bans !== null ? ['reason' => $bans->ban_reason, 'expires_at' => $bans->ban_expire] : null,
                 'ban_history' => Emulator::supports(Feature::BanManagement) ? BanScope::historyFor($user->id, $user->username) : [],
-                'sessions' => $sessions,
+                // pixelrp: where the account plays from (ConnectionReport) -
+                // IPs, so only for staff who may see IPs; null hides the cards.
+                'connections' => $canSeeEmail ? ConnectionReport::connections($user) : null,
+                'logins' => $canSeeEmail ? ConnectionReport::logins($user) : null,
+                'linked' => $canSeeEmail ? $this->linked($user) : null,
                 'roleplay' => $this->roleplay($user),
             ],
             'can' => [
@@ -144,6 +152,41 @@ class PlayerController extends Controller
             'ip' => $withEmail ? (string) $user->getAttribute(PlayerColumns::currentIp()) : null,
             'banned' => $banned,
         ];
+    }
+
+    /**
+     * The other accounts sharing an IP or device with this one, each with the
+     * player card fields and what they share.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function linked(User $user): array
+    {
+        $matches = ConnectionReport::linked($user);
+
+        if ($matches === []) {
+            return [];
+        }
+
+        $ids = array_column($matches, 'id');
+        $users = User::query()->select(PlayerColumns::listColumns())->whereIn('id', $ids)->get()->keyBy('id');
+        $bannedIds = $this->bannedIds($ids);
+        $linked = [];
+
+        foreach ($matches as $match) {
+            $other = $users->get($match['id']);
+
+            if ($other instanceof User) {
+                $linked[] = $this->summary($other, true, in_array($other->id, $bannedIds, true)) + [
+                    'same_device' => $match['device'],
+                    'same_hardware' => $match['hardware'],
+                    'shared_ips' => $match['ips'],
+                    'seen_together' => $match['last_seen'],
+                ];
+            }
+        }
+
+        return $linked;
     }
 
     /**
