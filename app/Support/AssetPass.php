@@ -19,10 +19,11 @@ use Symfony\Component\HttpFoundation\Cookie;
  * listed in EncryptCookies::$except - an encrypted value is ciphertext to nginx
  * and every file would 403.
  *
- * The tier sets the daily furni allowance (docker/web/asset-limit.js): staff
- * (rank >= min_staff_rank) have none, so shop and furni work is never cut
- * off; every other account gets a fixed number of different furni files a
- * day. It is signed with the rest, so it can't be edited, and all four
+ * The tier sets the daily furni allowance (docker/web/asset-limit.js): the
+ * staff tier has none - Developers only (UNLIMITED_RANK), not every staff
+ * rank (Twist, 2026-10-20: "Only devs have unlimited download") - and every
+ * other account, staff included, gets a fixed number of different furni files
+ * a day. It is signed with the rest, so it can't be edited, and all four
  * cookies are issued together every time, so a rank change takes effect at
  * the next renewal.
  *
@@ -79,9 +80,12 @@ final class AssetPass
         return $cookies;
     }
 
+    /** Developer, the top rank: the only one with no furni allowance. */
+    public const UNLIMITED_RANK = 6;
+
     public static function tier(User $user): string
     {
-        return (int) $user->rank >= (int) setting('min_staff_rank', 4) ? self::TIER_STAFF : self::TIER_PLAYER;
+        return (int) $user->rank >= self::UNLIMITED_RANK ? self::TIER_STAFF : self::TIER_PLAYER;
     }
 
     public static function sign(int $userId, int $expires, string $tier, string $secret): string

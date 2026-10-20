@@ -25,8 +25,10 @@ use Illuminate\Support\Facades\Log;
  * place it is decided and a restart of either side loses nothing.
  *
  * The guard log is per character; the pause is per account (the root, as
- * the asset pass is). Staff are never paused - the client never runs the
- * guard for them, and a row from before a promotion shouldn't lock one out.
+ * the asset pass is). The staff tier (Developers, AssetPass::UNLIMITED_RANK)
+ * is never paused, so a row from before a promotion can't lock one out. Other
+ * staff can be: the client skips the guard for Administrators too, but
+ * Builders up to Moderators run it like any player.
  */
 final class AssetPause
 {
@@ -68,7 +70,7 @@ final class AssetPause
                    JOIN users a ON a.id = COALESCE(u.parent_id, u.id)
                   WHERE g.created_at > ? AND a.`rank` < ?
                   GROUP BY a.id',
-                [time() - self::seconds(), (int) setting('min_staff_rank', 4)],
+                [time() - self::seconds(), AssetPass::UNLIMITED_RANK],
             );
         } catch (QueryException $e) {
             Log::warning('AssetPause: could not read rp_browser_guard_log', ['error' => $e->getMessage()]);
