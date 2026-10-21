@@ -35,10 +35,13 @@ class UserApiService
             ->get());
     }
 
-    // pixelrp: every open game client asks for this (OnlineCountView), so it
-    // reads the same 30-second cache as the website's counter.
+    // pixelrp: every open game client asks for this (OnlineCountView), and
+    // nginx answers them all from one count for 10 seconds (docker/web/nginx.conf,
+    // /api/online-count) - so it counts fresh, at most once in those 10 seconds
+    // whoever is asking, rather than reading the website's 30-second cache on
+    // top of that and showing the hotel's count up to a minute late.
     public function onlineUserCount(): int
     {
-        return players_online();
+        return User::where('online', '1')->count();
     }
 }
