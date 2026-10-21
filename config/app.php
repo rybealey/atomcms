@@ -3,7 +3,6 @@
 use App\Providers\AppServiceProvider;
 use App\Providers\EmulatorServiceProvider;
 use App\Providers\EventServiceProvider;
-use App\Providers\Filament\AdminFilamentPanelProvider;
 use App\Providers\FortifyServiceProvider;
 use App\Providers\RouteServiceProvider;
 use Illuminate\Auth\AuthServiceProvider;
@@ -224,7 +223,6 @@ return [
         App\Providers\AuthServiceProvider::class,
         // App\Providers\BroadcastServiceProvider::class,
         EventServiceProvider::class,
-        AdminFilamentPanelProvider::class,
         RouteServiceProvider::class,
         FortifyServiceProvider::class,
         ActivitylogServiceProvider::class,

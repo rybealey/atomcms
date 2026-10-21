@@ -1,9 +1,5 @@
 <?php
 
-use App\Filament\Resources\Hotel\ChatlogRooms\ChatlogRoomResource;
-use App\Filament\Resources\Hotel\PlusChatlogs\PlusChatlogResource;
-use App\Filament\Resources\User\Bans\BanResource;
-use App\Filament\Resources\User\PlusBans\PlusBanResource;
 use App\Models\Plus\PlusBan;
 use App\Models\Plus\PlusChatlog;
 use App\Models\User;
@@ -83,20 +79,4 @@ test('plus chatlogs list newest first with their sender', function () {
     expect($logs)->toHaveCount(2)
         ->and($logs->first()->message)->toBe('newest line')
         ->and($logs->first()->user->username)->toBe($user->username);
-});
-
-test('driver-bound housekeeping resources swap with the configured driver', function () {
-    config(['emulator.driver' => 'arcturus']);
-
-    expect(BanResource::shouldRegisterNavigation())->toBeTrue()
-        ->and(ChatlogRoomResource::shouldRegisterNavigation())->toBeTrue()
-        ->and(PlusBanResource::shouldRegisterNavigation())->toBeFalse()
-        ->and(PlusChatlogResource::shouldRegisterNavigation())->toBeFalse();
-
-    config(['emulator.driver' => 'plus']);
-
-    expect(BanResource::shouldRegisterNavigation())->toBeFalse()
-        ->and(ChatlogRoomResource::shouldRegisterNavigation())->toBeFalse()
-        ->and(PlusBanResource::shouldRegisterNavigation())->toBeTrue()
-        ->and(PlusChatlogResource::shouldRegisterNavigation())->toBeTrue();
 });

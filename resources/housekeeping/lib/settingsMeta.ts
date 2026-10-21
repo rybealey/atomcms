@@ -1,6 +1,6 @@
 // How each website_settings key is presented. Keys the API returns that are
 // not listed here still show up, under "Other", as plain text fields.
-import { IconName } from './icons';
+import type { IconName } from '@hk/ui/icons';
 
 export type SettingType = 'bool' | 'int' | 'duration' | 'enum' | 'rank' | 'secret' | 'path' | 'text' | 'textarea' | 'image' | 'look';
 
@@ -26,20 +26,20 @@ export interface GroupMeta { id: string; label: string; icon: IconName; desc: st
 
 export const GROUPS: GroupMeta[] = [
   { id: 'general', label: 'General & branding', icon: 'home', desc: 'Hotel name, theme, logo and how PixelRP shows up in search.' },
-  { id: 'registration', label: 'Registration & new players', icon: 'user-plus', desc: 'Who can sign up and what a brand-new player starts with.' },
+  { id: 'registration', label: 'Registration & new players', icon: 'person', desc: 'Who can sign up and what a brand-new player starts with.' },
   { id: 'security', label: 'Security', icon: 'shield', desc: 'Staff 2FA, VPN blocking and bot protection.' },
-  { id: 'maintenance', label: 'Maintenance', icon: 'alert', desc: 'Close the hotel website to players while you work on it.' },
-  { id: 'staff', label: 'Staff ranks', icon: 'users', desc: 'Rank thresholds for staff visibility and Housekeeping access. The ladder and permission matrix live under Staff.' },
+  { id: 'maintenance', label: 'Maintenance', icon: 'warning', desc: 'Close the hotel website to players while you work on it.' },
+  { id: 'staff', label: 'Staff ranks', icon: 'people', desc: 'Rank thresholds for staff visibility and Housekeeping access. The ladder and permission matrix live under Staff.' },
   { id: 'community', label: 'Community features', icon: 'heart', desc: 'Comments, guestbooks, referrals and player-drawn badges.' },
   { id: 'integrations', label: 'Integrations', icon: 'zap', desc: 'Discord, TinyMCE and the emulator RCON connection.' },
-  { id: 'advanced', label: 'Advanced (paths)', icon: 'code', desc: 'Developer-only file paths and client locations.', locked: true },
+  { id: 'advanced', label: 'Advanced (paths)', icon: 'key', desc: 'Developer-only file paths and client locations.', locked: true },
   { id: 'other', label: 'Other', icon: 'sliders', desc: 'Settings without a home yet. Edit with care.' },
 ];
 
 export const SETTINGS: SettingMeta[] = [
   { group: 'general', key: 'hotel_name', type: 'text', label: 'Hotel name', desc: 'Used in page titles, emails and the maintenance page.', max: 32 },
   { group: 'general', key: 'theme', type: 'enum', label: 'Website theme', desc: 'Which frontend theme players see. The deploy resets this to the built theme.', options: ['pixelrp', 'dusk', 'atom'] },
-  { group: 'general', key: 'cms_color_mode', type: 'enum', label: 'Colour mode', desc: 'Default colour mode for the website. Players can still switch.', options: ['light', 'dark', 'auto'] },
+  { group: 'general', key: 'cms_color_mode', type: 'enum', label: 'Color mode', desc: 'Default color mode for the website. Players can still switch.', options: ['light', 'dark', 'auto'] },
   { group: 'general', key: 'cms_logo', type: 'image', label: 'Logo', desc: 'Shown in the site header. PNG or GIF, transparent background.' },
   { group: 'general', key: 'cms_header', type: 'image', label: 'Me-page header', desc: "Wide art across the top of every player's Me page." },
   { group: 'general', key: 'cms_me_backdrop', type: 'image', label: 'Me-page backdrop', desc: 'Scene behind the Me page widgets.' },

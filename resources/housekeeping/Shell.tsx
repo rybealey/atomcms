@@ -1,223 +1,234 @@
-import React, { useEffect, useState } from 'react';
-import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useSession } from '@hk/lib/session';
-import { visibleNav } from '@hk/lib/nav';
-import { Avatar, Icon, IconButton, SearchBox } from '@hk/ui';
-
-function useIsMobile(): boolean {
-  const [mobile, setMobile] = useState(() => window.innerWidth < 768);
-  useEffect(() => {
-    const onResize = () => setMobile(window.innerWidth < 768);
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
-  }, []);
-  return mobile;
-}
+import { areaOf, screenOf, visibleNav } from '@hk/lib/nav';
+import { Avatar, Btn, Count, Icon, Pill } from '@hk/ui';
+import CommandPalette from './CommandPalette';
 
 export interface Crumb { label: string; to?: string }
 const CrumbContext = React.createContext<(crumbs: Crumb[]) => void>(() => undefined);
+
+/** Set the top bar's breadcrumbs (and the phone bar's title) for a page. */
 export function useCrumbs(crumbs: Crumb[]) {
   const set = React.useContext(CrumbContext);
   const key = JSON.stringify(crumbs);
   useEffect(() => {
     set(crumbs);
+    document.title = `${crumbs[crumbs.length - 1]?.label ?? 'Today'} · Housekeeping`;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key, set]);
 }
 
-function NavList({ onNavigate, expanded }: { onNavigate?: () => void; expanded: boolean }) {
-  const { me, can } = useSession();
-  const groups = visibleNav(me, can);
+const PaletteContext = React.createContext<(query?: string) => void>(() => undefined);
+export function usePalette() {
+  return React.useContext(PaletteContext);
+}
+
+function Rail({ onNavigate }: { onNavigate?: () => void }) {
+  const { me, can, pulse, collapsed: railCollapsed, toggleCollapsed, theme, toggleTheme, density, toggleDensity } = useSession();
+  // The phone drawer always shows the full rail.
+  const collapsed = railCollapsed && !onNavigate;
+  const location = useLocation();
+  const area = areaOf(location.pathname);
+  const current = screenOf(location.pathname);
+  const [menu, setMenu] = useState(false);
+  const env = me.config.environment;
+
   return (
-    <>
-      {groups.map((g, gi) => (
-        <div key={gi} className="hk-nav__group">
-          {g.label && expanded ? <div className="hk-nav__label">{g.label}</div> : null}
-          {g.items.map((item) => {
-            const count = item.count ? item.count(me) : 0;
-            return (
-              <NavLink key={item.id} to={item.to} end={item.to === '/'} className="hk-nav__item" title={item.label} onClick={onNavigate}>
-                <Icon name={item.icon} size={20} />
-                {expanded ? (
-                  <>
-                    <span className="label">{item.label}</span>
-                    {count > 0 ? <span className="hk-count">{count}</span> : null}
-                  </>
-                ) : null}
-              </NavLink>
-            );
-          })}
+    <nav className="rail" aria-label="Housekeeping">
+      <div className="brandbox">
+        <Link to="/" onClick={onNavigate} aria-label="Today">
+          {collapsed ? (
+            <img src="/assets/images/pixelrp/emblem.png" width={31} height={55} alt="PixelRP" />
+          ) : (
+            <img src="/assets/images/pixelrp/wordmark.png" width={201} height={55} alt="PixelRP" style={{ maxWidth: '100%', height: 'auto' }} />
+          )}
+        </Link>
+        <div className="envrow">
+          <span className="overline">Housekeeping</span>
+          <Pill tone={env === 'production' ? '' : 'acc'}>{env === 'production' ? 'Production' : env === 'beta' ? 'Beta' : 'Local'}</Pill>
         </div>
-      ))}
-    </>
+      </div>
+      {visibleNav(me, can).map((a) => {
+        const on = a.id === area;
+        const n = a.count ? a.count(pulse.counts) : 0;
+        return (
+          <React.Fragment key={a.id}>
+            <Link className={`nav-a ${on ? 'on' : ''}`} to={a.screens[0].to} onClick={onNavigate} title={collapsed ? a.label : undefined} aria-current={on && a.id === 'today' ? 'page' : undefined}>
+              <Icon name={a.icon} />
+              <span className="label">{a.label}</span>
+              {!on ? <Count n={n} /> : null}
+            </Link>
+            {on && a.screens.length > 1 ? (
+              <div className="nav-sub">
+                {a.screens.map((s) => {
+                  const sn = s.count ? s.count(pulse.counts) : 0;
+                  const active = current?.id === s.id;
+                  return (
+                    <NavLink key={s.id} className={`nav-s ${active ? 'on' : ''}`} to={s.to} end onClick={onNavigate} aria-current={active ? 'page' : undefined}>
+                      {s.label} <Count n={sn} tone={s.countTone} />
+                    </NavLink>
+                  );
+                })}
+              </div>
+            ) : null}
+          </React.Fragment>
+        );
+      })}
+      <div className="railfoot rel">
+        <button type="button" className="me" onClick={() => setMenu((m) => !m)} aria-haspopup="menu" aria-expanded={menu} title={collapsed ? me.user.username : undefined}>
+          <Avatar look={me.user.look} size={30} />
+          <span className="me-text grow">
+            <span style={{ display: 'block', fontSize: 13, fontWeight: 500 }} className="ell">
+              {me.user.username}
+            </span>
+            <span className="sub ell" style={{ display: 'block', fontSize: 12 }}>
+              {me.user.rank_name}
+            </span>
+          </span>
+        </button>
+        {menu ? (
+          <>
+            <div className="scrim clear" onClick={() => setMenu(false)} />
+            <div className="menu" role="menu" style={{ bottom: '100%', left: 0, marginBottom: 4 }}>
+              <Link role="menuitem" to={`/players/${me.user.id}`} onClick={() => { setMenu(false); onNavigate?.(); }}>
+                <Icon name="person" /> My player page
+              </Link>
+              <button type="button" role="menuitem" onClick={toggleTheme}>
+                <Icon name={theme === 'dark' ? 'sun' : 'moon'} /> {theme === 'dark' ? 'Light theme' : 'Dark theme'}
+              </button>
+              <button type="button" role="menuitem" onClick={toggleDensity}>
+                <Icon name="list" /> {density === 'compact' ? 'Comfortable rows' : 'Compact rows'}
+              </button>
+              <a role="menuitem" href="/">
+                <Icon name="external" /> Back to the site
+              </a>
+              <hr />
+              <form method="post" action="/logout">
+                <input type="hidden" name="_token" value={document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? ''} />
+                <button type="submit" role="menuitem" className="danger" style={{ width: '100%' }}>
+                  <Icon name="logout" /> Sign out
+                </button>
+              </form>
+            </div>
+          </>
+        ) : null}
+        {!onNavigate ? (
+          <Btn variant="quiet" sm icon={collapsed ? 'expand' : 'collapse'} onClick={toggleCollapsed} style={{ justifyContent: 'flex-start' }} aria-label={collapsed ? 'Expand menu' : 'Collapse menu'}>
+            <span className="label">{collapsed ? 'Expand menu' : 'Collapse menu'}</span>
+          </Btn>
+        ) : null}
+      </div>
+    </nav>
   );
 }
 
+const TABBAR = [
+  { area: 'today', label: 'Today', icon: 'home', to: '/' },
+  { area: 'people', label: 'People', icon: 'people', to: '/players' },
+  { area: 'moderation', label: 'Support', icon: 'message', to: '/moderation/support' },
+  { area: 'city', label: 'City', icon: 'city', to: '/city/justice' },
+] as const;
+
 export default function Shell() {
-  const { me, can, theme, toggleTheme } = useSession();
-  const mobile = useIsMobile();
-  const navigate = useNavigate();
+  const { me, pulse, collapsed } = useSession();
   const location = useLocation();
   const [drawer, setDrawer] = useState(false);
-  const [userMenu, setUserMenu] = useState(false);
-  const [crumbs, setCrumbs] = useState<Crumb[]>([{ label: 'Home' }]);
-  const [quick, setQuick] = useState('');
+  const [palette, setPalette] = useState<string | null>(null);
+  const [crumbs, setCrumbs] = useState<Crumb[]>([{ label: 'Today' }]);
+  const area = areaOf(location.pathname);
 
   useEffect(() => {
     setDrawer(false);
-    setUserMenu(false);
     window.scrollTo(0, 0);
   }, [location.pathname]);
 
+  const openPalette = useCallback((query = '') => setPalette(query), []);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === '/' && !(e.target instanceof HTMLInputElement) && !(e.target instanceof HTMLTextAreaElement)) {
+      const typing = e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement || (e.target instanceof HTMLElement && e.target.isContentEditable);
+      if ((e.key === 'k' && (e.metaKey || e.ctrlKey)) || (e.key === '/' && !typing)) {
         e.preventDefault();
-        document.querySelector<HTMLInputElement>('#hk-quick input')?.focus();
+        setPalette('');
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
-  const settingsActive = location.pathname.startsWith('/settings') || location.pathname.startsWith('/staff');
-  const showSettings = can('manage_website_settings') || can('manage_housekeeping_permissions');
-
-  const submitQuick = (e: React.FormEvent) => {
-    e.preventDefault();
-    const q = quick.trim();
-    if (!q) return;
-    navigate(`/players?q=${encodeURIComponent(q)}`);
-    setQuick('');
-  };
+  const env = me.config.environment;
+  const online = pulse.emulator.online;
 
   return (
     <CrumbContext.Provider value={setCrumbs}>
-      <div className="hk-frame">
-        {!mobile ? (
-          <aside aria-label="Main navigation" className="hk-side">
-            <div className="hk-brand">
-              <img src="/favicon-32x32.png" alt="PixelRP" className="hk-brand__mark px-art" />
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
-                <span className="hk-brand__name">PIXELRP</span>
-                <span className="hk-brand__sub">Housekeeping</span>
-              </div>
-            </div>
-            <nav className="hk-nav">
-              <NavList expanded />
-            </nav>
-            <div className="hk-side__foot">
-              {showSettings ? (
-                <NavLink to="/settings" className="hk-nav__item" aria-current={settingsActive ? 'page' : undefined} title="Settings">
-                  <Icon name="sliders" size={20} />
-                  <span className="label">Settings</span>
-                </NavLink>
-              ) : null}
-              <button type="button" className="hk-user" onClick={() => setUserMenu((o) => !o)} title={`${me.user.username} · ${me.user.rank_name}`}>
-                <Avatar look={me.user.look} imager={me.config.imager} size="xs" />
-                <span style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2, flex: 1, minWidth: 0 }}>
-                  <span style={{ fontWeight: 600 }}>{me.user.username}</span>
-                  <span className="small muted">{me.user.rank_name}</span>
-                </span>
-                <Icon name="more-horizontal" size={16} />
-              </button>
-            </div>
-          </aside>
-        ) : null}
-
-        <main className="hk-main">
-          <a href="#hk-content" className="hk-skip">
-            Skip to Content
-          </a>
-          <header className="hk-header">
-            {mobile ? <IconButton name="menu" label="Open navigation" plain onClick={() => setDrawer(true)} style={{ marginLeft: -12 }} /> : null}
-            <nav aria-label="Breadcrumb" className="hk-crumbs">
-              {crumbs.map((c, i) => (
-                <span key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  {i > 0 ? <span aria-hidden="true">›</span> : null}
-                  <span className={i === crumbs.length - 1 ? 'cur' : ''}>{c.label}</span>
-                </span>
-              ))}
-            </nav>
-            {!mobile ? (
-              <form id="hk-quick" onSubmit={submitQuick} style={{ display: 'contents' }}>
-                <SearchBox value={quick} onChange={setQuick} placeholder="Find a player" width={300} kbd="/" />
-              </form>
-            ) : null}
-            <IconButton name={theme === 'dark' ? 'sun' : 'moon'} label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'} onClick={toggleTheme} />
-          </header>
-
-          <div id="hk-content" tabIndex={-1} className="hk-content">
-            <Outlet />
-          </div>
-
-          <footer className="hk-footer">
-            <span>PixelRP Housekeeping</span>
-            <span>·</span>
-            <span>Signed in as {me.user.username}</span>
-            <span>·</span>
-            <a href={me.config.legacy_url} target="_blank" rel="noreferrer">
-              Classic housekeeping
+      <PaletteContext.Provider value={openPalette}>
+        {env === 'beta' ? <div className="envbar">Beta environment · changes here never reach the live hotel</div> : null}
+        <div className={`shell ${collapsed ? 'collapsed' : ''}`}>
+          <Rail />
+          <div className="main">
+            <a href="#hk-content" className="sr-only">
+              Skip to content
             </a>
-          </footer>
-        </main>
-
+            <header className="top">
+              <nav className="crumbs" aria-label="Breadcrumb">
+                {crumbs.map((c, i) => (
+                  <React.Fragment key={i}>
+                    {i > 0 ? <span aria-hidden="true">/</span> : null}
+                    {i === crumbs.length - 1 ? <b>{c.label}</b> : c.to ? <Link to={c.to}>{c.label}</Link> : <span>{c.label}</span>}
+                  </React.Fragment>
+                ))}
+              </nav>
+              <button className="search" type="button" onClick={() => openPalette('')}>
+                <Icon name="search" />
+                <span>Search players, rooms, corporations or actions</span>
+                <kbd>/</kbd>
+              </button>
+              <span className="status" role="status">
+                <span className={`dot ${online ? 'ok' : 'bad'}`} />
+                {online ? 'Emulator online' : 'Emulator offline'}
+              </span>
+            </header>
+            <header className="phonebar">
+              <button className="btn quiet icon" type="button" aria-label="Open menu" onClick={() => setDrawer(true)}>
+                <Icon name="menu" />
+              </button>
+              <h1>{crumbs[crumbs.length - 1]?.label ?? 'Today'}</h1>
+              <span className="status" style={{ fontSize: 12 }}>
+                <span className={`dot ${online ? 'ok' : 'bad'}`} />
+                {online ? 'Online' : 'Offline'}
+              </span>
+              <button className="btn quiet icon" type="button" aria-label="Search" onClick={() => openPalette('')}>
+                <Icon name="search" />
+              </button>
+            </header>
+            <div id="hk-content" tabIndex={-1} style={{ outline: 0, flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <Outlet />
+            </div>
+            <nav className="tabbar" aria-label="Sections">
+              {TABBAR.map((t) => (
+                <Link key={t.area} to={t.to} className={area === t.area ? 'on' : ''} aria-current={area === t.area ? 'page' : undefined}>
+                  <Icon name={t.icon} />
+                  {t.label}
+                </Link>
+              ))}
+              <button type="button" className={['content', 'logs', 'admin'].includes(area) ? 'on' : ''} onClick={() => setDrawer(true)}>
+                <Icon name="more" />
+                More
+              </button>
+            </nav>
+          </div>
+        </div>
         {drawer ? (
           <>
-            <div className="hk-scrim hk-scrim--dark" onClick={() => setDrawer(false)} />
-            <aside aria-label="Navigation" className="hk-drawer">
-              <div className="hk-brand" style={{ justifyContent: 'space-between' }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <img src="/favicon-32x32.png" alt="" className="hk-brand__mark px-art" />
-                  <span style={{ fontWeight: 600, fontSize: 13 }}>Housekeeping</span>
-                </span>
-                <IconButton name="close" label="Close navigation" plain onClick={() => setDrawer(false)} />
-              </div>
-              <nav className="hk-nav">
-                <NavList expanded onNavigate={() => setDrawer(false)} />
-                {showSettings ? (
-                  <NavLink to="/settings" className="hk-nav__item" style={{ borderTop: '2px solid var(--line)' }} onClick={() => setDrawer(false)}>
-                    <Icon name="sliders" size={20} />
-                    <span className="label">Settings</span>
-                  </NavLink>
-                ) : null}
-              </nav>
-            </aside>
-          </>
-        ) : null}
-
-        {userMenu ? (
-          <>
-            <div className="hk-scrim" onClick={() => setUserMenu(false)} />
-            <div role="menu" className="hk-menu hk-menu--user" style={{ left: 272 }}>
-              <div className="hk-menu__head">
-                <strong>{me.user.username}</strong>
-                <div className="small muted">
-                  {me.user.rank_name} · rank {me.user.rank}
-                </div>
-              </div>
-              <button type="button" role="menuitem" onClick={() => navigate(`/players/${me.user.id}`)}>
-                My player card
-              </button>
-              <a role="menuitem" href="/user/me">
-                Back to the site
-              </a>
-              <a role="menuitem" href={me.config.legacy_url} target="_blank" rel="noreferrer">
-                Classic housekeeping
-              </a>
-              <div className="hk-menu__foot">
-                {me.config.hotel_name} · {me.config.emulator} emulator
-              </div>
-              <form method="post" action="/logout">
-                <input type="hidden" name="_token" value={document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? ''} />
-                <button type="submit" role="menuitem" className="danger" style={{ width: '100%', textAlign: 'left' }}>
-                  Sign out
-                </button>
-              </form>
+            <div className="scrim" onClick={() => setDrawer(false)} />
+            <div className="drawer" role="dialog" aria-modal="true" aria-label="Menu">
+              <Rail onNavigate={() => setDrawer(false)} />
             </div>
           </>
         ) : null}
-      </div>
+        {palette !== null ? <CommandPalette initial={palette} onClose={() => setPalette(null)} /> : null}
+      </PaletteContext.Provider>
     </CrumbContext.Provider>
   );
 }

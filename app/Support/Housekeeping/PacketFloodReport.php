@@ -27,7 +27,7 @@ final class PacketFloodReport
     {
         $root = (int) ($account->parent_id ?: $account->id);
 
-        return DB::table('rp_packet_flood_log as f')
+        return array_values(DB::table('rp_packet_flood_log as f')
             ->join('users as u', 'u.id', '=', 'f.user_id')
             ->where(fn (Builder $query) => $query->where('u.id', $root)->orWhere('u.parent_id', $root))
             ->orderByDesc('f.created_at')
@@ -40,7 +40,6 @@ final class PacketFloodReport
                 'window' => (int) $row->window_seconds,
                 'at' => (int) $row->created_at,
             ])
-            ->values()
-            ->all();
+            ->all());
     }
 }

@@ -63,3 +63,16 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
 export const get = <T>(path: string) => api<T>(path);
 export const put = <T>(path: string, data: unknown) => api<T>(path, { method: 'PUT', body: JSON.stringify(data) });
 export const post = <T>(path: string, data: unknown) => api<T>(path, { method: 'POST', body: JSON.stringify(data) });
+export const patch = <T>(path: string, data: unknown) => api<T>(path, { method: 'PATCH', body: JSON.stringify(data) });
+export const del = <T>(path: string, data?: unknown) => api<T>(path, { method: 'DELETE', body: data === undefined ? undefined : JSON.stringify(data) });
+
+/** Build a query string, dropping empty values. */
+export function qs(params: Record<string, string | number | boolean | null | undefined>): string {
+  const search = new URLSearchParams();
+  for (const [k, v] of Object.entries(params)) {
+    if (v === null || v === undefined || v === '' || v === false) continue;
+    search.set(k, v === true ? '1' : String(v));
+  }
+  const s = search.toString();
+  return s ? `?${s}` : '';
+}

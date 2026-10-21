@@ -1,79 +1,122 @@
-import { IconName } from './icons';
-import { Me } from './session';
+// The rail: six areas grouped by staff job, each with its screens. An area
+// links to its first screen the signed-in rank may open; a screen with
+// `permissions` shows when any one of them is granted.
+import type { IconName } from '@hk/ui/icons';
+import type { Counts, Me } from './session';
 
-export interface NavItem {
+export interface NavScreen {
+  id: string;
+  label: string;
+  to: string;
+  permissions?: string[];
+  feature?: string;
+  count?: (c: Counts) => number;
+  countTone?: 'bad';
+}
+export interface NavArea {
   id: string;
   label: string;
   icon: IconName;
-  to: string;
-  /** any of these housekeeping permissions grants the entry */
-  permissions?: string[];
-  /** emulator Feature value the entry depends on */
-  feature?: string;
-  /** Filament slug when the screen is still served by the classic panel */
-  legacy?: string;
-  description?: string;
-  count?: (me: Me) => number;
+  screens: NavScreen[];
+  count?: (c: Counts) => number;
 }
-export interface NavGroup { label: string; items: NavItem[] }
 
-export const NAV: NavGroup[] = [
-  { label: '', items: [{ id: 'home', label: 'Home', icon: 'home', to: '/' }] },
+export const NAV: NavArea[] = [
+  { id: 'today', label: 'Today', icon: 'home', screens: [{ id: 'today', label: 'Today', to: '/' }] },
   {
-    label: 'Community',
-    items: [
-      { id: 'players', label: 'Players', icon: 'users', to: '/players' },
-      { id: 'bans', label: 'Bans', icon: 'lock', to: '/bans', permissions: ['manage_bans'], feature: 'ban-management', legacy: 'user-management/plus-bans', description: 'Active and expired bans. Issue new bans from a player card.' },
-      { id: 'chatlogs', label: 'Chatlogs', icon: 'message', to: '/chatlogs', permissions: ['manage_room_chatlogs'], feature: 'room-chatlogs', legacy: 'hotel/plus-chatlogs', description: 'Room chat history, searchable by player and room.' },
+    id: 'people',
+    label: 'People',
+    icon: 'people',
+    screens: [
+      { id: 'players', label: 'Players', to: '/players' },
+      { id: 'discipline', label: 'Discipline', to: '/people/discipline', permissions: ['manage_bans'] },
+      { id: 'security', label: 'Security', to: '/people/security', permissions: ['edit_user'], count: (c) => c.guard_flags },
     ],
   },
   {
-    label: 'Roleplay',
-    items: [
-      { id: 'corporations', label: 'Corporations', icon: 'building', to: '/roleplay/corporations', description: 'Corps, their rank ladders and employees.' },
-      { id: 'gangs', label: 'Gangs', icon: 'sword', to: '/roleplay/gangs', description: 'Gangs, roles and members.' },
-      { id: 'crimes', label: 'Crimes', icon: 'shield', to: '/roleplay/crimes', description: 'What the police can charge people with.' },
+    id: 'moderation',
+    label: 'Moderation',
+    icon: 'shield',
+    count: (c) => c.support_waiting + c.tickets_open,
+    screens: [
+      { id: 'support', label: 'Support queue', to: '/moderation/support', permissions: ['manage_support'], count: (c) => c.support_waiting },
+      { id: 'tickets', label: 'Tickets', to: '/moderation/tickets', permissions: ['manage_support'], count: (c) => c.tickets_open },
+      { id: 'chat', label: 'Chat logs', to: '/moderation/chat', permissions: ['manage_room_chatlogs', 'manage_private_chatlogs'] },
+      { id: 'sitch', label: 'Sitch and photos', to: '/moderation/sitch', permissions: ['manage_camera_web', 'moderate_sitch'] },
     ],
   },
   {
+    id: 'city',
+    label: 'City',
+    icon: 'city',
+    screens: [
+      { id: 'justice', label: 'Justice', to: '/city/justice', count: (c) => c.calls_open, countTone: 'bad' },
+      { id: 'corporations', label: 'Corporations', to: '/city/corporations' },
+      { id: 'gangs', label: 'Gangs', to: '/city/gangs' },
+      { id: 'economy', label: 'Economy', to: '/city/economy', permissions: ['view_economy'] },
+      { id: 'rooms', label: 'Rooms and world', to: '/city/rooms' },
+    ],
+  },
+  {
+    id: 'content',
     label: 'Content',
-    items: [
-      { id: 'articles', label: 'Articles', icon: 'article', to: '/articles', permissions: ['write_article', 'edit_article'], legacy: 'website/articles', description: 'News articles on the website and in the phone.' },
-      { id: 'photos', label: 'Photos', icon: 'camera', to: '/photos', permissions: ['manage_camera_web'], legacy: 'camera-web', description: 'Pictures players take with the in-game camera.' },
-      { id: 'tags', label: 'Tags', icon: 'label', to: '/tags', permissions: ['manage_article_tags'], legacy: 'website/tags', description: 'Tags group articles on the news page.' },
-      { id: 'teams', label: 'Teams', icon: 'group', to: '/teams', permissions: ['manage_teams'], legacy: 'website/teams', description: 'Teams group staff on the public staff page.' },
-      { id: 'homeitems', label: 'Home Page Items', icon: 'layout', to: '/home-items', permissions: ['manage_home_items'], legacy: 'home-management/items', description: 'Widgets, notes and backgrounds for player Me pages.' },
+    icon: 'box',
+    count: (c) => c.draw_badges,
+    screens: [
+      { id: 'badges', label: 'Badges', to: '/content/badges', permissions: ['manage_badges'], count: (c) => c.draw_badges },
+      { id: 'catalog', label: 'Catalog and furni', to: '/content/catalog', permissions: ['manage_catalog_pages'] },
+      { id: 'achievements', label: 'Achievements and texts', to: '/content/achievements', permissions: ['manage_achievements', 'manage_emulator_texts'] },
+      { id: 'wordfilter', label: 'Word filter', to: '/content/wordfilter', permissions: ['manage_wordfilter'] },
+      { id: 'news', label: 'Phone news', to: '/content/news', permissions: ['edit_article'] },
+      { id: 'website', label: 'Website', to: '/content/website', permissions: ['write_article', 'edit_article', 'manage_teams', 'manage_article_tags', 'manage_website_ads', 'manage_home_items'] },
     ],
   },
   {
-    label: 'Hotel',
-    items: [
-      { id: 'badges', label: 'Badges', icon: 'trophy', to: '/badges', permissions: ['manage_badges'], count: (me) => me.counts.draw_badges },
-      { id: 'achievements', label: 'Achievements', icon: 'zap', to: '/achievements', permissions: ['manage_achievements'], legacy: 'hotel/achievements', description: 'Achievement definitions synced from the emulator.' },
-      { id: 'catalog', label: 'Catalog Pages', icon: 'folder', to: '/catalog', permissions: ['manage_catalog_pages'], feature: 'catalog-management', legacy: 'hotel/catalog-pages', description: 'The in-game shop tree.' },
-      { id: 'wordfilter', label: 'Word Filter', icon: 'shield', to: '/wordfilter', permissions: ['manage_wordfilter'], feature: 'wordfilter', legacy: 'hotel/wordfilters', description: 'Filtered words for chat and the website.' },
-      { id: 'ads', label: 'Ads', icon: 'image', to: '/ads', permissions: ['manage_website_ads'], legacy: 'website-ads', description: 'In-game advertisement images.' },
+    id: 'logs',
+    label: 'Logs',
+    icon: 'list',
+    screens: [
+      { id: 'logs', label: 'Log explorer', to: '/logs', permissions: ['view_activity_logs'] },
+      { id: 'views', label: 'Saved views', to: '/logs/views', permissions: ['view_activity_logs'] },
+      { id: 'audit', label: 'Staff audit', to: '/logs/audit', permissions: ['view_activity_logs'] },
+    ],
+  },
+  {
+    id: 'admin',
+    label: 'Admin',
+    icon: 'sliders',
+    screens: [
+      { id: 'access', label: 'Access', to: '/admin/access', permissions: ['manage_housekeeping_permissions'] },
+      { id: 'staff', label: 'Staff', to: '/admin/staff' },
+      { id: 'websitesettings', label: 'Website settings', to: '/admin/website', permissions: ['manage_website_settings'] },
+      { id: 'emulatorsettings', label: 'Emulator settings', to: '/admin/emulator', permissions: ['manage_emulator_settings'] },
     ],
   },
 ];
 
-export function visibleNav(me: Me, can: (p: string) => boolean): NavGroup[] {
-  return NAV.map((g) => ({
-    label: g.label,
-    items: g.items.filter((item) => {
-      if (item.feature && !me.config.features.includes(item.feature)) return false;
-      if (item.permissions && !item.permissions.some(can)) return false;
-      return true;
-    }),
-  })).filter((g) => g.items.length > 0);
+export function screenAllowed(screen: NavScreen, me: Me, can: (p: string) => boolean): boolean {
+  if (screen.feature && !me.config.features.includes(screen.feature)) return false;
+  if (screen.permissions && !screen.permissions.some(can)) return false;
+  return true;
 }
 
-export function findNavItem(id: string): NavItem | undefined {
-  for (const g of NAV) for (const i of g.items) if (i.id === id) return i;
-  return undefined;
+export function visibleNav(me: Me, can: (p: string) => boolean): NavArea[] {
+  return NAV.map((area) => ({ ...area, screens: area.screens.filter((s) => screenAllowed(s, me, can)) })).filter((a) => a.screens.length > 0);
 }
 
-export function groupOf(id: string): string {
-  for (const g of NAV) if (g.items.some((i) => i.id === id)) return g.label;
-  return '';
+/** The area a path belongs to, by its first segment. */
+export function areaOf(pathname: string): string {
+  if (pathname === '/' || pathname === '') return 'today';
+  if (pathname.startsWith('/players') || pathname.startsWith('/people')) return 'people';
+  const first = pathname.split('/')[1] ?? '';
+  return NAV.some((a) => a.id === first) ? first : 'today';
+}
+
+export function screenOf(pathname: string): NavScreen | undefined {
+  let best: NavScreen | undefined;
+  for (const area of NAV)
+    for (const s of area.screens)
+      if (s.to === '/' ? pathname === '/' : pathname === s.to || pathname.startsWith(s.to + '/'))
+        if (!best || s.to.length > best.to.length) best = s;
+  return best;
 }

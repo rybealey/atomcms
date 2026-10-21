@@ -3,8 +3,6 @@
 use App\Models\User;
 use App\Models\User\Ban;
 use App\Models\WebsiteHousekeepingPermission;
-use App\Policies\BanPolicy;
-use Illuminate\Support\Facades\Gate;
 
 function grantHousekeepingPermission(string $permission, int $minRank): void
 {
@@ -29,24 +27,6 @@ test('users without the housekeeping permission are sent back to the website', f
     // A page request is redirected (EnsureHousekeepingAccess); the JSON API refuses outright.
     $this->actingAs($user)->get('/housekeeping')->assertRedirect(route('welcome'));
     $this->actingAs($user)->getJson('/housekeeping/api/me')->assertForbidden();
-});
-
-test('policies evaluate the explicit actor instead of global authentication', function () {
-    installHotel();
-
-    WebsiteHousekeepingPermission::query()->updateOrCreate(
-        ['permission' => 'manage_bans'],
-        ['min_rank' => 5, 'description' => 'Manage bans'],
-    );
-
-    $signedInUser = User::factory()->create(['rank' => 1]);
-    $explicitActor = User::factory()->create(['rank' => 7]);
-    $this->actingAs($signedInUser);
-
-    $banPolicy = app(BanPolicy::class);
-
-    expect($banPolicy->viewAny($explicitActor))->toBeTrue()
-        ->and($banPolicy->viewAny($signedInUser))->toBeFalse();
 });
 
 test('forced staff two-factor authentication also protects housekeeping', function () {
@@ -98,48 +78,16 @@ test('maintenance restrictions also protect housekeeping', function () {
         ->assertRedirect(route('maintenance.show'));
 });
 
-test('staff can only manage users below their own rank', function () {
-    installHotel();
-    grantHousekeepingPermission('edit_user', 6);
-
-    $actor = User::factory()->create(['rank' => 6]);
-    $lower = User::factory()->create(['rank' => 5]);
-    $equal = User::factory()->create(['rank' => 6]);
-    $higher = User::factory()->create(['rank' => 7]);
-
-    expect(Gate::forUser($actor)->allows('update', $lower))->toBeTrue()
-        ->and(Gate::forUser($actor)->allows('update', $actor))->toBeFalse()
-        ->and(Gate::forUser($actor)->allows('update', $equal))->toBeFalse()
-        ->and(Gate::forUser($actor)->allows('update', $higher))->toBeFalse();
-});
-
-test('housekeeping policies evaluate the supplied actor', function () {
-    installHotel();
-    grantHousekeepingPermission('edit_user', 6);
-
-    $authenticated = User::factory()->create(['rank' => 1]);
-    $actor = User::factory()->create(['rank' => 6]);
-    $this->actingAs($authenticated);
-
-    expect(Gate::forUser($actor)->allows('viewAny', User::class))->toBeTrue();
-});
-
-test('the user editor only resolves records below the actor rank', function () {
+test('staff can only act on players below their own rank', function () {
     installHotel();
     grantHousekeepingPermission('can_access_housekeeping', 6);
-    grantHousekeepingPermission('edit_user', 6);
-    grantHousekeepingPermission('reset_user_password', 6);
+    grantHousekeepingPermission('manage_bans', 6);
     setSetting('force_staff_2fa', '0');
 
     $actor = User::factory()->create(['rank' => 6]);
-    $lower = User::factory()->create(['rank' => 5]);
-    $higher = User::factory()->create(['rank' => 7]);
+    $equal = User::factory()->create(['rank' => 6]);
 
     $this->actingAs($actor)
-        ->get("/housekeeping/legacy/user-management/users/{$lower->id}/edit")
-        ->assertOk();
-
-    $this->actingAs($actor)
-        ->get("/housekeeping/legacy/user-management/users/{$higher->id}/edit")
-        ->assertNotFound();
+        ->postJson("/housekeeping/api/players/{$equal->id}/ban", ['seconds' => 3600, 'reason' => 'Testing'])
+        ->assertForbidden();
 });

@@ -22,11 +22,7 @@ use App\Models\User\Ban;
 use App\Models\User\ClaimedReferralLog;
 use App\Models\User\Referral;
 use App\Models\User\UserReferral;
-use App\Services\HousekeepingPermissionsService;
 use Database\Factories\UserFactory;
-use Filament\Models\Contracts\FilamentUser;
-use Filament\Models\Contracts\HasName;
-use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -166,7 +162,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  *
  * @mixin \Eloquent
  */
-class User extends Authenticatable implements FilamentUser, HasName
+class User extends Authenticatable
 {
     use HasApiTokens;
 
@@ -480,16 +476,6 @@ class User extends Authenticatable implements FilamentUser, HasName
     {
         $this->password = Hash::make($newPassword);
         $this->save();
-    }
-
-    public function getFilamentName(): string
-    {
-        return $this->username ?? 'Guest';
-    }
-
-    public function canAccessPanel(Panel $panel): bool
-    {
-        return app(HousekeepingPermissionsService::class)->allows($this, 'can_access_housekeeping');
     }
 
     public function getActivitylogOptions(): LogOptions

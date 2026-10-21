@@ -22,7 +22,7 @@ class RecordLoginAttempt
 
     public function handle(Failed|Login $event): void
     {
-        // Session restores and other guards (Filament's panel, API tokens) are
+        // Session restores and other guards (API tokens) are
         // not website log ins.
         if ($event->guard !== config('fortify.guard', 'web')) {
             return;

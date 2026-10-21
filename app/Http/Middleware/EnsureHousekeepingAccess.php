@@ -9,8 +9,8 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Gates the housekeeping panel and its JSON API on the same rank threshold
- * the Filament panel used: the can_access_housekeeping permission. A route
+ * Gates the housekeeping panel and its JSON API on the
+ * can_access_housekeeping permission. A route
  * may name a further capability (`housekeeping.access:manage_bans`) that the
  * signed-in staff member must also hold.
  */
