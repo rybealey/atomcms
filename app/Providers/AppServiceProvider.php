@@ -13,7 +13,6 @@ use App\Services\PlusRconService;
 use App\Services\RconService;
 use App\Services\SettingsService;
 use App\Services\ViteService;
-use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Vite;
 use Illuminate\Support\Facades\URL;
@@ -98,10 +97,6 @@ class AppServiceProvider extends ServiceProvider
         if (config('habbo.site.force_https')) {
             URL::forceScheme('https');
         }
-
-        Table::configureUsing(function (Table $table) {
-            $table->paginated([10, 25, 50]);
-        });
 
         WebsiteDrawBadge::observe(WebsiteDrawBadgeObserver::class);
     }

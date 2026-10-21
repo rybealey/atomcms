@@ -10,11 +10,10 @@ export default defineConfig({
             input: [
                 path.resolve(__dirname, "css/app.css"),
                 path.resolve(__dirname, "js/app.js"),
-                // Shared entries other layouts (installation, housekeeping's
-                // Filament theme) still read from the same manifest.
+                // Shared entries other layouts (installation) still read from
+                // the same manifest.
                 "resources/js/global.js",
                 "resources/css/global.css",
-                "resources/css/filament/housekeeping/theme.css",
             ],
         }),
 

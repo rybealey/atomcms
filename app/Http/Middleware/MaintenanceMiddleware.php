@@ -53,6 +53,6 @@ class MaintenanceMiddleware
 
     private function isLoginRoute(Request $request): bool
     {
-        return $request->routeIs('login', 'login.store', 'filament.*.auth.login');
+        return $request->routeIs('login', 'login.store');
     }
 }

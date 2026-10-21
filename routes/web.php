@@ -12,14 +12,6 @@ use App\Http\Controllers\Diamonds\DiamondCryptoCheckoutController;
 use App\Http\Controllers\Diamonds\DiamondReturnController;
 use App\Http\Controllers\Diamonds\DiamondStripeWebhookController;
 use App\Http\Controllers\Help\WebsiteRulesController;
-use App\Http\Controllers\Housekeeping\Api\BadgeController as HousekeepingBadgeController;
-use App\Http\Controllers\Housekeeping\Api\DashboardController as HousekeepingDashboardController;
-use App\Http\Controllers\Housekeeping\Api\MeController as HousekeepingMeController;
-use App\Http\Controllers\Housekeeping\Api\PlayerController as HousekeepingPlayerController;
-use App\Http\Controllers\Housekeeping\Api\RoleplayController as HousekeepingRoleplayController;
-use App\Http\Controllers\Housekeeping\Api\SettingController as HousekeepingSettingController;
-use App\Http\Controllers\Housekeeping\Api\StaffController as HousekeepingStaffController;
-use App\Http\Controllers\Housekeeping\HousekeepingController;
 use App\Http\Controllers\Miscellaneous\HomeController;
 use App\Http\Controllers\Miscellaneous\InstallationController;
 use App\Http\Controllers\Miscellaneous\LocaleController;
@@ -95,53 +87,9 @@ Route::middleware(['maintenance', 'check.ban', 'force.staff.2fa'])->group(functi
 
     // Can only be accessed if logged in
     Route::middleware('auth')->group(function () {
-        // pixelrp: the housekeeping panel. A React app served from one Blade
-        // shell, talking to a session-authenticated JSON API under the same
-        // prefix. Filament keeps /housekeeping/legacy (see the panel provider).
-        Route::prefix('housekeeping')->middleware('housekeeping.access')->group(function () {
-            Route::prefix('api')->name('housekeeping.api.')->group(function () {
-                Route::get('/me', HousekeepingMeController::class)->name('me');
-                Route::get('/dashboard', HousekeepingDashboardController::class)->name('dashboard');
+        // pixelrp: the housekeeping panel and its JSON API.
+        require __DIR__ . '/housekeeping.php';
 
-                Route::get('/players', [HousekeepingPlayerController::class, 'index'])->name('players.index');
-                Route::get('/players/{id}', [HousekeepingPlayerController::class, 'show'])->whereNumber('id')->name('players.show');
-
-                Route::middleware('housekeeping.access:manage_website_settings')->group(function () {
-                    Route::get('/settings', [HousekeepingSettingController::class, 'index'])->name('settings.index');
-                    Route::put('/settings', [HousekeepingSettingController::class, 'update'])->name('settings.update');
-                    Route::get('/settings/changes', [HousekeepingSettingController::class, 'changes'])->name('settings.changes');
-                });
-
-                Route::get('/staff', [HousekeepingStaffController::class, 'index'])->name('staff.index');
-                Route::put('/staff/permissions/{permission}', [HousekeepingStaffController::class, 'updatePermission'])
-                    ->middleware('housekeeping.access:manage_housekeeping_permissions')
-                    ->name('staff.permissions.update');
-
-                Route::get('/badges', [HousekeepingBadgeController::class, 'index'])->name('badges.index');
-
-                Route::get('/roleplay/corporations', [HousekeepingRoleplayController::class, 'corporations'])->name('roleplay.corporations');
-                Route::get('/roleplay/corporations/{id}', [HousekeepingRoleplayController::class, 'corporation'])->whereNumber('id')->name('roleplay.corporation');
-                Route::get('/roleplay/crimes', [HousekeepingRoleplayController::class, 'crimes'])->name('roleplay.crimes');
-                // Crimes are the one roleplay resource housekeeping writes
-                // directly: nothing caches them, so :charge sees an edit on its
-                // next use. Behind the settings permission - editing what the
-                // police can charge people with is a hotel-configuration act.
-                Route::middleware('housekeeping.access:manage_website_settings')->group(function () {
-                    Route::post('/roleplay/crimes', [HousekeepingRoleplayController::class, 'storeCrime'])->name('roleplay.crimes.store');
-                    Route::put('/roleplay/crimes/{id}', [HousekeepingRoleplayController::class, 'updateCrime'])->whereNumber('id')->name('roleplay.crimes.update');
-                    Route::delete('/roleplay/crimes/{id}', [HousekeepingRoleplayController::class, 'destroyCrime'])->whereNumber('id')->name('roleplay.crimes.destroy');
-                });
-                Route::get('/roleplay/gangs', [HousekeepingRoleplayController::class, 'gangs'])->name('roleplay.gangs');
-                Route::get('/roleplay/gangs/{id}', [HousekeepingRoleplayController::class, 'gang'])->whereNumber('id')->name('roleplay.gang');
-            });
-
-            // Everything else under /housekeeping is the SPA shell. `legacy`
-            // and `api` are excluded so Filament's routes and the JSON API
-            // above are never shadowed by the catch-all.
-            Route::get('/{any?}', HousekeepingController::class)
-                ->where('any', '^(?!legacy(/|$)|api(/|$)).*$')
-                ->name('housekeeping.app');
-        });
         Route::prefix('user')->group(function () {
             Route::get('/me', MeController::class)->name('me.show');
 

@@ -6,17 +6,20 @@ use App\Emulator\Data\Feature;
 use App\Emulator\Emulator;
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Models\WebsiteDrawBadge;
 use App\Models\WebsiteHousekeepingPermission;
 use App\Services\HousekeepingPermissionsService;
+use App\Support\Housekeeping\GameAbilities;
+use App\Support\Housekeeping\Pulse;
 use App\Support\Housekeeping\RankDirectory;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
  * Everything the panel needs before it can draw its shell: who is signed in,
- * which capabilities they hold, the rank ladder, and the handful of settings
- * the client renders with (imager URL, badge path, hotel name).
+ * which screens (website_housekeeping_permissions) and in-game abilities
+ * (permissions_commands) their rank holds, the rank ladder, the handful of
+ * settings the client renders with, which hotel this is, and the pulse the
+ * rail counts from.
  */
 class MeController extends Controller
 {
@@ -46,6 +49,7 @@ class MeController extends Controller
                 'last_online' => (int) $user->last_online,
             ],
             'permissions' => $granted,
+            'abilities' => GameAbilities::forUser($user),
             'ranks' => $this->ranks->all()->values(),
             'config' => [
                 'hotel_name' => (string) setting('hotel_name', 'PixelRP'),
@@ -56,12 +60,30 @@ class MeController extends Controller
                     ->filter(fn (Feature $feature): bool => Emulator::supports($feature))
                     ->map(fn (Feature $feature): string => $feature->value)
                     ->values(),
-                'legacy_url' => url('/housekeeping/legacy'),
                 'min_staff_rank' => (int) setting('min_staff_rank', 4),
+                'environment' => self::environment(),
             ],
-            'counts' => [
-                'draw_badges' => WebsiteDrawBadge::query()->where('published', 0)->count(),
-            ],
+            'pulse' => Pulse::current(),
         ]);
+    }
+
+    public function pulse(): JsonResponse
+    {
+        return response()->json(Pulse::current());
+    }
+
+    /**
+     * Production, beta (beta.<domain>, a full second hotel refreshed from
+     * prod) or a developer's machine. The shell paints beta orange.
+     */
+    public static function environment(): string
+    {
+        if (app()->environment('local', 'testing')) {
+            return 'local';
+        }
+
+        $host = (string) parse_url((string) config('app.url'), PHP_URL_HOST);
+
+        return str_starts_with($host, 'beta.') ? 'beta' : 'production';
     }
 }

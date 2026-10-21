@@ -88,6 +88,21 @@ class PlusRconService implements Rcon
                 $data['user_id'], $data['seconds'],
             ]),
             'syncdiscord' => $this->sendPlusCommand('reload_user_discord', [$data['user_id']]),
+            // pixelrp: housekeeping's Live actions and the reloads that make a
+            // Saved change take effect without a restart.
+            'takebadge' => $this->sendPlusCommand('take_user_badge', [
+                $data['user_id'], $data['badge'],
+            ]),
+            'takecredits' => $this->sendPlusCommand('take_user_currency', [
+                $data['user_id'], 'credits', $data['credits'],
+            ]),
+            'reloadbans' => $this->sendPlusCommand('reload_bans'),
+            'reloadfilter' => $this->sendPlusCommand('reload_filter'),
+            'reloadcatalog' => $this->sendPlusCommand('reload_catalog'),
+            'reloaditems' => $this->sendPlusCommand('reload_items'),
+            'reloadnavigator' => $this->sendPlusCommand('reload_navigator'),
+            'reloadranks' => $this->sendPlusCommand('reload_ranks'),
+            'reloadsettings' => $this->sendPlusCommand('reload_server_settings'),
             // forwarduser, executecommand, and any unknown key: PlusEMU has
             // no wire command for these, and there's no fallback state to
             // write, so a logged no-op is correct (see forwardUser()'s and

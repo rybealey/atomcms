@@ -25,7 +25,7 @@ Atom CMS is a modern, community-driven CMS designed to provide a flexible and us
 
 - **[Laravel 13.x](https://laravel.com/docs/13.x)** - Elegant PHP framework powering the backend
 - **[Livewire 4](https://livewire.laravel.com/)** - Dynamic frontend components without leaving Blade
-- **[Filament 5](https://filamentphp.com/)** - Powering the integrated housekeeping panel
+- **[React 18](https://react.dev/)** - The housekeeping panel, a single-page app over its own JSON API
 - **[Vite](https://vitejs.dev/)** - Next-generation frontend tooling for blazing-fast builds
 - **[TailwindCSS 4](https://tailwindcss.com/)** - Utility-first CSS framework for responsive design
 
@@ -36,7 +36,7 @@ Atom CMS is a modern, community-driven CMS designed to provide a flexible and us
 - **Built-in Theme System** - Use any CSS framework or create custom themes
 - **Secure Authentication** - Laravel-powered authentication and authorization
 - **Multi-language Support** - Built-in localization for global audiences
-- **Integrated Housekeeping** - Comprehensive Filament-powered admin panel
+- **Integrated Housekeeping** - One panel at /housekeeping for players, moderation, the city, content and logs
 - **Rcon System** - Real-time server communication
 - **Responsive Design** - Mobile-first approach with TailwindCSS
 - **Modern Stack** - Latest PHP 8.5+ features, PHPStan level 8 static analysis

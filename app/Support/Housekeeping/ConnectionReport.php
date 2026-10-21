@@ -5,6 +5,7 @@ namespace App\Support\Housekeeping;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Jenssegers\Agent\Agent;
+use stdClass;
 
 /**
  * pixelrp: what the housekeeping player page shows about where an account
@@ -40,7 +41,7 @@ final class ConnectionReport
             ->whereIn('id', $rows->pluck('character_id')->filter()->unique()->values())
             ->pluck('username', 'id');
 
-        return $rows->map(function (object $row) use ($characters): array {
+        return array_values($rows->map(function (stdClass $row) use ($characters): array {
             $specs = json_decode((string) ($row->specs ?? ''), true);
             $specs = is_array($specs) ? $specs : [];
             $agent = tap(new Agent, fn (Agent $agent) => $agent->setUserAgent((string) ($row->user_agent ?? '')));
@@ -62,7 +63,7 @@ final class ConnectionReport
                 'visits' => (int) $row->visits,
                 'details' => self::details($row, $specs, $agent, $gpu, $characters[$row->character_id] ?? null),
             ];
-        })->values()->all();
+        })->all());
     }
 
     /**
@@ -72,7 +73,7 @@ final class ConnectionReport
      */
     public static function logins(User $account): array
     {
-        return DB::table('website_login_logs')
+        return array_values(DB::table('website_login_logs')
             ->where('user_id', $account->id)
             ->orderByDesc('created_at')
             ->limit(self::MAX_LOGINS)
@@ -90,8 +91,7 @@ final class ConnectionReport
                     'at' => strtotime((string) $row->created_at) ?: null,
                 ];
             })
-            ->values()
-            ->all();
+            ->all());
     }
 
     /**
@@ -107,11 +107,11 @@ final class ConnectionReport
         $logs = DB::table('website_connection_logs')->where('user_id', $account->id);
         $devices = (clone $logs)->distinct()->pluck('device_id')->all();
         $hashes = (clone $logs)->whereNotNull('hardware_hash')->distinct()->pluck('hardware_hash')->all();
-        $ips = self::publicIps(array_merge(
+        $ips = self::publicIps(array_values(array_merge(
             (clone $logs)->distinct()->pluck('ip_address')->all(),
             DB::table('website_login_logs')->where('user_id', $account->id)->where('succeeded', true)->distinct()->pluck('ip_address')->all(),
             [$account->getAttribute(PlayerColumns::currentIp()), $account->getAttribute(PlayerColumns::registerIp())],
-        ));
+        )));
 
         /** @var array<int, array{id: int, device: bool, hardware: bool, ips: array<string, true>, last_seen: int|null}> $found */
         $found = [];
@@ -332,7 +332,7 @@ final class ConnectionReport
      *
      * @return list<array{0: string, 1: string}>
      */
-    private static function details(object $row, array $specs, Agent $agent, ?string $gpu, ?string $character): array
+    private static function details(stdClass $row, array $specs, Agent $agent, ?string $gpu, ?string $character): array
     {
         $ua = is_array($specs['uaData'] ?? null) ? $specs['uaData'] : [];
         $screen = is_array($specs['screen'] ?? null) ? $specs['screen'] : [];

@@ -28,6 +28,9 @@ class Kernel extends ConsoleKernel
 
         // pixelrp: the log in history (WebsiteLoginLog) is kept for 90 days.
         $schedule->command('model:prune', ['--model' => [WebsiteLoginLog::class]])->daily();
+
+        // pixelrp: housekeeping's online history (Today's sparkline and peak).
+        $schedule->command('housekeeping:sample-online')->everyFiveMinutes();
     }
 
     /**

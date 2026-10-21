@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Housekeeping\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Miscellaneous\WebsiteSetting;
-use App\Models\User;
 use App\Services\SettingsService;
+use App\Support\Housekeeping\Audit;
+use App\Support\Housekeeping\Epoch;
+use App\Support\Housekeeping\PlayerRefs;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Spatie\Activitylog\Models\Activity;
@@ -13,11 +15,13 @@ use Spatie\Activitylog\Models\Activity;
 /**
  * Website settings for the panel. Secrets never leave the server: their
  * values come back null with a has_value flag, and a null in a save request
- * means "leave it alone".
+ * means "leave it alone". Changes go to the staff audit trail; the history
+ * also reads the log the earlier panel wrote.
  */
 class SettingController extends Controller
 {
-    private const LOG_NAME = 'housekeeping-settings';
+    /** The log the earlier panel wrote settings changes to. */
+    private const OLD_LOG = 'housekeeping-settings';
 
     /** @var list<string> */
     private const SECRET_KEYS = ['ipdata_api_key', 'tinymce_api_key', 'discord_webhook_url'];
@@ -34,10 +38,9 @@ class SettingController extends Controller
         $validated = $request->validate([
             'settings' => ['required', 'array', 'min:1', 'max:200'],
             'settings.*' => ['nullable', 'string', 'max:5000'],
+            'reason' => ['nullable', 'string', 'max:500'],
         ]);
 
-        /** @var User $actor */
-        $actor = $request->user();
         /** @var array<string, string|null> $incoming */
         $incoming = $validated['settings'];
 
@@ -58,16 +61,15 @@ class SettingController extends Controller
             $setting->save();
             $changed[] = $key;
 
-            activity(self::LOG_NAME)
-                ->causedBy($actor)
-                ->performedOn($setting)
-                ->withProperties([
-                    'key' => $key,
-                    'old' => $secret ? '••••' : $old,
-                    'new' => $secret ? '••••' : $value,
-                ])
-                ->event('updated')
-                ->log("Setting {$key} changed");
+            Audit::record(
+                'setting',
+                sprintf('changed the website setting %s', $key),
+                before: ['value' => $secret ? '••••' : $old],
+                after: ['value' => $secret ? '••••' : $value],
+                reason: $validated['reason'] ?? null,
+                target: ['type' => 'website_setting', 'id' => $key],
+                subject: $setting,
+            );
         }
 
         SettingsService::clearCache();
@@ -81,29 +83,27 @@ class SettingController extends Controller
     public function changes(): JsonResponse
     {
         $entries = Activity::query()
-            ->with('causer')
-            ->where('log_name', self::LOG_NAME)
-            ->latest()
+            ->where(fn ($q) => $q->where('log_name', self::OLD_LOG)->orWhere(fn ($n) => $n->where('log_name', Audit::LOG)->where('event', 'setting')))
+            ->latest('id')
             ->limit(40)
-            ->get()
-            ->map(function (Activity $entry): array {
-                $causer = $entry->causer;
-                /** @var array<string, mixed> $properties */
-                $properties = collect($entry->properties)->toArray();
+            ->get();
+        $refs = PlayerRefs::many($entries->pluck('causer_id'));
 
-                return [
-                    'id' => $entry->id,
-                    'who' => $causer instanceof User ? $causer->username : 'System',
-                    'look' => $causer instanceof User ? (string) $causer->look : null,
-                    'key' => (string) ($properties['key'] ?? ''),
-                    'old' => isset($properties['old']) ? (string) $properties['old'] : null,
-                    'new' => isset($properties['new']) ? (string) $properties['new'] : null,
-                    'at' => $entry->created_at?->timestamp,
-                ];
-            })
-            ->values();
+        return response()->json(['changes' => $entries->map(function (Activity $entry) use ($refs): array {
+            /** @var array<string, mixed> $p */
+            $p = $entry->properties?->toArray() ?? [];
+            $key = (string) ($p['key'] ?? ($p['target']['id'] ?? ''));
 
-        return response()->json(['changes' => $entries]);
+            return [
+                'id' => (int) $entry->id,
+                'actor' => PlayerRefs::pick($refs, $entry->causer_id),
+                'key' => $key,
+                'old' => isset($p['old']) ? (string) $p['old'] : (isset($p['before']['value']) ? (string) $p['before']['value'] : null),
+                'new' => isset($p['new']) ? (string) $p['new'] : (isset($p['after']['value']) ? (string) $p['after']['value'] : null),
+                'reason' => is_string($p['reason'] ?? null) ? $p['reason'] : null,
+                'at' => Epoch::of($entry->created_at),
+            ];
+        })->values()]);
     }
 
     /**

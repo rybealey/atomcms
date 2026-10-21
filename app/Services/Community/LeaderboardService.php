@@ -195,7 +195,7 @@ class LeaderboardService
      */
     private function top(string $id, callable $read): Collection
     {
-        $rows = Cache::remember('leaderboard:top:'.$id, now()->addMinute(), fn (): array => $read()
+        $rows = Cache::remember('leaderboard:top:' . $id, now()->addMinute(), fn (): array => $read()
             ->map(fn (LeaderboardEntry $entry): array => [
                 'id' => (int) $entry->user->id,
                 'username' => (string) $entry->user->username,

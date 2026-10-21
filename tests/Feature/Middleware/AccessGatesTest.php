@@ -58,11 +58,14 @@ test('maintenance does not allow arbitrary guest posts', function () {
     $this->post(route('register'), [])->assertRedirect(route('maintenance.show'));
 });
 
-test('the housekeeping login remains available during maintenance', function () {
+test('the login page remains available during maintenance', function () {
     installHotel();
     setSetting('maintenance_enabled', '1');
 
-    $this->get('/housekeeping/legacy/login')->assertOk();
+    // GET /login hands over to the welcome page's sign-in form; neither it
+    // nor the form's POST may bounce to the maintenance notice.
+    $this->get(route('login'))->assertRedirect(route('welcome'));
+    $this->post(route('login.store'), [])->assertSessionHasErrors();
 });
 
 test('staff above the maintenance rank bypass maintenance', function () {
