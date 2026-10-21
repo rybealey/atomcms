@@ -29,6 +29,11 @@ use Illuminate\Support\Facades\Log;
  * is never paused, so a row from before a promotion can't lock one out. Other
  * staff can be: the client skips the guard for Administrators too, but
  * Builders up to Moderators run it like any player.
+ *
+ * A ban on any character of the account pauses it too, until the ban ends -
+ * for every rank. Without it a pass already issued kept working for its whole
+ * TTL after the ban, and a ban on a second character was never seen at all
+ * (check.ban reads the root's name only).
  */
 final class AssetPause
 {
@@ -39,6 +44,72 @@ final class AssetPause
 
     /** Unix time the account's pause ends, or null when it isn't paused. */
     public static function until(User $account): ?int
+    {
+        $banned = self::bans($account->id)[$account->id] ?? null;
+        $guarded = self::guardUntil($account);
+
+        return ($banned === null && $guarded === null) ? null : max((int) $banned, (int) $guarded);
+    }
+
+    /** @return array<int, int> Every paused account => the unix time its pause ends. */
+    public static function all(): array
+    {
+        $paused = self::guardAll();
+
+        foreach (self::bans() as $account => $until) {
+            $paused[$account] = max($paused[$account] ?? 0, $until);
+        }
+
+        return $paused;
+    }
+
+    /**
+     * Accounts with a character under an active user ban => when the last of
+     * those bans ends. Optionally for one account only.
+     *
+     * @return array<int, int>
+     */
+    private static function bans(?int $account = null): array
+    {
+        // Two reads rather than a join: bans.value and users.username are in
+        // different character sets, and Plus keys a user ban by the name.
+        try {
+            $query = DB::table('bans')->where('bantype', 'user')->where('expire', '>', time());
+
+            if ($account !== null) {
+                $query->whereIn('value', DB::table('users')->where('id', $account)->orWhere('parent_id', $account)->pluck('username'));
+            }
+
+            $bans = $query->get(['value', 'expire']);
+
+            if ($bans->isEmpty()) {
+                return [];
+            }
+
+            $accounts = DB::table('users')
+                ->whereIn('username', $bans->pluck('value')->unique()->values())
+                ->get(['username', 'id', 'parent_id'])
+                ->mapWithKeys(fn (object $user): array => [mb_strtolower((string) $user->username) => (int) ($user->parent_id ?: $user->id)]);
+        } catch (QueryException $e) {
+            Log::warning('AssetPause: could not read bans', ['error' => $e->getMessage()]);
+
+            return [];
+        }
+
+        $banned = [];
+
+        foreach ($bans as $ban) {
+            $root = $accounts[mb_strtolower((string) $ban->value)] ?? null;
+
+            if ($root !== null) {
+                $banned[$root] = max($banned[$root] ?? 0, (int) $ban->expire);
+            }
+        }
+
+        return $banned;
+    }
+
+    private static function guardUntil(User $account): ?int
     {
         if (AssetPass::tier($account) === AssetPass::TIER_STAFF) {
             return null;
@@ -59,8 +130,8 @@ final class AssetPause
         return $latest === null ? null : (int) $latest + self::seconds();
     }
 
-    /** @return array<int, int> Every paused account => the unix time its pause ends. */
-    public static function all(): array
+    /** @return array<int, int> Every account the guard paused => the unix time that pause ends. */
+    private static function guardAll(): array
     {
         try {
             $rows = DB::select(

@@ -13,6 +13,7 @@ use App\Models\User;
 use App\Services\HousekeepingPermissionsService;
 use App\Support\Housekeeping\BanScope;
 use App\Support\Housekeeping\ConnectionReport;
+use App\Support\Housekeeping\PacketFloodReport;
 use App\Support\Housekeeping\PlayerColumns;
 use App\Support\Housekeeping\RankDirectory;
 use Illuminate\Database\Eloquent\Builder;
@@ -121,6 +122,9 @@ class PlayerController extends Controller
                 'connections' => $canSeeEmail ? ConnectionReport::connections($user) : null,
                 'logins' => $canSeeEmail ? ConnectionReport::logins($user) : null,
                 'linked' => $canSeeEmail ? $this->linked($user) : null,
+                // pixelrp: disconnects for packet flooding (PacketFloodReport) -
+                // no IPs in them, so for everyone who can open the page.
+                'floods' => $this->hasTable('rp_packet_flood_log') ? PacketFloodReport::disconnects($user) : [],
                 'roleplay' => $this->roleplay($user),
             ],
             'can' => [

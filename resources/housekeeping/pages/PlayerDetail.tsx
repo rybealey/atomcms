@@ -19,6 +19,7 @@ interface PlayerDetailData {
     connections: Connection[] | null;
     logins: LoginEntry[] | null;
     linked: LinkedAccount[] | null;
+    floods: FloodEntry[];
     roleplay: {
       corporation: { id: number; name: string; badge: string; rank_name: string; rank_order: number; tier: number; hired_at: number; shift_seconds: number; shift_seconds_week: number; on_duty: boolean } | null;
       gang: { id: number; name: string; role_name: string; joined_at: number } | null;
@@ -35,6 +36,8 @@ interface Connection {
   details: [string, string][];
 }
 interface LoginEntry { ip: string; device: string; ok: boolean; method: string; at: number | null }
+/** One disconnect for flooding the game server with packets (PacketFloodReport). */
+interface FloodEntry { character: string; packet: string; dropped: number; window: number; at: number }
 type LinkedAccount = PlayerSummary & { same_device: boolean; same_hardware: boolean; shared_ips: string[]; seen_together: number | null };
 
 const LOGIN_METHOD: Record<string, string> = {
@@ -260,6 +263,7 @@ export default function PlayerDetail() {
               <LoginsCard rows={p.logins ?? []} />
             </>
           )}
+          <FloodsCard rows={p.floods ?? []} />
           <Card title="Email">
             <div className="hk-card__body" style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
               <code style={{ fontSize: 14 }}>{p.mail ?? 'Hidden — needs the edit players capability'}</code>
@@ -397,6 +401,33 @@ function LinkedCard({ rows, imager }: { rows: LinkedAccount[]; imager: string })
             {o.same_hardware && !o.same_device ? <Pill tone="warning">Same hardware</Pill> : null}
             {o.banned ? <Pill tone="danger">Banned</Pill> : null}
             <span className="small muted">{relTime(o.seen_together ?? o.last_online)}</span>
+          </div>
+        ))
+      )}
+    </Card>
+  );
+}
+
+/**
+ * Times the game server cut the account off for sending far more packets than
+ * the client ever does - a packet tool or a bot - on any of its characters.
+ */
+function FloodsCard({ rows }: { rows: FloodEntry[] }) {
+  return (
+    <Card title="Disconnected for packet flooding" action={<span className="small muted">{rows.length}</span>}>
+      {rows.length === 0 ? (
+        <div className="hk-card__body muted small">Never disconnected for flooding.</div>
+      ) : (
+        rows.map((f, i) => (
+          <div key={i} className="hk-row" style={{ flexWrap: 'wrap' }}>
+            <Pill tone="danger">Flood</Pill>
+            <span className="hk-row__main">
+              <span className="hk-row__title">{f.character}</span>
+              <span className="hk-row__sub">
+                {fmtNumber(f.dropped)} packets over the limit in {f.window}s, mostly <code>{f.packet}</code>
+              </span>
+            </span>
+            <span className="small muted">{fmtDateTime(f.at)}</span>
           </div>
         ))
       )}

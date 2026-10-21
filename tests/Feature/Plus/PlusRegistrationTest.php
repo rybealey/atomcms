@@ -93,6 +93,9 @@ class PlusRegistrationTest extends TestCase
         $ticket = $user->ssoTicket();
 
         $this->assertGreaterThanOrEqual(15, strlen($ticket));
+        // The issue time, then the UUID - the shape the emulator's ticket
+        // expiry reads (Authenticator.IssuedTicket).
+        $this->assertMatchesRegularExpression('/-\d{10}-[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/', $ticket);
         $this->assertDatabaseHas('users', ['id' => $user->id, 'auth_ticket' => $ticket]);
     }
 }

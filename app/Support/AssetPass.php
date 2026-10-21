@@ -29,7 +29,8 @@ use Symfony\Component\HttpFoundation\Cookie;
  *
  * Issued when /game loads and renewed by the client every half hour
  * (GET /game/asset-pass). Banned accounts never reach either route
- * (check.ban), so a ban stops the renewals and the pass dies within its TTL.
+ * (check.ban), and a ban on any character puts the account on nginx's pause
+ * list (AssetPause), so a pass in hand stops working within seconds.
  */
 final class AssetPass
 {

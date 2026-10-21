@@ -388,7 +388,10 @@ class User extends Authenticatable implements FilamentUser, HasName
         $maxAttempts = 5;
 
         for ($i = 0; $i < $maxAttempts; $i++) {
-            $sso = sprintf('%s-%s', Str::replace(' ', '', setting('hotel_name', 'Atom')), Str::uuid());
+            // pixelrp: the ticket carries the time it was issued, and the
+            // emulator refuses it a few minutes on (Authenticator) - one taken
+            // from /game and kept for later is soon worthless.
+            $sso = sprintf('%s-%d-%s', Str::replace(' ', '', setting('hotel_name', 'Atom')), time(), Str::uuid());
 
             if (! User::where('auth_ticket', $sso)->exists()) {
                 $this->update(['auth_ticket' => $sso]);
