@@ -35,8 +35,10 @@ class UserApiService
             ->get());
     }
 
+    // pixelrp: every open game client asks for this (OnlineCountView), so it
+    // reads the same 30-second cache as the website's counter.
     public function onlineUserCount(): int
     {
-        return User::where('online', '1')->count();
+        return players_online();
     }
 }

@@ -99,11 +99,11 @@ jobs:
         # typography plugin are dev tooling that never ships to a browser.
         run: npm audit --omit=dev --audit-level=moderate
 
-      - name: Build Atom theme
-        run: npm run build:atom
-
-      - name: Build Dusk theme
-        run: npm run build:dusk
+      # pixelrp: the theme the hotel ships (docker/cms/Dockerfile builds it,
+      # and deploy sets website_settings.theme to it). Atom and Dusk were built
+      # here instead and are never served.
+      - name: Build the PixelRP theme
+        run: npm run build:pixelrp
 
       - name: Type-check the housekeeping panel
         run: npm run typecheck:housekeeping
