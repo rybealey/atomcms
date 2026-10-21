@@ -13,6 +13,11 @@ class SecurityHeaders
         $response = $next($request);
 
         $response->headers->set('Content-Security-Policy', "base-uri 'self'; frame-ancestors 'self'");
+        // pixelrp: a page another site opens with window.open() keeps no link
+        // back to it, so that site can't script /game's client frame through
+        // the reference (frame-ancestors only covers framing). Popups we open
+        // keep theirs.
+        $response->headers->set('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
         $response->headers->set('Permissions-Policy', 'accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()');
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
         $response->headers->set('X-Content-Type-Options', 'nosniff');

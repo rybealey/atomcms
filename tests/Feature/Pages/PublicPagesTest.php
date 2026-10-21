@@ -14,6 +14,7 @@ test('public responses include browser security headers', function () {
     $this->get(route('help-center.rules.index'))
         ->assertOk()
         ->assertHeader('Content-Security-Policy', "base-uri 'self'; frame-ancestors 'self'")
+        ->assertHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups')
         ->assertHeader('Permissions-Policy', 'accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()')
         ->assertHeader('Referrer-Policy', 'strict-origin-when-cross-origin')
         ->assertHeader('X-Content-Type-Options', 'nosniff')

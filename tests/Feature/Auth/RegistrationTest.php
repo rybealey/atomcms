@@ -121,3 +121,23 @@ test('registration and observer side effects roll back together', function () {
         ->and(DB::table('website_registration_locks')->count())
         ->toBe(0);
 });
+
+test('registration requires the captcha while Turnstile is on', function () {
+    installHotel();
+    setSetting('cloudflare_turnstile_enabled', '1');
+    config(['services.turnstile.secret' => 'test-secret']);
+
+    register()->assertSessionHasErrors('cf-turnstile-response');
+
+    expect(User::where('username', 'Tester')->exists())->toBeFalse();
+});
+
+test('registration asks for no captcha while Turnstile has no secret', function () {
+    installHotel();
+    setSetting('cloudflare_turnstile_enabled', '1');
+    config(['services.turnstile.secret' => '']);
+
+    register()->assertRedirect();
+
+    $this->assertAuthenticated();
+});

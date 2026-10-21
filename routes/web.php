@@ -3,7 +3,6 @@
 use App\Actions\Fortify\Controllers\TwoFactorAuthenticatedSessionController;
 use App\Http\Controllers\Client\AssetPassController;
 use App\Http\Controllers\Client\DeviceReportController;
-use App\Http\Controllers\Client\FlashController;
 use App\Http\Controllers\Client\NitroController;
 use App\Http\Controllers\Community\CorporationController;
 use App\Http\Controllers\Community\GangController;
@@ -227,7 +226,6 @@ Route::middleware(['maintenance', 'check.ban', 'force.staff.2fa'])->group(functi
             Route::post('/game/device', DeviceReportController::class)->name('nitro-client.device')
                 ->withoutMiddleware('findretros.redirect')->middleware('throttle:10,1');
             Route::redirect('/game/nitro', '/game', 301);
-            Route::get('/game/flash', FlashController::class)->name('flash-client');
         });
     });
 });

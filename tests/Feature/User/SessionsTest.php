@@ -46,3 +46,19 @@ test('the sessions page shows the history and warns about failed attempts', func
         ->assertSee('203.0.113.xx')
         ->assertDontSee('203.0.113.9');
 });
+
+test('changing the password signs out every other device', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->get(route('settings.session-logs'))
+        ->assertOk();
+
+    // Changed somewhere else - another device, or a reset - so the password
+    // this session was signed in with is no longer the account's.
+    $user->changePassword('Another-pass-123!');
+
+    $this->get(route('settings.session-logs'))->assertRedirect();
+
+    $this->assertGuest();
+});

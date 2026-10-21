@@ -194,12 +194,21 @@ class CreateNewUser implements CreatesNewUsers
             'look' => ['nullable', 'string', Rule::in(array_keys(config('hotel.starting_looks', [])))],
             'terms' => ['required', 'accepted'],
             'g-recaptcha-response' => ['sometimes', 'string', new GoogleRecaptchaRule],
-            'cf-turnstile-response' => [app(Turnstile::class)],
+            // pixelrp: required whenever the widget is shown. Without it the
+            // rule never ran on a missing field, so leaving the field out of
+            // the POST skipped the check. Only with a secret to check against:
+            // prod's is empty until one is set, and requiring it then would
+            // refuse every sign-up.
+            'cf-turnstile-response' => [
+                Rule::requiredIf(fn () => setting('cloudflare_turnstile_enabled') && filled(config('services.turnstile.secret'))),
+                app(Turnstile::class),
+            ],
         ];
 
         $messages = [
             'g-recaptcha-response.required' => __('The Google recaptcha must be completed'),
             'g-recaptcha-response.string' => __('The google recaptcha was submitted with an invalid type'),
+            'cf-turnstile-response.required' => __('Please complete the captcha.'),
         ];
 
         $validated = Validator::make($inputs, $rules, $messages)->validate();

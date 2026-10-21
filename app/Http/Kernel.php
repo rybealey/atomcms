@@ -18,6 +18,7 @@ use App\Http\Middleware\RedirectIfAuthenticated;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetThemeMiddleware;
 use App\Http\Middleware\TrimStrings;
+use App\Http\Middleware\TrustHosts;
 use App\Http\Middleware\TrustProxies;
 use App\Http\Middleware\VerifyCsrfToken;
 use App\Http\Middleware\VPNCheckerMiddleware;
@@ -49,7 +50,10 @@ class Kernel extends HttpKernel
      * @var array<int, class-string|string>
      */
     protected $middleware = [
-        // \App\Http\Middleware\TrustHosts::class,
+        // pixelrp: links in mail (password resets) are built from the request's
+        // host, so only our own hosts may be one - the origin is reachable
+        // through any Cloudflare account, under any name.
+        TrustHosts::class,
         TrustProxies::class,
         SecurityHeaders::class,
         HandleCors::class,
@@ -72,6 +76,10 @@ class Kernel extends HttpKernel
             EncryptCookies::class,
             AddQueuedCookiesToResponse::class,
             StartSession::class,
+            // pixelrp: a session or "keep me logged in" cookie carrying an old
+            // password ends, so changing or resetting the password signs out
+            // every other device - including one that stole the login.
+            AuthenticateSession::class,
             ShareErrorsFromSession::class,
             VerifyCsrfToken::class,
             SubstituteBindings::class,
