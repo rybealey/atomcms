@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Actions\Fortify\Rules\PasswordValidationRules;
 use App\Rules\GoogleRecaptchaRule;
+use App\Rules\NotBotNameRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use RyanChandler\LaravelCloudflareTurnstile\Rules\Turnstile;
@@ -18,7 +19,7 @@ class RegisterFormRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'username' => ['required', 'string', sprintf('regex:%s', setting('username_regex')), 'max:25', Rule::unique('users')],
+            'username' => ['required', 'string', sprintf('regex:%s', setting('username_regex')), 'max:25', Rule::unique('users'), new NotBotNameRule],
             'mail' => ['required', 'string', 'email', 'max:255', Rule::unique('users')],
             'password' => $this->passwordRules(),
             'terms' => ['required', 'accepted'],

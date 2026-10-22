@@ -8,6 +8,7 @@ use App\Models\Miscellaneous\WebsiteBetaCode;
 use App\Models\User;
 use App\Rules\BetaCodeRule;
 use App\Rules\GoogleRecaptchaRule;
+use App\Rules\NotBotNameRule;
 use App\Rules\WebsiteWordfilterRule;
 use App\Services\Auth\RegistrationMutex;
 use Illuminate\Support\Facades\Hash;
@@ -184,7 +185,7 @@ class CreateNewUser implements CreatesNewUsers
             // The fallback matches the username_regex setting, three-character
             // minimum included - it only fires if that row is ever cleared, and
             // a laxer fallback would quietly reinstate the old rule there.
-            'username' => ['required', 'string', sprintf('regex:%s', setting('username_regex') ?: '/^[a-zA-Z0-9_.-]{3,}$/'), 'max:25', Rule::unique('users'), new WebsiteWordfilterRule],
+            'username' => ['required', 'string', sprintf('regex:%s', setting('username_regex') ?: '/^[a-zA-Z0-9_.-]{3,}$/'), 'max:25', Rule::unique('users'), new WebsiteWordfilterRule, new NotBotNameRule],
             'mail' => ['required', 'string', 'email', 'max:255', Rule::unique('users')],
             'password' => $this->passwordRules(),
             'beta_code' => [Rule::requiredIf(setting('requires_beta_code') === '1'), 'nullable', 'string', new BetaCodeRule],

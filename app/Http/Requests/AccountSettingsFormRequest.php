@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Models\User;
 use App\Rules\CurrentPasswordRule;
 use App\Rules\GoogleRecaptchaRule;
+use App\Rules\NotBotNameRule;
 use App\Rules\WebsiteWordfilterRule;
 use App\Support\AuthenticatedUser;
 use Illuminate\Foundation\Http\FormRequest;
@@ -18,7 +19,7 @@ class AccountSettingsFormRequest extends FormRequest
     {
         $user = AuthenticatedUser::from($this);
         $rules = [
-            'username' => ['sometimes', 'string', sprintf('regex:%s', setting('username_regex')), 'min:3', 'max:25', Rule::unique('users')->ignore($user->id), new WebsiteWordfilterRule],
+            'username' => ['sometimes', 'string', sprintf('regex:%s', setting('username_regex')), 'min:3', 'max:25', Rule::unique('users')->ignore($user->id), new WebsiteWordfilterRule, new NotBotNameRule],
             'mail' => ['required', 'email', Rule::unique('users')->ignore($user->id), new WebsiteWordfilterRule],
             'motto' => ['nullable', 'string', 'max:127', new WebsiteWordfilterRule],
             'g-recaptcha-response' => [new GoogleRecaptchaRule],
